@@ -1,0 +1,49 @@
+Build an app that enables universal dictation and advanced text transformation for professionals, with the following specific capabilities:
+
+1. CORE DICTATION FUNCTIONALITY:
+   - Allow dictation into any text field, including Replit's coding environment, other coding platforms, browser search bars (Chrome, Brave, Edge, Firefox), and any standard text input field.
+   - Use a floating widget or keyboard shortcut to trigger dictation that inserts text wherever the cursor is positioned.
+   - Ensure dictation works continuously without timing out during long sessions.
+
+2. SPEECH-TO-TEXT INTEGRATION:
+   - Primary: Use my Gladia API key (Curved Red Giraffe) for high-quality, low-latency transcription.
+   - Fallback: Use my OpenAI Whisper API (via my existing OpenAI API key) if Gladia has issues.
+   - Alternative: Use my Deepgram API key as an optional transcription engine that users can select.
+
+3. INTELLIGENCE ENHANCEMENT:
+   - Allow users to dictate directly into the app, then transform their rough text into polished, intelligent output.
+   - Use my OpenAI API key (GPT-4o) for all text transformations and enhancements.
+   - Provide a text field where users can manually enter custom transformation instructions, like "rewrite in the style of john-michael kuczynski. illustrate with examples about foundationalism, coherentism, skepticism, instrumentalism, and pragmatism. write at level of extremely..."
+   - Include preset transformation options as well as custom instructions.
+
+4. DOCUMENT HANDLING:
+   - Allow upload of Word documents (.docx), text files (.txt), and PDFs.
+   - Enable direct dictation into these documents at any cursor position.
+   - Support document enhancement/rewriting using the same custom instruction interface.
+   - Provide document download in the original format after modification.
+
+5. REFERENCE TEXT & STYLE EMULATION:
+   - Create a "Personal Style Humanizer" feature that lets users upload sample texts.
+   - Allow users to tell the app to emulate the style of these reference documents.
+   - Enable extraction and use of specific information from uploaded documents ("use quote 1 in your rewrite").
+   - Support multiple reference documents for both style and content sources.
+
+6. USER INTERFACE:
+   - Clean, responsive design with dark mode.
+   - Split-screen view showing original and processed text.
+   - Drag-and-drop file upload area (supporting PDFs, Word docs, and images).
+   - Custom instruction text area with clear guidance on how to specify rewrite parameters.
+   - Toggle for using personal writing style.
+
+7. API INTEGRATION & SECURITY:
+   - Store all API keys (Gladia, OpenAI, Deepgram) in Replit Secrets.
+   - Access these securely via environment variables.
+   - Handle all error cases gracefully if API calls fail.
+
+8. ABSOLUTELY NO CENSORSHIP:
+   - The app must avoid content filtering and censorship as much as possible, except where strictly required by law.
+   - Do not implement any moderation algorithms that might interfere with free expression.
+   - Users must be able to explore any topic, from technical subjects to controversial areas, without interference.
+   - The purpose is to help writers and professionals think and express themselves freely.
+
+This app should serve as a complete replacement for typing, while also enhancing the quality and intelligence of the user's output. It's an intelligence amplification tool for professionals, not just a simple dictation or paraphrasing solution.
