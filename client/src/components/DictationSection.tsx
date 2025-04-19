@@ -14,6 +14,7 @@ import { useDictation } from "@/hooks/useDictation";
 import { useTTS } from "@/hooks/useTTS";
 
 const DictationSection = () => {
+  // App context
   const {
     originalText,
     setOriginalText,
@@ -32,8 +33,19 @@ const DictationSection = () => {
     setSelectedPreset
   } = useAppContext();
 
+  // Component state
+  const [currentTab, setCurrentTab] = useState("direct-dictation");
+  const [showVoiceSelect, setShowVoiceSelect] = useState(false);
+  
+  // Custom hooks
   const { transformText } = useTransformation();
-  const { dictationStatus } = useDictation();
+  const { 
+    dictationStatus,
+    hasRecordedAudio, 
+    isPlaying: isOriginalAudioPlaying,
+    playRecordedAudio,
+    downloadRecordedAudio
+  } = useDictation();
   const { 
     isLoading: isTtsLoading, 
     isPlaying, 
@@ -48,8 +60,12 @@ const DictationSection = () => {
     downloadAudio 
   } = useTTS();
 
-  const [currentTab, setCurrentTab] = useState("direct-dictation");
-  const [showVoiceSelect, setShowVoiceSelect] = useState(false);
+  // Effect to fetch voices when processed text is available
+  useEffect(() => {
+    if (processedText) {
+      fetchVoices();
+    }
+  }, [fetchVoices, processedText]);
 
   // Handlers
   const handleTransformText = async () => {
@@ -86,7 +102,7 @@ const DictationSection = () => {
     setShowVoiceSelect(false);
   };
 
-  // Handle play/pause narration
+  // Handle play/pause narration for processed text
   const handlePlayNarration = async () => {
     if (!processedText) return;
     
@@ -101,13 +117,6 @@ const DictationSection = () => {
       playAudio();
     }
   };
-
-  // Fetch available voices when processed text is available
-  useEffect(() => {
-    if (processedText) {
-      fetchVoices();
-    }
-  }, [fetchVoices, processedText]);
 
   const presets = ["Academic", "Professional", "Creative", "Concise", "Elaborate"];
 
@@ -163,6 +172,46 @@ const DictationSection = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Original Audio Controls - Only show when audio was recorded */}
+                {hasRecordedAudio && (
+                  <div className="flex items-center space-x-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center"
+                            onClick={playRecordedAudio}
+                          >
+                            {isOriginalAudioPlaying ? (
+                              <i className="ri-pause-fill mr-1.5"></i>
+                            ) : (
+                              <i className="ri-play-fill mr-1.5"></i>
+                            )}
+                            {isOriginalAudioPlaying 
+                              ? "Pause Original Audio" 
+                              : "Play Original Audio"}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          <p className="text-xs">Play your original dictation audio recording</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center"
+                      onClick={downloadRecordedAudio}
+                    >
+                      <i className="ri-download-line mr-1.5"></i>
+                      Download Recording
+                    </Button>
+                  </div>
+                )}
               </div>
               
               {/* Processed Text Panel */}

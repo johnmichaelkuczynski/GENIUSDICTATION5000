@@ -1,9 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { SpeechEngine } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 export function useDictation() {
+  const { toast } = useToast();
   const [dictationStatus, setDictationStatus] = useState("Ready");
+  const [hasRecordedAudio, setHasRecordedAudio] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  
   const { 
     setOriginalText, 
     originalText, 
@@ -14,6 +19,11 @@ export function useDictation() {
   // Store a reference to the current dictation session
   let mediaRecorder: MediaRecorder | null = null;
   let audioChunks: Blob[] = [];
+  
+  // References for audio playback
+  const recordedAudioBlobRef = useRef<Blob | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
 
   const startDictation = useCallback(async () => {
     try {
@@ -34,6 +44,20 @@ export function useDictation() {
       // When recording stops, process the audio
       mediaRecorder.addEventListener("stop", async () => {
         const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        
+        // Save the audio blob for playback
+        recordedAudioBlobRef.current = audioBlob;
+        setHasRecordedAudio(true);
+        
+        // Clean up any previous audio
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+        }
+        
+        // Create and store the audio URL
+        const audioUrl = URL.createObjectURL(audioBlob);
+        audioUrlRef.current = audioUrl;
+        
         await processAudio(audioBlob);
       });
       
@@ -47,7 +71,7 @@ export function useDictation() {
       setDictationStatus("Error starting dictation");
       return false;
     }
-  }, [selectedSpeechEngine, setOriginalText]);
+  }, [selectedSpeechEngine, setDictationActive, setOriginalText]);
 
   const stopDictation = useCallback(async () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -62,7 +86,7 @@ export function useDictation() {
       setDictationActive(false);
       setDictationStatus("Ready");
     }
-  }, []);
+  }, [setDictationActive]);
 
   const processAudio = useCallback(async (audioBlob: Blob) => {
     try {
@@ -119,9 +143,91 @@ export function useDictation() {
     }
   }, [selectedSpeechEngine, setOriginalText]);
 
+  // Play the recorded audio
+  const playRecordedAudio = useCallback(() => {
+    if (!audioUrlRef.current) {
+      toast({
+        variant: "destructive",
+        title: "No recorded audio",
+        description: "There is no recorded audio available to play",
+      });
+      return;
+    }
+
+    if (isPlaying) {
+      // If already playing, pause it
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+    } else {
+      // Create a new audio element if not exists
+      if (!audioRef.current) {
+        const audio = new Audio(audioUrlRef.current);
+        
+        audio.addEventListener("ended", () => {
+          setIsPlaying(false);
+        });
+        
+        audio.addEventListener("error", (e) => {
+          console.error("Audio playback error:", e);
+          setIsPlaying(false);
+          toast({
+            variant: "destructive",
+            title: "Playback Error",
+            description: "Failed to play the recorded audio",
+          });
+        });
+        
+        audioRef.current = audio;
+      }
+      
+      // Play the audio
+      audioRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch((error) => {
+          console.error("Error playing audio:", error);
+          setIsPlaying(false);
+          toast({
+            variant: "destructive",
+            title: "Playback Error",
+            description: "Failed to play the audio",
+          });
+        });
+    }
+  }, [isPlaying, toast]);
+
+  // Download the recorded audio
+  const downloadRecordedAudio = useCallback(() => {
+    if (!recordedAudioBlobRef.current) {
+      toast({
+        variant: "destructive",
+        title: "No recorded audio",
+        description: "There is no recorded audio available to download",
+      });
+      return;
+    }
+    
+    const blob = recordedAudioBlobRef.current;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "original-dictation.webm";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [toast]);
+
   return {
     startDictation,
     stopDictation,
-    dictationStatus
+    dictationStatus,
+    hasRecordedAudio,
+    isPlaying,
+    playRecordedAudio,
+    downloadRecordedAudio
   };
 }

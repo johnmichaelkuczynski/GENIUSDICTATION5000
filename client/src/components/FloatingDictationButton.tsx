@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useDictation } from "@/hooks/useDictation";
 import { Button } from "@/components/ui/button";
 
 const FloatingDictationButton = () => {
+  // App Context
   const { 
     dictationActive, 
     setDictationActive,
@@ -11,10 +12,14 @@ const FloatingDictationButton = () => {
     selectedAIModel
   } = useAppContext();
   
+  // Component State
   const [controlsVisible, setControlsVisible] = useState(false);
+  
+  // Custom hooks
   const { startDictation, stopDictation, dictationStatus } = useDictation();
 
-  const toggleDictation = async () => {
+  // Handlers as callbacks to ensure consistent hook order
+  const toggleDictation = useCallback(async () => {
     if (dictationActive) {
       await stopDictation();
       setDictationActive(false);
@@ -22,14 +27,14 @@ const FloatingDictationButton = () => {
       await startDictation();
       setDictationActive(true);
     }
-  };
+  }, [dictationActive, startDictation, stopDictation, setDictationActive]);
 
-  const toggleControls = () => {
-    setControlsVisible(!controlsVisible);
-  };
+  const toggleControls = useCallback(() => {
+    setControlsVisible(prev => !prev);
+  }, []);
 
+  // Add keyboard shortcut for Alt+D to toggle dictation
   useEffect(() => {
-    // Add keyboard shortcut for Alt+D to toggle dictation
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 'd') {
         toggleDictation();
@@ -40,7 +45,7 @@ const FloatingDictationButton = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [dictationActive]);
+  }, [toggleDictation]);
 
   // Close controls when clicking outside
   useEffect(() => {
