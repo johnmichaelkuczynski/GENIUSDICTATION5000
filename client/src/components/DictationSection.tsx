@@ -146,8 +146,19 @@ const DictationSection = () => {
                         className="text-xs flex items-center bg-purple-600 hover:bg-purple-700 text-white" 
                         onClick={playRecordedAudio}
                       >
-                        <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-play-fill"} mr-1`}></i>
-                        {isOriginalAudioPlaying ? "Pause Dictation" : "Play Dictation"}
+                        <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-1`}></i>
+                        {isOriginalAudioPlaying ? "Stop" : "Play Dictation"}
+                      </Button>
+                    )}
+                    {hasRecordedAudio && (
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="text-xs flex items-center bg-blue-600 hover:bg-blue-700 text-white" 
+                        onClick={downloadRecordedAudio}
+                      >
+                        <i className="ri-download-line mr-1"></i>
+                        Download
                       </Button>
                     )}
                     <Button 

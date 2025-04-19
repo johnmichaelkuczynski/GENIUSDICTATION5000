@@ -22,7 +22,8 @@ const FloatingDictationButton = () => {
     dictationStatus,
     hasRecordedAudio,
     isPlaying: isOriginalAudioPlaying,
-    playRecordedAudio
+    playRecordedAudio,
+    downloadRecordedAudio
   } = useDictation();
 
   // Handlers as callbacks to ensure consistent hook order
