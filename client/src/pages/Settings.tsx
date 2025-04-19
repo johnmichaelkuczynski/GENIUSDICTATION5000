@@ -43,6 +43,7 @@ const Settings = () => {
           gladiaKey: gladiaKey || undefined,
           openaiKey: openaiKey || undefined,
           deepgramKey: deepgramKey || undefined,
+          elevenLabsKey: elevenLabsKey || undefined,
         }),
       });
       
@@ -61,6 +62,7 @@ const Settings = () => {
       setGladiaKey("");
       setOpenaiKey("");
       setDeepgramKey("");
+      setElevenLabsKey("");
     } catch (error) {
       toast({
         variant: "destructive",

@@ -1,152 +1,182 @@
-import { useState, useCallback, useRef } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { ElevenLabsVoice } from "@shared/schema";
+import { useState, useCallback, useRef } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { ElevenLabsVoice } from '@shared/schema';
 
+/**
+ * Hook for handling text-to-speech functionality
+ */
 export function useTTS() {
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<ElevenLabsVoice[]>([]);
-  const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null);
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string>('');
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
-  const { toast } = useToast();
 
-  // Fetch available voices from the API
+  /**
+   * Fetch available ElevenLabs voices
+   */
   const fetchVoices = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const response = await fetch("/api/tts/voices");
-      
+      const response = await fetch('/api/tts/voices');
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch voices");
+        throw new Error(errorData.error || 'Failed to fetch voices');
       }
       
       const data = await response.json();
-      setAvailableVoices(data.voices);
+      setAvailableVoices(data.voices || []);
       
-      // Set default voice if available
-      if (data.voices && data.voices.length > 0) {
+      // Set default voice if one is available and none is selected
+      if (data.voices?.length > 0 && !selectedVoiceId) {
         setSelectedVoiceId(data.voices[0].voice_id);
       }
     } catch (error) {
-      console.error("Error fetching voices:", error);
+      console.error('Error fetching voices:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch voices",
-        variant: "destructive",
+        variant: 'destructive',
+        title: 'Failed to fetch voices',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
       });
-    } finally {
-      setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, selectedVoiceId]);
 
-  // Generate speech from text
+  /**
+   * Generate speech from text
+   */
   const generateSpeech = useCallback(async (text: string, voiceId?: string) => {
+    if (!text) return;
+    
+    setIsLoading(true);
+    
     try {
-      setIsLoading(true);
+      // Clean up previous audio if any
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       
-      // Clean up previous audio
       if (audioUrlRef.current) {
         URL.revokeObjectURL(audioUrlRef.current);
         audioUrlRef.current = null;
       }
       
-      // Use selected voice or passed voice ID
-      const selectedVoice = voiceId || selectedVoiceId;
-      
-      const response = await fetch("/api/tts", {
-        method: "POST",
+      const response = await fetch('/api/tts', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           text,
-          voiceId: selectedVoice,
+          voiceId: voiceId || selectedVoiceId,
         }),
       });
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to generate speech (${response.status})`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate speech');
       }
       
-      // Get audio as blob
+      // Create audio object from blob
       const audioBlob = await response.blob();
-      
-      // Create a URL for the audio blob
       const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Create and store audio element
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
       audioUrlRef.current = audioUrl;
       
-      // Create audio element if it doesn't exist
-      if (!audioRef.current) {
-        audioRef.current = new Audio();
-      }
+      // Add event listeners
+      audio.addEventListener('ended', () => {
+        setIsPlaying(false);
+      });
       
-      // Set up event listeners
-      audioRef.current.onplay = () => setIsPlaying(true);
-      audioRef.current.onpause = () => setIsPlaying(false);
-      audioRef.current.onended = () => setIsPlaying(false);
+      audio.addEventListener('error', (e) => {
+        console.error('Audio playback error:', e);
+        setIsPlaying(false);
+        toast({
+          variant: 'destructive',
+          title: 'Playback Error',
+          description: 'Failed to play the generated audio',
+        });
+      });
       
-      // Set the source and load the audio
-      audioRef.current.src = audioUrl;
-      await audioRef.current.load();
-      
-      return audioUrl;
+      return audio;
     } catch (error) {
-      console.error("Error generating speech:", error);
+      console.error('Error generating speech:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate speech",
-        variant: "destructive",
+        variant: 'destructive',
+        title: 'Speech Generation Failed',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
       });
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [selectedVoiceId, toast]);
+  }, [toast, selectedVoiceId]);
 
-  // Play generated audio
+  /**
+   * Play the generated audio
+   */
   const playAudio = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.play().catch(error => {
-        console.error("Error playing audio:", error);
+    if (!audioRef.current) return;
+    
+    audioRef.current.play()
+      .then(() => {
+        setIsPlaying(true);
+      })
+      .catch((error) => {
+        console.error('Error playing audio:', error);
+        setIsPlaying(false);
+        toast({
+          variant: 'destructive',
+          title: 'Playback Error',
+          description: 'Failed to play the audio',
+        });
       });
-    }
-  }, []);
+  }, [toast]);
 
-  // Pause playing audio
+  /**
+   * Pause the playing audio
+   */
   const pauseAudio = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    if (!audioRef.current) return;
+    
+    audioRef.current.pause();
+    setIsPlaying(false);
   }, []);
 
-  // Reset audio
+  /**
+   * Reset audio playback to the beginning
+   */
   const resetAudio = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-    }
+    if (!audioRef.current) return;
+    
+    audioRef.current.currentTime = 0;
+    setIsPlaying(false);
   }, []);
 
-  // Download audio as MP3
-  const downloadAudio = useCallback((fileName: string = "narration") => {
-    if (audioUrlRef.current) {
-      const a = document.createElement("a");
-      a.href = audioUrlRef.current;
-      a.download = `${fileName}.mp3`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
+  /**
+   * Download the generated audio
+   */
+  const downloadAudio = useCallback((fileName: string = 'audio') => {
+    if (!audioUrlRef.current) {
       toast({
-        title: "Error",
-        description: "No audio available to download",
-        variant: "destructive",
+        variant: 'destructive',
+        title: 'Download Failed',
+        description: 'No audio available to download',
       });
+      return;
     }
+    
+    const a = document.createElement('a');
+    a.href = audioUrlRef.current;
+    a.download = `${fileName}.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }, [toast]);
 
   return {
@@ -160,6 +190,6 @@ export function useTTS() {
     playAudio,
     pauseAudio,
     resetAudio,
-    downloadAudio
+    downloadAudio,
   };
 }
