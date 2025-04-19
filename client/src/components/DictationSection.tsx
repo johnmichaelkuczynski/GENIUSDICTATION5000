@@ -12,6 +12,7 @@ import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
 import { useDictation } from "@/hooks/useDictation";
 import { useTTS } from "@/hooks/useTTS";
+import AudioUploadDropzone from "./AudioUploadDropzone";
 
 const DictationSection = () => {
   // App context
@@ -494,10 +495,82 @@ const DictationSection = () => {
           
           <TabsContent value="document-processing">
             <CardContent className="p-6">
-              <p className="text-sm text-muted-foreground">
-                Document processing will be available in this tab.
-                Switch to the "Documents" page for full document handling functionality.
-              </p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <AudioUploadDropzone />
+                </div>
+                <div>
+                  <Card>
+                    <CardContent className="p-6">
+                      <h2 className="text-lg font-medium mb-4">Processing Options</h2>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="speech-engine-doc" className="text-sm font-medium block mb-1">Speech Recognition Engine</Label>
+                          <Select
+                            value={selectedSpeechEngine}
+                            onValueChange={(value) => setSelectedSpeechEngine(value as SpeechEngine)}
+                          >
+                            <SelectTrigger id="speech-engine-doc" className="w-full">
+                              <SelectValue placeholder="Select speech engine" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={SpeechEngine.GLADIA}>{SpeechEngine.GLADIA} (Primary)</SelectItem>
+                              <SelectItem value={SpeechEngine.WHISPER}>{SpeechEngine.WHISPER}</SelectItem>
+                              <SelectItem value={SpeechEngine.DEEPGRAM}>{SpeechEngine.DEEPGRAM}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground mt-1">Select the speech engine for transcribing audio files.</p>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="ai-model-doc" className="text-sm font-medium block mb-1">AI Model for Transformations</Label>
+                          <Select
+                            value={selectedAIModel}
+                            onValueChange={(value) => setSelectedAIModel(value as AIModel)}
+                          >
+                            <SelectTrigger id="ai-model-doc" className="w-full">
+                              <SelectValue placeholder="Select AI model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={AIModel.GPT4O}>{AIModel.GPT4O}</SelectItem>
+                              <SelectItem value={AIModel.GPT4}>{AIModel.GPT4}</SelectItem>
+                              <SelectItem value={AIModel.GPT35}>{AIModel.GPT35}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground mt-1">Select the AI model for processing and transforming text.</p>
+                        </div>
+                        
+                        {/* Audio Playback Section */}
+                        {hasRecordedAudio && (
+                          <div className="pt-4 mt-4 border-t">
+                            <h3 className="text-base font-medium mb-3">Audio Controls</h3>
+                            <div className="space-y-2">
+                              <Button
+                                variant="default"
+                                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                                onClick={playRecordedAudio}
+                              >
+                                <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-2`}></i>
+                                {isOriginalAudioPlaying ? "Pause Audio" : "Play Audio"}
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                className="w-full border-blue-500 text-blue-500 hover:bg-blue-50"
+                                onClick={downloadRecordedAudio}
+                              >
+                                <i className="ri-download-line mr-2"></i>
+                                Download Audio File
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </CardContent>
           </TabsContent>
           
