@@ -107,6 +107,12 @@ export const transcribeRequestSchema = z.object({
 export const transcribeResponseSchema = z.object({
   text: z.string(),
   engine: z.nativeEnum(SpeechEngine),
+  audioUrl: z.string().optional(), // URL to the transcribed audio
+});
+
+export const uploadAudioRequestSchema = z.object({
+  audio: z.instanceof(Blob),
+  fileName: z.string().optional(),
 });
 
 export const transformRequestSchema = z.object({
