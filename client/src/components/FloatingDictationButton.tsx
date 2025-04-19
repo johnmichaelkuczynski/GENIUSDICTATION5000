@@ -16,7 +16,14 @@ const FloatingDictationButton = () => {
   const [controlsVisible, setControlsVisible] = useState(false);
   
   // Custom hooks
-  const { startDictation, stopDictation, dictationStatus } = useDictation();
+  const { 
+    startDictation, 
+    stopDictation, 
+    dictationStatus,
+    hasRecordedAudio,
+    isPlaying: isOriginalAudioPlaying,
+    playRecordedAudio
+  } = useDictation();
 
   // Handlers as callbacks to ensure consistent hook order
   const toggleDictation = useCallback(async () => {
@@ -110,6 +117,21 @@ const FloatingDictationButton = () => {
             <div className="text-xs text-muted-foreground">
               Click mic to dictate directly into any text field
             </div>
+            
+            {/* Add button to listen to last recording if available */}
+            {hasRecordedAudio && (
+              <div className="pt-2">
+                <Button 
+                  onClick={playRecordedAudio}
+                  className="w-full"
+                  variant="secondary"
+                  size="sm"
+                >
+                  <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-play-fill"} mr-1.5`}></i>
+                  {isOriginalAudioPlaying ? "Pause Original Dictation" : "Play Original Dictation"}
+                </Button>
+              </div>
+            )}
             
             <div className="flex items-center justify-between pt-2 border-t border-border">
               <div className="text-xs">

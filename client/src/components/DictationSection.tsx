@@ -139,6 +139,17 @@ const DictationSection = () => {
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Original Dictation</h3>
                   <div className="flex space-x-2">
+                    {hasRecordedAudio && (
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="text-xs flex items-center" 
+                        onClick={playRecordedAudio}
+                      >
+                        <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-play-fill"} mr-1`}></i>
+                        {isOriginalAudioPlaying ? "Pause Dictation" : "Play Dictation"}
+                      </Button>
+                    )}
                     <Button 
                       variant="ghost" 
                       size="sm" 
