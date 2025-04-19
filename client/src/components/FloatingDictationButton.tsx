@@ -120,17 +120,19 @@ const FloatingDictationButton = () => {
               Click mic to dictate directly into any text field
             </div>
             
-            {/* Add button to listen to last recording if available */}
+            {/* Add PROMINENT button to listen to last recording if available */}
             {hasRecordedAudio && (
               <div className="pt-2">
                 <Button 
                   onClick={playRecordedAudio}
-                  className="w-full"
-                  variant="secondary"
-                  size="sm"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold"
+                  variant="default"
+                  size="default"
                 >
-                  <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-play-fill"} mr-1.5`}></i>
-                  {isOriginalAudioPlaying ? "Pause Original Dictation" : "Play Original Dictation"}
+                  <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-1.5 text-lg`}></i>
+                  <span className="uppercase">
+                    {isOriginalAudioPlaying ? "STOP LISTENING" : "LISTEN TO ORIGINAL DICTATION"}
+                  </span>
                 </Button>
               </div>
             )}

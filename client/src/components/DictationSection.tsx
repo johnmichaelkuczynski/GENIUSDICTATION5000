@@ -184,51 +184,30 @@ const DictationSection = () => {
                   )}
                 </div>
 
-                {/* Original Audio Controls - Only show when audio was recorded */}
+                {/* BIG, UNMISSABLE BUTTON FOR ORIGINAL DICTATION */}
                 {hasRecordedAudio && (
-                  <div className="mt-2 p-3 border rounded-md border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-900">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-medium flex items-center">
-                        <i className="ri-mic-fill mr-2 text-green-600 dark:text-green-400"></i>
-                        Original Recording Available
-                      </h4>
-                      <span className="text-xs text-muted-foreground">Listen to or download your dictation</span>
-                    </div>
+                  <div className="mt-4">
+                    <Button
+                      variant="default"
+                      size="lg"
+                      className="w-full text-lg font-bold py-6 bg-purple-600 hover:bg-purple-700 text-white"
+                      onClick={playRecordedAudio}
+                    >
+                      <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-2 text-xl`}></i>
+                      {isOriginalAudioPlaying 
+                        ? "STOP LISTENING TO ORIGINAL DICTATION" 
+                        : "LISTEN TO ORIGINAL DICTATION"}
+                    </Button>
                     
-                    <div className="flex items-center space-x-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center"
-                              onClick={playRecordedAudio}
-                            >
-                              {isOriginalAudioPlaying ? (
-                                <i className="ri-pause-fill mr-1.5"></i>
-                              ) : (
-                                <i className="ri-play-fill mr-1.5"></i>
-                              )}
-                              {isOriginalAudioPlaying 
-                                ? "Pause Original Audio" 
-                                : "Play Original Audio"}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom">
-                            <p className="text-xs">Play your original dictation audio recording</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
+                    <div className="flex mt-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="flex items-center"
+                        className="flex-1 items-center justify-center"
                         onClick={downloadRecordedAudio}
                       >
                         <i className="ri-download-line mr-1.5"></i>
-                        Download Recording
+                        Download Original Recording
                       </Button>
                     </div>
                   </div>
