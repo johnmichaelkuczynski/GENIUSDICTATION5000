@@ -24,6 +24,7 @@ const Settings = () => {
   const [gladiaKey, setGladiaKey] = useState("");
   const [openaiKey, setOpenaiKey] = useState("");
   const [deepgramKey, setDeepgramKey] = useState("");
+  const [elevenLabsKey, setElevenLabsKey] = useState("");
   const [isSavingKeys, setIsSavingKeys] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
   const [continuousDictation, setContinuousDictation] = useState(true);
@@ -157,6 +158,24 @@ const Settings = () => {
                       onChange={(e) => setDeepgramKey(e.target.value)}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Text-to-Speech Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-lg font-medium">Text-to-Speech</h3>
+                <div className="grid gap-2">
+                  <Label htmlFor="elevenlabs-key">ElevenLabs API Key</Label>
+                  <Input
+                    id="elevenlabs-key"
+                    type="password"
+                    placeholder="Enter your ElevenLabs API key"
+                    value={elevenLabsKey}
+                    onChange={(e) => setElevenLabsKey(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Required for text-to-speech narration of your processed text. Get an API key at <a href="https://elevenlabs.io" target="_blank" rel="noopener noreferrer" className="text-primary underline">elevenlabs.io</a>.
+                  </p>
                 </div>
               </div>
               

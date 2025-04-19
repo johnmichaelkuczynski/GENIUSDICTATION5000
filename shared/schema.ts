@@ -90,6 +90,14 @@ export enum AIModel {
   GPT35 = "GPT-3.5"
 }
 
+// Voice types for ElevenLabs
+export interface ElevenLabsVoice {
+  voice_id: string;
+  name: string;
+  category?: string;
+  description?: string;
+}
+
 // API Request/Response schemas
 export const transcribeRequestSchema = z.object({
   audio: z.instanceof(Blob),
@@ -136,10 +144,16 @@ export const generateDocumentRequestSchema = z.object({
   fileName: z.string().optional(),
 });
 
+export const ttsRequestSchema = z.object({
+  text: z.string().min(1),
+  voiceId: z.string().optional(),
+});
+
 export const apiKeyRequestSchema = z.object({
   gladiaKey: z.string().optional(),
   openaiKey: z.string().optional(),
   deepgramKey: z.string().optional(),
+  elevenLabsKey: z.string().optional(),
 });
 
 export const apiStatusResponseSchema = z.object({
@@ -148,5 +162,15 @@ export const apiStatusResponseSchema = z.object({
     gladia: z.boolean(),
     openai: z.boolean(),
     deepgram: z.boolean(),
+    elevenLabs: z.boolean(),
   }),
+});
+
+export const voicesResponseSchema = z.object({
+  voices: z.array(z.object({
+    voice_id: z.string(),
+    name: z.string(),
+    category: z.string().optional(),
+    description: z.string().optional(),
+  })),
 });

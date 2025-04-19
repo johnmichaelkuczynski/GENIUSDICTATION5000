@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,12 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { SpeechEngine, AIModel } from "@shared/schema";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { SpeechEngine, AIModel, ElevenLabsVoice } from "@shared/schema";
 import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
 import { useDictation } from "@/hooks/useDictation";
+import { useTTS } from "@/hooks/useTTS";
 
 const DictationSection = () => {
   const {
@@ -32,8 +34,29 @@ const DictationSection = () => {
 
   const { transformText } = useTransformation();
   const { dictationStatus } = useDictation();
+  const { 
+    isLoading: isTtsLoading, 
+    isPlaying, 
+    availableVoices, 
+    selectedVoiceId, 
+    setSelectedVoiceId, 
+    fetchVoices, 
+    generateSpeech, 
+    playAudio, 
+    pauseAudio, 
+    resetAudio, 
+    downloadAudio 
+  } = useTTS();
 
   const [currentTab, setCurrentTab] = useState("direct-dictation");
+  const [showVoiceSelect, setShowVoiceSelect] = useState(false);
+  
+  // Fetch available voices on mount
+  useEffect(() => {
+    if (processedText) {
+      fetchVoices();
+    }
+  }, [fetchVoices, processedText]);
 
   const handleTransformText = async () => {
     await transformText();
@@ -61,6 +84,28 @@ const DictationSection = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  // Handle voice selection and TTS generation
+  const handleVoiceSelect = (voiceId: string) => {
+    setSelectedVoiceId(voiceId);
+    setShowVoiceSelect(false);
+  };
+
+  // Handle play narration - generate speech if not already generated
+  const handlePlayNarration = async () => {
+    if (!processedText) return;
+    
+    if (isPlaying) {
+      pauseAudio();
+    } else {
+      if (!selectedVoiceId && availableVoices.length > 0) {
+        setSelectedVoiceId(availableVoices[0].voice_id);
+      }
+      
+      await generateSpeech(processedText, selectedVoiceId || undefined);
+      playAudio();
+    }
   };
 
   const presets = ["Academic", "Professional", "Creative", "Concise", "Elaborate"];
@@ -147,6 +192,86 @@ const DictationSection = () => {
                     {processedText}
                   </div>
                 </div>
+
+                {/* TTS Controls - Only show when there's processed text */}
+                {processedText && (
+                  <div className="flex items-center justify-between flex-wrap">
+                    <div className="flex items-center space-x-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center"
+                              onClick={handlePlayNarration}
+                              disabled={isTtsLoading}
+                            >
+                              {isTtsLoading ? (
+                                <span className="animate-spin h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
+                              ) : isPlaying ? (
+                                <i className="ri-pause-fill mr-1.5"></i>
+                              ) : (
+                                <i className="ri-play-fill mr-1.5"></i>
+                              )}
+                              {isTtsLoading 
+                                ? "Generating..." 
+                                : isPlaying 
+                                  ? "Pause AI Narration" 
+                                  : "Play AI Narration"}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p className="text-xs">Generate natural speech narration with ElevenLabs API</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center"
+                        onClick={() => setShowVoiceSelect(!showVoiceSelect)}
+                        disabled={isTtsLoading || availableVoices.length === 0}
+                      >
+                        <i className="ri-user-voice-line mr-1.5"></i>
+                        Voice
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center"
+                        onClick={() => downloadAudio("processed-narration")}
+                        disabled={isTtsLoading}
+                      >
+                        <i className="ri-download-line mr-1.5"></i>
+                        Download Audio
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Voice Selection Dropdown */}
+                {showVoiceSelect && availableVoices.length > 0 && (
+                  <div className="mt-2 p-3 border rounded-md bg-accent/5">
+                    <h4 className="text-sm font-medium mb-2">Select Voice</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                      {availableVoices.map((voice) => (
+                        <Button
+                          key={voice.voice_id}
+                          variant={selectedVoiceId === voice.voice_id ? "secondary" : "ghost"}
+                          size="sm"
+                          className="justify-start text-xs"
+                          onClick={() => handleVoiceSelect(voice.voice_id)}
+                        >
+                          <i className="ri-user-voice-line mr-1.5"></i>
+                          {voice.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             

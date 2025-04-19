@@ -9,7 +9,8 @@ import {
   AIModel, 
   transformRequestSchema, 
   apiKeyRequestSchema,
-  extractTextRequestSchema
+  extractTextRequestSchema,
+  ttsRequestSchema
 } from "@shared/schema";
 import { transformText } from "./services/openai";
 import { transcribeAudio as gladiaTranscribe } from "./services/gladia";
@@ -19,6 +20,10 @@ import {
   extractTextFromDocument, 
   generateDocument
 } from "./services/documentHandler";
+import {
+  generateSpeech,
+  getAvailableVoices
+} from "./services/elevenlabs";
 
 // Set up multer for file uploads
 const upload = multer({ 
@@ -32,12 +37,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const gladiaKey = process.env.GLADIA_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
     const deepgramKey = process.env.DEEPGRAM_API_KEY;
+    const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
     
     // Check if keys are present
     const services = {
       gladia: !!gladiaKey,
       openai: !!openaiKey,
-      deepgram: !!deepgramKey
+      deepgram: !!deepgramKey,
+      elevenLabs: !!elevenLabsKey
     };
     
     // At least one service must be available
@@ -225,6 +232,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Text-to-speech endpoint
+  app.post("/api/tts", async (req, res) => {
+    try {
+      // Validate request
+      const result = ttsRequestSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ error: result.error.message });
+      }
+
+      const { text, voiceId } = result.data;
+
+      // Check if ElevenLabs key is available
+      if (!process.env.ELEVENLABS_API_KEY) {
+        return res.status(400).json({ error: "ElevenLabs API key is not configured" });
+      }
+
+      // Generate speech
+      const audioBuffer = await generateSpeech(text, voiceId);
+
+      // Set response headers
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Disposition', `attachment; filename="narration.mp3"`);
+      
+      // Send the audio data
+      res.send(audioBuffer);
+    } catch (error) {
+      console.error("Error generating speech:", error);
+      res.status(500).json({ error: "Failed to generate speech" });
+    }
+  });
+
+  // Get available voices endpoint
+  app.get("/api/tts/voices", async (req, res) => {
+    try {
+      // Check if ElevenLabs key is available
+      if (!process.env.ELEVENLABS_API_KEY) {
+        return res.status(400).json({ error: "ElevenLabs API key is not configured" });
+      }
+
+      // Get available voices
+      const voices = await getAvailableVoices();
+      
+      res.json({ voices });
+    } catch (error) {
+      console.error("Error fetching voices:", error);
+      res.status(500).json({ error: "Failed to fetch voices" });
+    }
+  });
+
   // API key management endpoint
   app.post("/api/settings/api-keys", async (req, res) => {
     try {
@@ -233,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { gladiaKey, openaiKey, deepgramKey } = result.data;
+      const { gladiaKey, openaiKey, deepgramKey, elevenLabsKey } = result.data;
 
       // Store keys in environment variables (in a real app, use Replit Secrets)
       // For demo purposes, we're just sending back success
