@@ -42,6 +42,7 @@ export function getPresetInstructions(preset: string): string {
     Creative: "Rewrite with vivid imagery, varied sentence structure, and engaging narrative elements. Add metaphors and descriptive language to create a more immersive experience.",
     Concise: "Make the text as brief as possible while preserving all key information. Aim for at least 50% reduction in length without losing essential content.",
     Elaborate: "Expand on the ideas in the text, adding depth, examples, and explanations. Develop arguments more fully and explore implications of the statements.",
+    Intelligent: "Rewrite in the style of someone who is extremely intelligent but who is not long-winded and who is not a pedant and who is explaining this in an effective and brisk manner to people of modest intelligence.",
     Custom: "", // Custom preset has no default instructions
   };
 

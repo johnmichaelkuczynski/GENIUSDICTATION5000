@@ -100,6 +100,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           case "Elaborate":
             presetInstructions = "Expand on the ideas in the text, adding depth, examples, and explanations. Develop arguments more fully and explore implications of the statements.";
             break;
+          case "Intelligent":
+            presetInstructions = "Rewrite in the style of someone who is extremely intelligent but who is not long-winded and who is not a pedant and who is explaining this in an effective and brisk manner to people of modest intelligence.";
+            break;
         }
       }
 

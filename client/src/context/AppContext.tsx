@@ -58,14 +58,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dictationActive, setDictationActive] = useState(false);
   const [originalText, setOriginalText] = useState("");
   const [processedText, setProcessedText] = useState("");
-  const [customInstructions, setCustomInstructions] = useState("Rewrite in the style of an academic paper with a focus on theoretical frameworks. Expand on the implications for human-AI collaboration.");
+  const [customInstructions, setCustomInstructions] = useState("Rewrite in the style of someone who is extremely intelligent but who is not long-winded and who is not a pedant and who is explaining this in an effective and brisk manner to people of modest intelligence.");
   const [useStyleReference, setUseStyleReference] = useState(true);
   const [selectedSpeechEngine, setSelectedSpeechEngine] = useState<SpeechEngine>(SpeechEngine.GLADIA);
   const [selectedAIModel, setSelectedAIModel] = useState<AIModel>(AIModel.GPT4O);
   const [styleReferences, setStyleReferences] = useState<StyleReference[]>(defaultStyleReferences);
   const [apisConnected, setApisConnected] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState("Academic");
+  const [selectedPreset, setSelectedPreset] = useState("Intelligent");
 
   const checkApiStatus = async () => {
     try {
