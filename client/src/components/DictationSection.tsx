@@ -143,7 +143,7 @@ const DictationSection = () => {
                       <Button 
                         variant="secondary" 
                         size="sm" 
-                        className="text-xs flex items-center" 
+                        className="text-xs flex items-center bg-purple-600 hover:bg-purple-700 text-white" 
                         onClick={playRecordedAudio}
                       >
                         <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-play-fill"} mr-1`}></i>

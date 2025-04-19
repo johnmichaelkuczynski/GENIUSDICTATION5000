@@ -85,11 +85,13 @@ const FloatingDictationButton = () => {
         id="floating-dictation-button"
         onClick={dictationActive ? toggleDictation : toggleControls}
         size="icon"
-        className={`w-14 h-14 rounded-full shadow-lg ${
-          dictationActive ? 'animate-pulse bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'
+        className={`w-16 h-16 rounded-full shadow-xl ${
+          dictationActive 
+            ? 'animate-pulse bg-red-500 hover:bg-red-600 ring-4 ring-red-300' 
+            : 'bg-purple-600 hover:bg-purple-700 ring-4 ring-purple-300'
         }`}
       >
-        <i className={`${dictationActive ? 'ri-stop-line' : 'ri-mic-line'} text-2xl`}></i>
+        <i className={`${dictationActive ? 'ri-stop-line' : 'ri-mic-line'} text-2xl text-white`}></i>
       </Button>
       
       {/* Extended Controls */}
