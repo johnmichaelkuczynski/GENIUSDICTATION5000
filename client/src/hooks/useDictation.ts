@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { SpeechEngine } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -16,14 +16,21 @@ export function useDictation() {
     setDictationActive
   } = useAppContext();
 
-  // Store a reference to the current dictation session
-  let mediaRecorder: MediaRecorder | null = null;
-  let audioChunks: Blob[] = [];
+  // Store a reference to the current dictation session using refs
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   
   // References for audio playback
   const recordedAudioBlobRef = useRef<Blob | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+
+  // Check for existing audio on mount
+  useEffect(() => {
+    if (recordedAudioBlobRef.current) {
+      setHasRecordedAudio(true);
+    }
+  }, []);
 
   const startDictation = useCallback(async () => {
     try {
@@ -33,17 +40,18 @@ export function useDictation() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       // Create a media recorder
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
       
       // Listen for data chunks
-      mediaRecorder.addEventListener("dataavailable", (event) => {
-        audioChunks.push(event.data);
+      recorder.addEventListener("dataavailable", (event) => {
+        audioChunksRef.current.push(event.data);
       });
       
       // When recording stops, process the audio
-      mediaRecorder.addEventListener("stop", async () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+      recorder.addEventListener("stop", async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         
         // Save the audio blob for playback
         recordedAudioBlobRef.current = audioBlob;
@@ -58,11 +66,30 @@ export function useDictation() {
         const audioUrl = URL.createObjectURL(audioBlob);
         audioUrlRef.current = audioUrl;
         
+        // Create a new audio element for playback
+        const audio = new Audio(audioUrl);
+        
+        audio.addEventListener("ended", () => {
+          setIsPlaying(false);
+        });
+        
+        audio.addEventListener("error", (e) => {
+          console.error("Audio playback error:", e);
+          setIsPlaying(false);
+          toast({
+            variant: "destructive",
+            title: "Playback Error",
+            description: "Failed to play the recorded audio",
+          });
+        });
+        
+        audioRef.current = audio;
+        
         await processAudio(audioBlob);
       });
       
       // Start recording
-      mediaRecorder.start(1000); // Collect data every second
+      recorder.start(1000); // Collect data every second
       setDictationActive(true);
       
       return true;
@@ -71,18 +98,17 @@ export function useDictation() {
       setDictationStatus("Error starting dictation");
       return false;
     }
-  }, [selectedSpeechEngine, setDictationActive, setOriginalText]);
+  }, [selectedSpeechEngine, setDictationActive, setOriginalText, toast]);
 
   const stopDictation = useCallback(async () => {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       setDictationStatus("Processing...");
-      mediaRecorder.stop();
+      mediaRecorderRef.current.stop();
       
       // Stop all audio tracks
-      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       
       // Reset media recorder
-      mediaRecorder = null;
       setDictationActive(false);
       setDictationStatus("Ready");
     }
@@ -119,6 +145,7 @@ export function useDictation() {
       
       // Fallback to browser's speech recognition if available
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        // @ts-ignore - TypeScript doesn't know about these browser-specific APIs
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         
@@ -126,12 +153,14 @@ export function useDictation() {
         recognition.continuous = false;
         recognition.interimResults = false;
         
-        recognition.onresult = (event) => {
+        recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
-          setOriginalText(prevText => prevText ? `${prevText} ${transcript}` : transcript);
+          setOriginalText(prevText => {
+            return prevText ? `${prevText} ${transcript}` : transcript;
+          });
         };
         
-        recognition.onerror = (event) => {
+        recognition.onerror = (event: any) => {
           console.error("Speech recognition error:", event.error);
           setDictationStatus("Failed to recognize speech");
         };
@@ -145,26 +174,13 @@ export function useDictation() {
 
   // Play the recorded audio
   const playRecordedAudio = useCallback(() => {
-    if (!audioUrlRef.current) {
-      toast({
-        variant: "destructive",
-        title: "No recorded audio",
-        description: "There is no recorded audio available to play",
-      });
-      return;
-    }
-
-    if (isPlaying) {
-      // If already playing, pause it
-      if (audioRef.current) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      }
-    } else {
-      // Create a new audio element if not exists
-      if (!audioRef.current) {
-        const audio = new Audio(audioUrlRef.current);
+    if (!audioRef.current || !audioUrlRef.current) {
+      // If there is a recorded blob but no audio element, create one
+      if (recordedAudioBlobRef.current && !audioRef.current) {
+        const url = URL.createObjectURL(recordedAudioBlobRef.current);
+        audioUrlRef.current = url;
         
+        const audio = new Audio(url);
         audio.addEventListener("ended", () => {
           setIsPlaying(false);
         });
@@ -180,22 +196,39 @@ export function useDictation() {
         });
         
         audioRef.current = audio;
-      }
-      
-      // Play the audio
-      audioRef.current.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch((error) => {
-          console.error("Error playing audio:", error);
-          setIsPlaying(false);
-          toast({
-            variant: "destructive",
-            title: "Playback Error",
-            description: "Failed to play the audio",
-          });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "No recorded audio",
+          description: "There is no recorded audio available to play. Please record some dictation first.",
         });
+        return;
+      }
+    }
+
+    if (isPlaying) {
+      // If already playing, pause it
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+    } else {
+      // Play the audio
+      if (audioRef.current) {
+        audioRef.current.play()
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((error) => {
+            console.error("Error playing audio:", error);
+            setIsPlaying(false);
+            toast({
+              variant: "destructive",
+              title: "Playback Error",
+              description: "Failed to play the audio",
+            });
+          });
+      }
     }
   }, [isPlaying, toast]);
 
@@ -205,7 +238,7 @@ export function useDictation() {
       toast({
         variant: "destructive",
         title: "No recorded audio",
-        description: "There is no recorded audio available to download",
+        description: "There is no recorded audio available to download. Please record some dictation first.",
       });
       return;
     }

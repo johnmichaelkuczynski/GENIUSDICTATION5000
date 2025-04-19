@@ -175,41 +175,51 @@ const DictationSection = () => {
 
                 {/* Original Audio Controls - Only show when audio was recorded */}
                 {hasRecordedAudio && (
-                  <div className="flex items-center space-x-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center"
-                            onClick={playRecordedAudio}
-                          >
-                            {isOriginalAudioPlaying ? (
-                              <i className="ri-pause-fill mr-1.5"></i>
-                            ) : (
-                              <i className="ri-play-fill mr-1.5"></i>
-                            )}
-                            {isOriginalAudioPlaying 
-                              ? "Pause Original Audio" 
-                              : "Play Original Audio"}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p className="text-xs">Play your original dictation audio recording</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div className="mt-2 p-3 border rounded-md border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-900">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium flex items-center">
+                        <i className="ri-mic-fill mr-2 text-green-600 dark:text-green-400"></i>
+                        Original Recording Available
+                      </h4>
+                      <span className="text-xs text-muted-foreground">Listen to or download your dictation</span>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center"
+                              onClick={playRecordedAudio}
+                            >
+                              {isOriginalAudioPlaying ? (
+                                <i className="ri-pause-fill mr-1.5"></i>
+                              ) : (
+                                <i className="ri-play-fill mr-1.5"></i>
+                              )}
+                              {isOriginalAudioPlaying 
+                                ? "Pause Original Audio" 
+                                : "Play Original Audio"}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p className="text-xs">Play your original dictation audio recording</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center"
-                      onClick={downloadRecordedAudio}
-                    >
-                      <i className="ri-download-line mr-1.5"></i>
-                      Download Recording
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center"
+                        onClick={downloadRecordedAudio}
+                      >
+                        <i className="ri-download-line mr-1.5"></i>
+                        Download Recording
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
