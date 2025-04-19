@@ -201,13 +201,13 @@ const DictationSection = () => {
                     
                     <div className="flex mt-2">
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 items-center justify-center"
+                        variant="secondary"
+                        size="default"
+                        className="flex-1 items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3"
                         onClick={downloadRecordedAudio}
                       >
-                        <i className="ri-download-line mr-1.5"></i>
-                        Download Original Recording
+                        <i className="ri-download-line mr-2 text-lg"></i>
+                        DOWNLOAD ORIGINAL DICTATION
                       </Button>
                     </div>
                   </div>

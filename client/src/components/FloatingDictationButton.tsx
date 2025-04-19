@@ -122,7 +122,7 @@ const FloatingDictationButton = () => {
             
             {/* Add PROMINENT button to listen to last recording if available */}
             {hasRecordedAudio && (
-              <div className="pt-2">
+              <div className="pt-2 space-y-2">
                 <Button 
                   onClick={playRecordedAudio}
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold"
@@ -133,6 +133,16 @@ const FloatingDictationButton = () => {
                   <span className="uppercase">
                     {isOriginalAudioPlaying ? "STOP LISTENING" : "LISTEN TO ORIGINAL DICTATION"}
                   </span>
+                </Button>
+                
+                <Button 
+                  onClick={downloadRecordedAudio}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                  variant="secondary"
+                  size="default"
+                >
+                  <i className="ri-download-line mr-1.5 text-lg"></i>
+                  <span className="uppercase">DOWNLOAD ORIGINAL DICTATION</span>
                 </Button>
               </div>
             )}
