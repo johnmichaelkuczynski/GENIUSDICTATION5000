@@ -44,7 +44,9 @@ const DictationSection = () => {
     hasRecordedAudio, 
     isPlaying: isOriginalAudioPlaying,
     playRecordedAudio,
-    downloadRecordedAudio
+    downloadRecordedAudio,
+    uploadAudio,
+    audioSource
   } = useDictation();
   const { 
     isLoading: isTtsLoading, 
@@ -94,6 +96,22 @@ const DictationSection = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+  
+  // Handle audio file upload
+  const handleAudioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      
+      // Validate file type (audio)
+      if (!file.type.startsWith('audio/')) {
+        alert('Please select an audio file (MP3, WAV, etc.)');
+        return;
+      }
+      
+      // Process the audio file
+      await uploadAudio(file);
+    }
   };
 
   // Handle voice selection
@@ -195,7 +213,27 @@ const DictationSection = () => {
                   )}
                 </div>
 
-                {/* BIG, UNMISSABLE BUTTON FOR ORIGINAL DICTATION */}
+                {/* Audio upload button */}
+                <div className="mt-2">
+                  <div className="flex items-center justify-center w-full">
+                    <label htmlFor="audio-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-accent/5 hover:bg-accent/10 border-accent/20">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <i className="ri-upload-2-line text-2xl mb-1"></i>
+                        <p className="mb-2 text-sm font-semibold">Upload Audio File</p>
+                        <p className="text-xs text-gray-500">MP3, WAV, or other audio format</p>
+                      </div>
+                      <input 
+                        id="audio-upload" 
+                        type="file" 
+                        accept="audio/*" 
+                        className="hidden" 
+                        onChange={handleAudioFileUpload}
+                      />
+                    </label>
+                  </div>
+                </div>
+                
+                {/* Audio playback controls */}
                 {hasRecordedAudio && (
                   <div className="mt-4">
                     <Button
@@ -206,8 +244,8 @@ const DictationSection = () => {
                     >
                       <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-2 text-xl`}></i>
                       {isOriginalAudioPlaying 
-                        ? "STOP LISTENING TO ORIGINAL DICTATION" 
-                        : "LISTEN TO ORIGINAL DICTATION"}
+                        ? "STOP LISTENING TO ORIGINAL AUDIO" 
+                        : `LISTEN TO ORIGINAL ${audioSource === "upload" ? "UPLOADED AUDIO" : "DICTATION"}`}
                     </Button>
                     
                     <div className="flex mt-2">
@@ -218,7 +256,7 @@ const DictationSection = () => {
                         onClick={downloadRecordedAudio}
                       >
                         <i className="ri-download-line mr-2 text-lg"></i>
-                        DOWNLOAD ORIGINAL DICTATION
+                        DOWNLOAD ORIGINAL AUDIO
                       </Button>
                     </div>
                   </div>

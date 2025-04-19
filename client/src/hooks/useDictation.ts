@@ -15,7 +15,12 @@ export function useDictation() {
     originalText, 
     selectedSpeechEngine,
     setDictationActive
-  } = useAppContext();
+  } = useAppContext() as {
+    setOriginalText: (text: string | ((prevText: string) => string)) => void;
+    originalText: string;
+    selectedSpeechEngine: SpeechEngine;
+    setDictationActive: (active: boolean) => void;
+  };
 
   // Store a reference to the current dictation session using refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -163,7 +168,7 @@ export function useDictation() {
         
         recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
-          setOriginalText(prevText => {
+          setOriginalText((prevText: string) => {
             return prevText ? `${prevText} ${transcript}` : transcript;
           });
         };
