@@ -546,20 +546,39 @@ export function useDictation() {
 
   // Play the recorded audio
   const playAudio = useCallback(() => {
-    if (!audioRef.current) return;
+    if (!audioRef.current) {
+      console.log("No audio element available");
+      return;
+    }
     
     try {
-      // If already playing, stop it
+      console.log("Play audio called, current state:", isPlaying ? "playing" : "stopped");
+      
+      // If already playing, do nothing - let the pause function handle stopping
       if (isPlaying) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        setIsPlaying(false);
+        console.log("Already playing, use pause to stop");
         return;
       }
       
       // Otherwise, play it
-      audioRef.current.play();
-      setIsPlaying(true);
+      console.log("Starting audio playback");
+      audioRef.current.currentTime = 0; // Start from beginning
+      const playPromise = audioRef.current.play();
+      
+      // Handle the play promise to catch any autoplay restrictions
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log("Audio started playing successfully");
+            setIsPlaying(true);
+          })
+          .catch(error => {
+            console.error("Audio play was prevented:", error);
+            setIsPlaying(false);
+          });
+      } else {
+        setIsPlaying(true);
+      }
     } catch (error) {
       console.error("Failed to play audio:", error);
       setIsPlaying(false);
@@ -568,15 +587,27 @@ export function useDictation() {
 
   // Pause the audio playback
   const pauseAudio = useCallback(() => {
-    if (!audioRef.current) return;
+    console.log("Pause audio called");
+    
+    if (!audioRef.current) {
+      console.log("No audio to pause - already stopped");
+      setIsPlaying(false);
+      return;
+    }
     
     try {
+      console.log("Stopping audio playback");
+      
       // Simple approach - just pause and reset
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
+      
+      console.log("Audio successfully stopped");
     } catch (error) {
       console.error("Failed to pause audio:", error);
+      // Still set playing to false even if there was an error
+      setIsPlaying(false);
     }
   }, []);
 
