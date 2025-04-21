@@ -29,9 +29,18 @@ export function useTTS() {
       const data = await response.json();
       setAvailableVoices(data.voices || []);
       
-      // Set default voice if one is available and none is selected
+      // Set Charlie as the default voice if available, otherwise use the first voice
       if (data.voices?.length > 0 && !selectedVoiceId) {
-        setSelectedVoiceId(data.voices[0].voice_id);
+        // Look for a voice named "Charlie"
+        const charlieVoice = data.voices.find(voice => voice.name.toLowerCase() === "charlie");
+        
+        if (charlieVoice) {
+          setSelectedVoiceId(charlieVoice.voice_id);
+          console.log("Charlie voice set as default:", charlieVoice);
+        } else {
+          setSelectedVoiceId(data.voices[0].voice_id);
+          console.log("Charlie voice not found, using default:", data.voices[0].name);
+        }
       }
     } catch (error) {
       console.error('Error fetching voices:', error);
