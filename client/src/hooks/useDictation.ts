@@ -9,6 +9,7 @@ export function useDictation() {
   const [hasRecordedAudio, setHasRecordedAudio] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioSource, setAudioSource] = useState<"recording" | "upload" | null>(null);
+  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(true); // Toggle for real-time mode
   
   const { 
     setOriginalText, 
@@ -25,6 +26,8 @@ export function useDictation() {
   // Store a reference to the current dictation session using refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const webSocketRef = useRef<WebSocket | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   
   // References for audio playback
   const recordedAudioBlobRef = useRef<Blob | null>(null);
@@ -39,21 +42,133 @@ export function useDictation() {
     }
   }, []);
 
+  // Initialize WebSocket connection for real-time transcription
+  const initWebSocket = useCallback(() => {
+    // Close any existing connection
+    if (webSocketRef.current) {
+      webSocketRef.current.close();
+      webSocketRef.current = null;
+    }
+    
+    // Create WebSocket connection
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(wsUrl);
+    
+    socket.onopen = () => {
+      console.log("WebSocket connection established");
+    };
+    
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'transcription') {
+          // Update the transcription text in real-time
+          if (data.text) {
+            if (data.isFinal) {
+              // For final transcription, append it
+              setOriginalText((prevText: string) => {
+                return prevText ? `${prevText} ${data.text}` : data.text;
+              });
+            } else {
+              // For interim transcription, update or append based on context
+              setOriginalText((prevText: string) => {
+                // If we have prior text that seems to be part of the same utterance,
+                // replace the last sentence with the new transcription
+                if (prevText && prevText.trim().endsWith('...')) {
+                  // Find the last complete sentence and replace everything after it
+                  const lastSentenceIndex = Math.max(
+                    prevText.lastIndexOf('. '),
+                    prevText.lastIndexOf('! '),
+                    prevText.lastIndexOf('? ')
+                  );
+                  
+                  if (lastSentenceIndex > 0) {
+                    return prevText.substring(0, lastSentenceIndex + 2) + data.text;
+                  }
+                }
+                
+                // Otherwise, just append the new text
+                return prevText ? `${prevText} ${data.text}...` : `${data.text}...`;
+              });
+            }
+          }
+        }
+        else if (data.type === 'error') {
+          console.error("WebSocket error:", data.message);
+          toast({
+            variant: "destructive",
+            title: "Transcription Error",
+            description: data.message || "An error occurred during real-time transcription.",
+          });
+        }
+      } catch (error) {
+        console.error("Error processing WebSocket message:", error);
+      }
+    };
+    
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Failed to establish real-time transcription connection. Falling back to batch mode.",
+      });
+      setIsRealTimeEnabled(false);
+    };
+    
+    socket.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+    
+    webSocketRef.current = socket;
+  }, [setOriginalText, toast]);
+
   const startDictation = useCallback(async () => {
     try {
       setDictationStatus("Listening...");
       
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       
       // Create a media recorder
       const recorder = new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
       
+      // If real-time mode is enabled, initialize WebSocket
+      if (isRealTimeEnabled) {
+        initWebSocket();
+        
+        // When WebSocket is ready, start recording and sending audio chunks
+        if (webSocketRef.current) {
+          // Send start signal to server
+          webSocketRef.current.send(JSON.stringify({ type: 'start' }));
+        }
+      }
+      
       // Listen for data chunks
       recorder.addEventListener("dataavailable", (event) => {
+        // Store chunks for later processing
         audioChunksRef.current.push(event.data);
+        
+        // If in real-time mode and WebSocket is connected, send the chunks
+        if (isRealTimeEnabled && webSocketRef.current && webSocketRef.current.readyState === WebSocket.OPEN) {
+          // Convert blob to base64
+          const reader = new FileReader();
+          reader.readAsDataURL(event.data);
+          reader.onloadend = () => {
+            const base64data = reader.result?.toString().split(',')[1];
+            if (base64data && webSocketRef.current) {
+              webSocketRef.current.send(JSON.stringify({
+                type: 'audio',
+                audio: base64data
+              }));
+            }
+          };
+        }
       });
       
       // When recording stops, process the audio
@@ -92,7 +207,10 @@ export function useDictation() {
         
         audioRef.current = audio;
         
-        await processAudio(audioBlob);
+        // If not in real-time mode or WebSocket failed, process audio in batch mode
+        if (!isRealTimeEnabled || !webSocketRef.current || webSocketRef.current.readyState !== WebSocket.OPEN) {
+          await processAudio(audioBlob);
+        }
       });
       
       // Start recording
@@ -105,7 +223,7 @@ export function useDictation() {
       setDictationStatus("Error starting dictation");
       return false;
     }
-  }, [selectedSpeechEngine, setDictationActive, setOriginalText, toast]);
+  }, [selectedSpeechEngine, setDictationActive, setOriginalText, toast, isRealTimeEnabled, initWebSocket]);
 
   const stopDictation = useCallback(async () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import multer from "multer";
 import OpenAI from "openai";
 import { z } from "zod";
+import { WebSocketServer, WebSocket } from 'ws';
 import {
   SpeechEngine, 
   AIModel, 
@@ -397,5 +398,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Initialize WebSocket server for real-time transcription
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Handle WebSocket connections
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    let audioChunks: Buffer[] = [];
+    let isTranscribing = false;
+    let currentTranscription = '';
+    
+    // Handle messages from client
+    ws.on('message', async (message) => {
+      try {
+        // Parse the incoming message
+        const data = JSON.parse(message.toString());
+        
+        if (data.type === 'start') {
+          // Start a new transcription session
+          console.log('Starting new transcription session');
+          audioChunks = [];
+          currentTranscription = '';
+          isTranscribing = true;
+          
+          // Send acknowledgment
+          ws.send(JSON.stringify({ type: 'status', status: 'ready' }));
+        } 
+        else if (data.type === 'audio') {
+          if (!isTranscribing) return;
+          
+          // Process audio chunk
+          const audioBuffer = Buffer.from(data.audio, 'base64');
+          audioChunks.push(audioBuffer);
+          
+          // Periodically process accumulated audio for transcription
+          if (audioChunks.length >= 3) { // Process after collecting a few chunks
+            const combinedBuffer = Buffer.concat(audioChunks);
+            audioChunks = []; // Clear for next batch
+            
+            try {
+              // Use Gladia for transcription (preferred for real-time)
+              if (process.env.GLADIA_API_KEY) {
+                const transcription = await gladiaTranscribe(combinedBuffer);
+                
+                if (transcription && transcription !== currentTranscription) {
+                  currentTranscription = transcription;
+                  ws.send(JSON.stringify({ 
+                    type: 'transcription', 
+                    text: transcription,
+                    isFinal: false
+                  }));
+                }
+              }
+            } catch (error) {
+              console.error('Real-time transcription error:', error);
+              // Just continue - we'll try again with the next batch
+            }
+          }
+        } 
+        else if (data.type === 'stop') {
+          // Process any remaining audio for final transcription
+          if (audioChunks.length > 0 && isTranscribing) {
+            const finalBuffer = Buffer.concat(audioChunks);
+            
+            try {
+              // Try Gladia first, fall back to other services if needed
+              let finalTranscription = '';
+              try {
+                if (process.env.GLADIA_API_KEY) {
+                  finalTranscription = await gladiaTranscribe(finalBuffer);
+                }
+              } catch (gladiaError) {
+                console.error('Gladia final transcription error:', gladiaError);
+                
+                // Try Whisper as fallback
+                try {
+                  finalTranscription = await whisperTranscribe(finalBuffer);
+                } catch (whisperError) {
+                  console.error('Whisper fallback error:', whisperError);
+                  
+                  // Try Deepgram as last resort
+                  if (process.env.DEEPGRAM_API_KEY) {
+                    try {
+                      finalTranscription = await deepgramTranscribe(finalBuffer);
+                    } catch (deepgramError) {
+                      console.error('Deepgram fallback error:', deepgramError);
+                    }
+                  }
+                }
+              }
+              
+              // Send final transcription if we got anything
+              if (finalTranscription) {
+                ws.send(JSON.stringify({ 
+                  type: 'transcription', 
+                  text: finalTranscription,
+                  isFinal: true
+                }));
+              }
+            } catch (error) {
+              console.error('Final transcription error:', error);
+              ws.send(JSON.stringify({ type: 'error', message: 'Failed to transcribe final audio' }));
+            }
+          }
+          
+          // Reset state
+          audioChunks = [];
+          isTranscribing = false;
+          
+          // Send acknowledgment
+          ws.send(JSON.stringify({ type: 'status', status: 'stopped' }));
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
+      }
+    });
+    
+    // Handle disconnection
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      audioChunks = [];
+      isTranscribing = false;
+    });
+    
+    // Send initial connection acknowledgment
+    ws.send(JSON.stringify({ type: 'status', status: 'connected' }));
+  });
+
   return httpServer;
 }
