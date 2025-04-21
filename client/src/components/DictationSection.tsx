@@ -29,6 +29,7 @@ const DictationSection = () => {
     selectedAIModel,
     setSelectedAIModel,
     dictationActive,
+    setDictationActive,
     isProcessing,
     selectedPreset,
     setSelectedPreset
@@ -73,6 +74,16 @@ const DictationSection = () => {
       fetchVoices();
     }
   }, [fetchVoices, processedText]);
+  
+  // Effect to handle dictation state synchronization
+  useEffect(() => {
+    // When dictationActive changes in the global context, trigger the appropriate action in the dictation hook
+    if (dictationActive) {
+      startDictation();
+    } else {
+      stopDictation();
+    }
+  }, [dictationActive, startDictation, stopDictation]);
 
   // Handlers
   const handleTransformText = async () => {
@@ -219,11 +230,7 @@ const DictationSection = () => {
                         dictationActive ? 'bg-red-500 text-white animate-pulse' : 'bg-purple-100 text-purple-600'
                       }`}
                       onClick={() => {
-                        if (dictationActive) {
-                          stopDictation();
-                        } else {
-                          startDictation();
-                        }
+                        setDictationActive(!dictationActive);
                       }}
                     >
                       <i className={`${dictationActive ? 'ri-stop-line' : 'ri-mic-line'} text-lg`}></i>
