@@ -416,27 +416,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const processAudioChunks = async () => {
       if (!isTranscribing || audioChunks.length === 0) return;
       
+      console.log(`Processing ${audioChunks.length} audio chunks...`);
+      
       const now = Date.now();
       // Use shorter debounce time for better real-time experience
-      // Reduced from 200ms to 100ms for more frequent updates
-      if (now - lastTranscriptionTime < 100) {
+      if (now - lastTranscriptionTime < 50) { // Reduced from 100ms to 50ms for faster response
         if (processingTimeout) clearTimeout(processingTimeout);
-        processingTimeout = setTimeout(processAudioChunks, 100);
+        processingTimeout = setTimeout(processAudioChunks, 50);
         return;
       }
       
       try {
         const combinedBuffer = Buffer.concat(audioChunks);
-        audioChunks = []; // Clear for next batch
+        const bufferSize = combinedBuffer.length;
+        console.log(`Combined buffer size: ${bufferSize} bytes`);
+        
+        // Keep a copy of the chunks in case of errors, and clear main array for next batch
+        const currentChunks = [...audioChunks];
+        audioChunks = []; 
         
         // Use Gladia for transcription (preferred for real-time)
         if (process.env.GLADIA_API_KEY) {
+          console.log("Sending audio to Gladia API...");
           const transcription = await gladiaTranscribe(combinedBuffer);
+          
+          console.log("Received transcription:", transcription);
           
           if (transcription && transcription !== currentTranscription) {
             currentTranscription = transcription;
             lastTranscriptionTime = Date.now();
             
+            console.log("Sending transcription to client:", transcription);
             ws.send(JSON.stringify({ 
               type: 'transcription', 
               text: transcription,
@@ -484,17 +494,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Send acknowledgment
           ws.send(JSON.stringify({ type: 'status', status: 'ready' }));
         } 
-        else if (data.type === 'audio') {
+        else if (data.type === 'audio' && data.audio) {
           if (!isTranscribing) return;
           
-          // Process audio chunk
-          const audioBuffer = Buffer.from(data.audio, 'base64');
-          audioChunks.push(audioBuffer);
-          
-          // Schedule processing (debounced)
-          if (processingTimeout) clearTimeout(processingTimeout);
-          // Process more quickly for real-time experience
-          // Lower threshold and delay for better responsiveness
+          try {
+            // Process audio chunk
+            const audioBuffer = Buffer.from(data.audio, 'base64');
+            audioChunks.push(audioBuffer);
+            
+            // Schedule processing with a shorter debounce time for better real-time experience
+            if (processingTimeout) clearTimeout(processingTimeout);
+            
+            // Lower threshold and delay for better responsiveness
+            console.log("Added audio chunk, scheduling processing. Chunk size:", audioBuffer.length);
+          } catch (error) {
+            console.error("Error processing audio data:", error);
+            ws.send(JSON.stringify({ 
+              type: 'error', 
+              message: "Failed to process audio data"
+            }));
+          }
           if (audioChunks.length >= 2) {
             processingTimeout = setTimeout(processAudioChunks, 10);
           }
