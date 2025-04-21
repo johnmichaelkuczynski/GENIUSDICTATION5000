@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
 import { useDictation } from "@/hooks/useDictation";
 import { useTTS } from "@/hooks/useTTS";
+import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
+import { useToast } from "@/hooks/use-toast";
 
 const DictationSection = () => {
   const {
@@ -34,6 +36,8 @@ const DictationSection = () => {
 
   const { transformText } = useTransformation();
   const { dictationStatus } = useDictation();
+  const { processDocument } = useDocumentProcessor();
+  const { toast } = useToast();
   const { 
     isLoading: isTtsLoading, 
     isPlaying, 
@@ -50,6 +54,10 @@ const DictationSection = () => {
 
   const [currentTab, setCurrentTab] = useState("direct-dictation");
   const [showVoiceSelect, setShowVoiceSelect] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Handlers
   const handleTransformText = async () => {
@@ -66,6 +74,56 @@ const DictationSection = () => {
 
   const handleCopyProcessed = () => {
     navigator.clipboard.writeText(processedText);
+  };
+  
+  // File upload handlers
+  const handleFileUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      
+      // Check file type
+      const fileType = file.type;
+      if (
+        fileType !== 'application/pdf' && 
+        fileType !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' &&
+        fileType !== 'text/plain'
+      ) {
+        toast({
+          title: "Unsupported file format",
+          description: "Please upload a PDF, DOCX, or TXT file.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      try {
+        setIsUploading(true);
+        const extractedText = await processDocument(file);
+        setOriginalText(extractedText);
+        toast({
+          title: "File uploaded successfully",
+          description: `Text extracted from ${file.name}`,
+        });
+      } catch (error) {
+        console.error("Error processing document:", error);
+        toast({
+          title: "Error processing document",
+          description: "Could not extract text from the document.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsUploading(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""; // Reset input to allow uploading the same file again
+        }
+      }
+    }
   };
 
   const handleDownloadProcessed = () => {
@@ -108,6 +166,80 @@ const DictationSection = () => {
       fetchVoices();
     }
   }, [fetchVoices, processedText]);
+  
+  // Set up drag and drop event listeners for the text area
+  useEffect(() => {
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(true);
+    };
+    
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+    };
+    
+    const handleDrop = async (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        
+        // Check file type
+        const fileType = file.type;
+        if (
+          fileType !== 'application/pdf' && 
+          fileType !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' &&
+          fileType !== 'text/plain'
+        ) {
+          toast({
+            title: "Unsupported file format",
+            description: "Please upload a PDF, DOCX, or TXT file.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        try {
+          setIsUploading(true);
+          const extractedText = await processDocument(file);
+          setOriginalText(extractedText);
+          toast({
+            title: "File uploaded successfully",
+            description: `Text extracted from ${file.name}`,
+          });
+        } catch (error) {
+          console.error("Error processing document:", error);
+          toast({
+            title: "Error processing document",
+            description: "Could not extract text from the document.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsUploading(false);
+        }
+      }
+    };
+    
+    const textarea = textareaRef.current;
+    const textareaParent = textarea?.parentElement;
+    
+    if (textareaParent) {
+      textareaParent.addEventListener('dragover', handleDragOver);
+      textareaParent.addEventListener('dragleave', handleDragLeave);
+      textareaParent.addEventListener('drop', handleDrop);
+      
+      return () => {
+        textareaParent.removeEventListener('dragover', handleDragOver);
+        textareaParent.removeEventListener('dragleave', handleDragLeave);
+        textareaParent.removeEventListener('drop', handleDrop);
+      };
+    }
+  }, [toast, processDocument, setOriginalText]);
 
   const presets = ["Academic", "Professional", "Creative", "Concise", "Elaborate"];
 
@@ -130,6 +262,30 @@ const DictationSection = () => {
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Original Dictation</h3>
                   <div className="flex space-x-2">
+                    {/* Upload Document Button */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-xs flex items-center"
+                            onClick={handleFileUploadClick}
+                            disabled={isUploading}
+                          >
+                            {isUploading ? (
+                              <span className="animate-spin h-3 w-3 mr-1 border-2 border-t-transparent rounded-full"></span>
+                            ) : (
+                              <i className="ri-upload-line mr-1"></i>
+                            )}
+                            {isUploading ? "Uploading..." : "Upload"}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          <p className="text-xs">Upload PDF, DOCX, or TXT file</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -154,6 +310,14 @@ const DictationSection = () => {
                     onChange={(e) => setOriginalText(e.target.value)}
                     placeholder="Start dictating or type here..."
                     className="min-h-[256px] resize-none"
+                  />
+                  {/* Hidden File Input */}
+                  <input 
+                    ref={fileInputRef}
+                    type="file" 
+                    className="hidden" 
+                    accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" 
+                    onChange={handleFileChange}
                   />
                   {/* Dictation Status Indicator */}
                   {dictationActive && (
