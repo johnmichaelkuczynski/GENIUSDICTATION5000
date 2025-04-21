@@ -400,7 +400,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Initialize WebSocket server for real-time transcription
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    // Increase maximum payload size for audio data
+    maxPayload: 10 * 1024 * 1024 // 10MB
+  });
+  
+  // We can use the WebSocket type already imported at the top of the file
   
   // Handle WebSocket connections
   wss.on('connection', (ws) => {
@@ -411,6 +418,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     let lastTranscriptionTime = 0;
     let processingTimeout: NodeJS.Timeout | null = null;
     let silenceTimeout: NodeJS.Timeout | null = null;
+    
+    // Helper function to safely send messages
+    const safeSend = (data: any) => {
+      try {
+        if (ws.readyState === WebSocket.OPEN) {
+          const message = typeof data === 'string' ? data : JSON.stringify(data);
+          ws.send(message);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error sending WebSocket message:", error);
+        return false;
+      }
+    };
     
     // Debounced processing function with optimized timing for real-time experience
     const processAudioChunks = async () => {
@@ -447,22 +469,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastTranscriptionTime = Date.now();
             
             console.log("Sending transcription to client:", transcription);
-            ws.send(JSON.stringify({ 
+            safeSend({ 
               type: 'transcription', 
               text: transcription,
               isFinal: false
-            }));
+            });
             
             // Reset silence detection timeout
             if (silenceTimeout) clearTimeout(silenceTimeout);
             silenceTimeout = setTimeout(() => {
               // If no new audio chunks arrived for 2 seconds, consider this chunk finalized
               if (audioChunks.length === 0 && isTranscribing) {
-                ws.send(JSON.stringify({ 
+                safeSend({ 
                   type: 'transcription', 
                   text: currentTranscription,
                   isFinal: true
-                }));
+                });
               }
             }, 2000);
           }
@@ -492,7 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (silenceTimeout) clearTimeout(silenceTimeout);
           
           // Send acknowledgment
-          ws.send(JSON.stringify({ type: 'status', status: 'ready' }));
+          safeSend({ type: 'status', status: 'ready' });
         } 
         else if (data.type === 'audio' && data.audio) {
           if (!isTranscribing) return;
@@ -509,10 +531,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log("Added audio chunk, scheduling processing. Chunk size:", audioBuffer.length);
           } catch (error) {
             console.error("Error processing audio data:", error);
-            ws.send(JSON.stringify({ 
+            safeSend({ 
               type: 'error', 
               message: "Failed to process audio data"
-            }));
+            });
           }
           if (audioChunks.length >= 2) {
             processingTimeout = setTimeout(processAudioChunks, 10);
@@ -556,15 +578,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               // Send final transcription if we got anything
               if (finalTranscription) {
-                ws.send(JSON.stringify({ 
+                safeSend({ 
                   type: 'transcription', 
                   text: finalTranscription,
                   isFinal: true
-                }));
+                });
               }
             } catch (error) {
               console.error('Final transcription error:', error);
-              ws.send(JSON.stringify({ type: 'error', message: 'Failed to transcribe final audio' }));
+              safeSend({ type: 'error', message: 'Failed to transcribe final audio' });
             }
           }
           
@@ -573,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isTranscribing = false;
           
           // Send acknowledgment
-          ws.send(JSON.stringify({ type: 'status', status: 'stopped' }));
+          safeSend({ type: 'status', status: 'stopped' });
         }
       } catch (error) {
         console.error('WebSocket message error:', error);

@@ -277,12 +277,20 @@ export function useDictation() {
           const reader = new FileReader();
           reader.readAsDataURL(event.data);
           reader.onloadend = () => {
-            const base64data = reader.result?.toString().split(',')[1];
-            if (base64data && webSocketRef.current) {
-              webSocketRef.current.send(JSON.stringify({
-                type: 'audio',
-                audio: base64data
-              }));
+            try {
+              const base64data = reader.result?.toString().split(',')[1];
+              if (base64data && webSocketRef.current && webSocketRef.current.readyState === WebSocket.OPEN) {
+                const message = JSON.stringify({
+                  type: 'audio',
+                  audio: base64data
+                });
+                webSocketRef.current.send(message);
+                console.log("Sent audio chunk, size:", base64data.length);
+              } else {
+                console.warn("WebSocket not ready for sending audio");
+              }
+            } catch (error) {
+              console.error("Error sending audio via WebSocket:", error);
             }
           };
         }
@@ -543,6 +551,48 @@ export function useDictation() {
   const toggleRealTimeMode = useCallback(() => {
     setIsRealTimeEnabled(prev => !prev);
   }, []);
+  
+  // For backward compatibility - alias of toggleRealTimeMode
+  const toggleRealTimeTranscription = useCallback(() => {
+    toggleRealTimeMode();
+  }, [toggleRealTimeMode]);
+  
+  // Download the recorded audio
+  const downloadRecordedAudio = useCallback(() => {
+    if (!recordedAudioBlobRef.current) return;
+    
+    try {
+      // Create a download link
+      const url = URL.createObjectURL(recordedAudioBlobRef.current);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'dictation.webm';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Download started",
+        description: "Your recorded audio is being downloaded",
+      });
+    } catch (error) {
+      console.error("Failed to download audio:", error);
+      toast({
+        variant: "destructive",
+        title: "Download Error",
+        description: "Failed to download the recorded audio",
+      });
+    }
+  }, [toast]);
+  
+  // Alias for playAudio for backward compatibility
+  const playRecordedAudio = useCallback(() => {
+    playAudio();
+  }, [playAudio]);
 
   return {
     dictationStatus,
@@ -555,6 +605,11 @@ export function useDictation() {
     playAudio,
     pauseAudio,
     uploadAudio,
-    toggleRealTimeMode
+    toggleRealTimeMode,
+    
+    // Backward compatibility methods
+    playRecordedAudio,
+    downloadRecordedAudio,
+    toggleRealTimeTranscription
   };
 }
