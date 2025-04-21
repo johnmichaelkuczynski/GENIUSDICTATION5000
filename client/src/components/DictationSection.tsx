@@ -12,7 +12,6 @@ import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
 import { useDictation } from "@/hooks/useDictation";
 import { useTTS } from "@/hooks/useTTS";
-import AudioUploadDropzone from "./AudioUploadDropzone";
 
 const DictationSection = () => {
   // App context
@@ -45,9 +44,7 @@ const DictationSection = () => {
     hasRecordedAudio, 
     isPlaying: isOriginalAudioPlaying,
     playRecordedAudio,
-    downloadRecordedAudio,
-    uploadAudio,
-    audioSource
+    downloadRecordedAudio
   } = useDictation();
   const { 
     isLoading: isTtsLoading, 
@@ -97,22 +94,6 @@ const DictationSection = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-  
-  // Handle audio file upload
-  const handleAudioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      
-      // Validate file type (audio)
-      if (!file.type.startsWith('audio/')) {
-        alert('Please select an audio file (MP3, WAV, etc.)');
-        return;
-      }
-      
-      // Process the audio file
-      await uploadAudio(file);
-    }
   };
 
   // Handle voice selection
@@ -214,27 +195,7 @@ const DictationSection = () => {
                   )}
                 </div>
 
-                {/* Audio upload button */}
-                <div className="mt-2">
-                  <div className="flex items-center justify-center w-full">
-                    <label htmlFor="audio-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-accent/5 hover:bg-accent/10 border-accent/20">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <i className="ri-upload-2-line text-2xl mb-1"></i>
-                        <p className="mb-2 text-sm font-semibold">Upload Audio File</p>
-                        <p className="text-xs text-gray-500">MP3, WAV, or other audio format</p>
-                      </div>
-                      <input 
-                        id="audio-upload" 
-                        type="file" 
-                        accept="audio/*" 
-                        className="hidden" 
-                        onChange={handleAudioFileUpload}
-                      />
-                    </label>
-                  </div>
-                </div>
-                
-                {/* Audio playback controls */}
+                {/* BIG, UNMISSABLE BUTTON FOR ORIGINAL DICTATION */}
                 {hasRecordedAudio && (
                   <div className="mt-4">
                     <Button
@@ -245,8 +206,8 @@ const DictationSection = () => {
                     >
                       <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-2 text-xl`}></i>
                       {isOriginalAudioPlaying 
-                        ? "STOP LISTENING TO ORIGINAL AUDIO" 
-                        : `LISTEN TO ORIGINAL ${audioSource === "upload" ? "UPLOADED AUDIO" : "DICTATION"}`}
+                        ? "STOP LISTENING TO ORIGINAL DICTATION" 
+                        : "LISTEN TO ORIGINAL DICTATION"}
                     </Button>
                     
                     <div className="flex mt-2">
@@ -257,7 +218,7 @@ const DictationSection = () => {
                         onClick={downloadRecordedAudio}
                       >
                         <i className="ri-download-line mr-2 text-lg"></i>
-                        DOWNLOAD ORIGINAL AUDIO
+                        DOWNLOAD ORIGINAL DICTATION
                       </Button>
                     </div>
                   </div>
@@ -495,82 +456,10 @@ const DictationSection = () => {
           
           <TabsContent value="document-processing">
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <AudioUploadDropzone />
-                </div>
-                <div>
-                  <Card>
-                    <CardContent className="p-6">
-                      <h2 className="text-lg font-medium mb-4">Processing Options</h2>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="speech-engine-doc" className="text-sm font-medium block mb-1">Speech Recognition Engine</Label>
-                          <Select
-                            value={selectedSpeechEngine}
-                            onValueChange={(value) => setSelectedSpeechEngine(value as SpeechEngine)}
-                          >
-                            <SelectTrigger id="speech-engine-doc" className="w-full">
-                              <SelectValue placeholder="Select speech engine" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={SpeechEngine.GLADIA}>{SpeechEngine.GLADIA} (Primary)</SelectItem>
-                              <SelectItem value={SpeechEngine.WHISPER}>{SpeechEngine.WHISPER}</SelectItem>
-                              <SelectItem value={SpeechEngine.DEEPGRAM}>{SpeechEngine.DEEPGRAM}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-muted-foreground mt-1">Select the speech engine for transcribing audio files.</p>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="ai-model-doc" className="text-sm font-medium block mb-1">AI Model for Transformations</Label>
-                          <Select
-                            value={selectedAIModel}
-                            onValueChange={(value) => setSelectedAIModel(value as AIModel)}
-                          >
-                            <SelectTrigger id="ai-model-doc" className="w-full">
-                              <SelectValue placeholder="Select AI model" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={AIModel.GPT4O}>{AIModel.GPT4O}</SelectItem>
-                              <SelectItem value={AIModel.GPT4}>{AIModel.GPT4}</SelectItem>
-                              <SelectItem value={AIModel.GPT35}>{AIModel.GPT35}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-muted-foreground mt-1">Select the AI model for processing and transforming text.</p>
-                        </div>
-                        
-                        {/* Audio Playback Section */}
-                        {hasRecordedAudio && (
-                          <div className="pt-4 mt-4 border-t">
-                            <h3 className="text-base font-medium mb-3">Audio Controls</h3>
-                            <div className="space-y-2">
-                              <Button
-                                variant="default"
-                                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                                onClick={playRecordedAudio}
-                              >
-                                <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-2`}></i>
-                                {isOriginalAudioPlaying ? "Pause Audio" : "Play Audio"}
-                              </Button>
-                              
-                              <Button
-                                variant="outline"
-                                className="w-full border-blue-500 text-blue-500 hover:bg-blue-50"
-                                onClick={downloadRecordedAudio}
-                              >
-                                <i className="ri-download-line mr-2"></i>
-                                Download Audio File
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Document processing will be available in this tab.
+                Switch to the "Documents" page for full document handling functionality.
+              </p>
             </CardContent>
           </TabsContent>
           

@@ -10,8 +10,7 @@ import {
   transformRequestSchema, 
   apiKeyRequestSchema,
   extractTextRequestSchema,
-  ttsRequestSchema,
-  uploadAudioRequestSchema
+  ttsRequestSchema
 } from "@shared/schema";
 import { transformText } from "./services/openai";
 import { transcribeAudio as gladiaTranscribe } from "./services/gladia";
@@ -124,73 +123,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Audio file upload endpoint for direct audio upload
-  app.post("/api/upload-audio", upload.single("audio"), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No audio file provided" });
-      }
-
-      const audioBuffer = req.file.buffer;
-      const fileName = req.file.originalname || "uploaded-audio.webm";
-      
-      // Store the audio file temporarily (in-memory storage)
-      const timestamp = Date.now();
-      const uniqueFileName = `${timestamp}-${fileName}`;
-      
-      // In a production app, you would save this to a file system or database
-      // For this demo, we'll use a temporary URL
-      const audioUrl = `/api/audio/${uniqueFileName}`;
-      
-      // Store the audio buffer in memory for later retrieval
-      req.app.locals.audioFiles = req.app.locals.audioFiles || {};
-      req.app.locals.audioFiles[uniqueFileName] = {
-        buffer: audioBuffer,
-        contentType: req.file.mimetype || "audio/webm"
-      };
-      
-      // Set expiration for the audio file (30 minutes)
-      setTimeout(() => {
-        if (req.app.locals.audioFiles && req.app.locals.audioFiles[uniqueFileName]) {
-          delete req.app.locals.audioFiles[uniqueFileName];
-        }
-      }, 30 * 60 * 1000);
-      
-      res.json({ 
-        success: true, 
-        fileName: uniqueFileName,
-        audioUrl
-      });
-    } catch (error) {
-      console.error("Error uploading audio:", error);
-      res.status(500).json({ error: "Failed to upload audio file" });
-    }
-  });
-
-  // Endpoint to serve audio files
-  app.get("/api/audio/:fileName", (req, res) => {
-    try {
-      const fileName = req.params.fileName;
-      
-      // Retrieve the audio file from memory
-      const audioFileData = req.app.locals.audioFiles?.[fileName];
-      
-      if (!audioFileData) {
-        return res.status(404).json({ error: "Audio file not found" });
-      }
-      
-      // Set the appropriate content type
-      res.setHeader("Content-Type", audioFileData.contentType);
-      res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
-      
-      // Send the audio file
-      res.send(audioFileData.buffer);
-    } catch (error) {
-      console.error("Error serving audio file:", error);
-      res.status(500).json({ error: "Failed to serve audio file" });
-    }
-  });
-
   // Speech-to-text transcription endpoint
   app.post("/api/transcribe", upload.single("audio"), async (req, res) => {
     try {
@@ -241,31 +173,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
-      // Store the audio file temporarily for playback
-      const timestamp = Date.now();
-      const uniqueFileName = `${timestamp}-transcription.webm`;
-      const audioUrl = `/api/audio/${uniqueFileName}`;
-      
-      // Store the audio buffer in memory for later retrieval
-      req.app.locals.audioFiles = req.app.locals.audioFiles || {};
-      req.app.locals.audioFiles[uniqueFileName] = {
-        buffer: audioBuffer,
-        contentType: req.file.mimetype || "audio/webm"
-      };
-      
-      // Set expiration for the audio file (30 minutes)
-      setTimeout(() => {
-        if (req.app.locals.audioFiles && req.app.locals.audioFiles[uniqueFileName]) {
-          delete req.app.locals.audioFiles[uniqueFileName];
-        }
-      }, 30 * 60 * 1000);
 
-      res.json({ 
-        text: transcribedText, 
-        engine: usedEngine,
-        audioUrl
-      });
+      res.json({ text: transcribedText, engine: usedEngine });
     } catch (error) {
       console.error("Error in transcription:", error);
       res.status(500).json({ error: "Failed to transcribe audio" });

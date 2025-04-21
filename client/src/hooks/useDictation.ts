@@ -8,19 +8,13 @@ export function useDictation() {
   const [dictationStatus, setDictationStatus] = useState("Ready");
   const [hasRecordedAudio, setHasRecordedAudio] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioSource, setAudioSource] = useState<"recording" | "upload" | null>(null);
   
   const { 
     setOriginalText, 
     originalText, 
     selectedSpeechEngine,
     setDictationActive
-  } = useAppContext() as {
-    setOriginalText: (text: string | ((prevText: string) => string)) => void;
-    originalText: string;
-    selectedSpeechEngine: SpeechEngine;
-    setDictationActive: (active: boolean) => void;
-  };
+  } = useAppContext();
 
   // Store a reference to the current dictation session using refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -30,7 +24,6 @@ export function useDictation() {
   const recordedAudioBlobRef = useRef<Blob | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
-  const serverAudioUrlRef = useRef<string | null>(null);
 
   // Check for existing audio on mount
   useEffect(() => {
@@ -139,15 +132,9 @@ export function useDictation() {
       }
       
       const data = await response.json();
-
-      // Store server-side audio URL if available
-      if (data.audioUrl) {
-        serverAudioUrlRef.current = data.audioUrl;
-        setAudioSource("recording");
-      }
       
       // Append the transcribed text to the original text
-      setOriginalText((prevText: string) => {
+      setOriginalText(prevText => {
         const newText = prevText ? `${prevText} ${data.text}` : data.text;
         return newText;
       });
@@ -168,7 +155,7 @@ export function useDictation() {
         
         recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
-          setOriginalText((prevText: string) => {
+          setOriginalText(prevText => {
             return prevText ? `${prevText} ${transcript}` : transcript;
           });
         };
@@ -185,104 +172,9 @@ export function useDictation() {
     }
   }, [selectedSpeechEngine, setOriginalText]);
 
-  // Upload an audio file for transcription
-  const uploadAudio = useCallback(async (file: File) => {
-    try {
-      setDictationStatus("Processing uploaded audio...");
-      
-      // Create a form with the audio file
-      const formData = new FormData();
-      formData.append("audio", file);
-      formData.append("engine", selectedSpeechEngine);
-      
-      // Send to transcription endpoint
-      const response = await fetch("/api/transcribe", {
-        method: "POST",
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Audio upload failed: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // Store server-side audio URL if available
-      if (data.audioUrl) {
-        serverAudioUrlRef.current = data.audioUrl;
-        
-        // Create an audio element for the server audio
-        const audio = new Audio(data.audioUrl);
-        audio.addEventListener("ended", () => {
-          setIsPlaying(false);
-        });
-        
-        audio.addEventListener("error", (e) => {
-          console.error("Audio playback error:", e);
-          setIsPlaying(false);
-          toast({
-            variant: "destructive",
-            title: "Playback Error",
-            description: "Failed to play the uploaded audio",
-          });
-        });
-        
-        audioRef.current = audio;
-        setHasRecordedAudio(true);
-        setAudioSource("upload");
-      }
-      
-      // Set original text from transcription
-      setOriginalText(data.text);
-      
-      setDictationStatus("Transcribed");
-      
-      toast({
-        title: "Audio Uploaded",
-        description: "Your audio file has been successfully transcribed.",
-      });
-      
-      return true;
-    } catch (error) {
-      console.error("Failed to upload audio:", error);
-      setDictationStatus("Failed to process uploaded audio");
-      
-      toast({
-        variant: "destructive",
-        title: "Upload Failed",
-        description: "Failed to process the uploaded audio file. Please try again.",
-      });
-      
-      return false;
-    }
-  }, [selectedSpeechEngine, setOriginalText, toast]);
-
   // Play the recorded audio
   const playRecordedAudio = useCallback(() => {
-    // First, try to play server-side audio if available
-    if (serverAudioUrlRef.current && (!audioRef.current || audioSource === "upload")) {
-      if (!audioRef.current) {
-        const audio = new Audio(serverAudioUrlRef.current);
-        
-        audio.addEventListener("ended", () => {
-          setIsPlaying(false);
-        });
-        
-        audio.addEventListener("error", (e) => {
-          console.error("Audio playback error:", e);
-          setIsPlaying(false);
-          toast({
-            variant: "destructive",
-            title: "Playback Error",
-            description: "Failed to play the audio",
-          });
-        });
-        
-        audioRef.current = audio;
-      }
-    }
-    // Then try local blob
-    else if (!audioRef.current || !audioUrlRef.current) {
+    if (!audioRef.current || !audioUrlRef.current) {
       // If there is a recorded blob but no audio element, create one
       if (recordedAudioBlobRef.current && !audioRef.current) {
         const url = URL.createObjectURL(recordedAudioBlobRef.current);
@@ -338,23 +230,10 @@ export function useDictation() {
           });
       }
     }
-  }, [isPlaying, toast, audioSource]);
+  }, [isPlaying, toast]);
 
   // Download the recorded audio
   const downloadRecordedAudio = useCallback(() => {
-    // Try server-side URL first if it's the primary source
-    if (serverAudioUrlRef.current && audioSource === "upload") {
-      // For server-side URLs, we need to fetch the audio first
-      const a = document.createElement("a");
-      a.href = serverAudioUrlRef.current;
-      a.download = "original-audio.webm";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      return;
-    }
-    
-    // Otherwise use local blob
     if (!recordedAudioBlobRef.current) {
       toast({
         variant: "destructive",
@@ -373,17 +252,15 @@ export function useDictation() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [toast, audioSource]);
+  }, [toast]);
 
   return {
     startDictation,
     stopDictation,
-    uploadAudio,
     dictationStatus,
     hasRecordedAudio,
     isPlaying,
     playRecordedAudio,
-    downloadRecordedAudio,
-    audioSource
+    downloadRecordedAudio
   };
 }

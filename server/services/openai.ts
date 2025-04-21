@@ -2,20 +2,10 @@ import OpenAI from "openai";
 import { AIModel } from "@shared/schema";
 import fs from "fs";
 
-// Initialize OpenAI client lazily to avoid errors when API key is missing
-let openaiClient: OpenAI | null = null;
-
-function getOpenAI(): OpenAI {
-  if (!openaiClient) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error("OpenAI API key is not configured. Please add an API key in the Settings page.");
-    }
-    openaiClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-  return openaiClient;
-}
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Transform text using OpenAI
 export async function transformText({
@@ -47,7 +37,6 @@ ${text}
 Transformed Text:
 `;
 
-    const openai = getOpenAI();
     const response = await openai.chat.completions.create({
       model: openaiModel,
       messages: [
@@ -76,7 +65,6 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
     const audioFile = fs.createReadStream(tempFilePath);
 
     // Call OpenAI API to transcribe the audio
-    const openai = getOpenAI();
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
       model: "whisper-1",
