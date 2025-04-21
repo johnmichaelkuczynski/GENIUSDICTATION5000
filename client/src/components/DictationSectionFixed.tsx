@@ -306,10 +306,11 @@ const DictationSection = () => {
                 </div>
                 <div className="flex-1 relative">
                   <Textarea
+                    ref={textareaRef}
                     value={originalText}
                     onChange={(e) => setOriginalText(e.target.value)}
                     placeholder="Start dictating or type here..."
-                    className="min-h-[256px] resize-none"
+                    className={`min-h-[256px] resize-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
                   />
                   {/* Hidden File Input */}
                   <input 
