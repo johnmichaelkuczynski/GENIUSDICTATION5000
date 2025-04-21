@@ -231,13 +231,29 @@ export function useDictation() {
       mediaRecorderRef.current.stop();
       
       // Stop all audio tracks
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+
+      // If real-time mode was active, send stop signal to the WebSocket
+      if (isRealTimeEnabled && webSocketRef.current && webSocketRef.current.readyState === WebSocket.OPEN) {
+        // Send stop signal
+        webSocketRef.current.send(JSON.stringify({ type: 'stop' }));
+        
+        // Close the WebSocket connection after a small delay to ensure the final message is sent
+        setTimeout(() => {
+          if (webSocketRef.current) {
+            webSocketRef.current.close();
+            webSocketRef.current = null;
+          }
+        }, 500);
+      }
       
       // Reset media recorder
       setDictationActive(false);
       setDictationStatus("Ready");
     }
-  }, [setDictationActive]);
+  }, [setDictationActive, isRealTimeEnabled]);
 
   const processAudio = useCallback(async (audioBlob: Blob) => {
     try {
@@ -493,6 +509,11 @@ export function useDictation() {
     URL.revokeObjectURL(url);
   }, [toast, audioSource]);
 
+  // Toggle real-time transcription
+  const toggleRealTimeTranscription = useCallback(() => {
+    setIsRealTimeEnabled(prev => !prev);
+  }, []);
+
   return {
     startDictation,
     stopDictation,
@@ -502,6 +523,8 @@ export function useDictation() {
     isPlaying,
     playRecordedAudio,
     downloadRecordedAudio,
-    audioSource
+    audioSource,
+    isRealTimeEnabled,
+    toggleRealTimeTranscription
   };
 }

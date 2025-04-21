@@ -47,7 +47,9 @@ const DictationSection = () => {
     playRecordedAudio,
     downloadRecordedAudio,
     uploadAudio,
-    audioSource
+    audioSource,
+    isRealTimeEnabled,
+    toggleRealTimeTranscription
   } = useDictation();
   const { 
     isLoading: isTtsLoading, 
