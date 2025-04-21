@@ -134,10 +134,8 @@ export function useDictation() {
       const data = await response.json();
       
       // Append the transcribed text to the original text
-      setOriginalText(prevText => {
-        const newText = prevText ? `${prevText} ${data.text}` : data.text;
-        return newText;
-      });
+      const newText = originalText ? `${originalText} ${data.text}` : data.text;
+      setOriginalText(newText);
       
       setDictationStatus("Transcribed");
     } catch (error) {
@@ -155,9 +153,8 @@ export function useDictation() {
         
         recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
-          setOriginalText(prevText => {
-            return prevText ? `${prevText} ${transcript}` : transcript;
-          });
+          const newText = originalText ? `${originalText} ${transcript}` : transcript;
+          setOriginalText(newText);
         };
         
         recognition.onerror = (event: any) => {
@@ -170,7 +167,7 @@ export function useDictation() {
         setDictationStatus("Failed to transcribe audio");
       }
     }
-  }, [selectedSpeechEngine, setOriginalText]);
+  }, [selectedSpeechEngine, setOriginalText, originalText]);
 
   // Play the recorded audio
   const playRecordedAudio = useCallback(() => {

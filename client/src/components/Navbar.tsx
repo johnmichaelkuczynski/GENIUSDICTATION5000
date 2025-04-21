@@ -21,25 +21,17 @@ const Navbar = () => {
             
             {/* Navigation */}
             <nav className="hidden md:ml-8 md:flex md:space-x-6">
-              <Link href="/">
-                <a className={`${location === "/" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
-                  Dictation
-                </a>
+              <Link href="/" className={`${location === "/" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
+                Dictation
               </Link>
-              <Link href="/documents">
-                <a className={`${location === "/documents" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
-                  Documents
-                </a>
+              <Link href="/documents" className={`${location === "/documents" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
+                Documents
               </Link>
-              <Link href="/style-library">
-                <a className={`${location === "/style-library" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
-                  Style Library
-                </a>
+              <Link href="/style-library" className={`${location === "/style-library" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
+                Style Library
               </Link>
-              <Link href="/settings">
-                <a className={`${location === "/settings" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
-                  Settings
-                </a>
+              <Link href="/settings" className={`${location === "/settings" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
+                Settings
               </Link>
             </nav>
           </div>
