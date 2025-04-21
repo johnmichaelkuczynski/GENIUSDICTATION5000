@@ -15,12 +15,14 @@ export function useDictation() {
     setOriginalText, 
     originalText, 
     selectedSpeechEngine,
-    setDictationActive
+    setDictationActive,
+    dictationActive
   } = useAppContext() as {
     setOriginalText: (text: string | ((prevText: string) => string)) => void;
     originalText: string;
     selectedSpeechEngine: SpeechEngine;
     setDictationActive: (active: boolean) => void;
+    dictationActive: boolean;
   };
 
   // Store a reference to the current dictation session using refs
@@ -592,6 +594,29 @@ export function useDictation() {
   const toggleRealTimeTranscription = useCallback(() => {
     setIsRealTimeEnabled(prev => !prev);
   }, []);
+
+  // Effect to respond to dictationActive changes in global context
+  useEffect(() => {
+    const handleDictationStateChange = async () => {
+      try {
+        if (dictationActive) {
+          // If dictation should be active, start it if it's not already active
+          if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") {
+            await startDictation();
+          }
+        } else {
+          // If dictation should not be active, stop it if it's currently active
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+            await stopDictation();
+          }
+        }
+      } catch (error) {
+        console.error("Error handling dictation state change:", error);
+      }
+    };
+    
+    handleDictationStateChange();
+  }, [dictationActive, startDictation, stopDictation]);
 
   return {
     startDictation,
