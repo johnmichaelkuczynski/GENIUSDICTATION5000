@@ -59,41 +59,81 @@ export function useDictation() {
       console.log("WebSocket connection established");
     };
     
+    // Create a debounced version of text updates
+    let updateTimeoutId: number | null = null;
+    let lastText = '';
+    let isFirstChunk = true;
+    
+    const debouncedTextUpdate = (text: string, isFinal: boolean) => {
+      if (updateTimeoutId) {
+        clearTimeout(updateTimeoutId);
+      }
+      
+      // Use a shorter debounce time for real-time feedback, but not too short to avoid UI jitter
+      updateTimeoutId = window.setTimeout(() => {
+        // Don't update if text hasn't changed
+        if (text === lastText) return;
+        lastText = text;
+        
+        if (isFinal) {
+          // For final transcription, append it with proper spacing
+          setOriginalText((prevText: string) => {
+            // Remove any trailing ellipsis that was added for interim results
+            let cleanPrevText = prevText;
+            if (cleanPrevText && cleanPrevText.endsWith('...')) {
+              cleanPrevText = cleanPrevText.slice(0, -3);
+            }
+            
+            // If this is a continuation of text and the previous text doesn't end with punctuation,
+            // add proper spacing
+            const needsSpace = cleanPrevText && 
+                         !cleanPrevText.endsWith(' ') && 
+                         !cleanPrevText.endsWith('.') && 
+                         !cleanPrevText.endsWith('!') && 
+                         !cleanPrevText.endsWith('?');
+                         
+            return cleanPrevText 
+              ? `${cleanPrevText}${needsSpace ? ' ' : ''}${text}` 
+              : text;
+          });
+          
+          // Reset for the next utterance
+          isFirstChunk = true;
+        } else {
+          // For interim transcription, use a smarter update strategy
+          setOriginalText((prevText: string) => {
+            // If this is the first chunk of a new utterance, or we have an empty input box
+            if (isFirstChunk || !prevText) {
+              isFirstChunk = false;
+              return `${text}...`; // Add ellipsis to indicate this is ongoing
+            }
+            
+            // Otherwise, try to find the last complete sentence and replace everything after it
+            const lastSentenceIndex = Math.max(
+              prevText.lastIndexOf('. '),
+              prevText.lastIndexOf('! '),
+              prevText.lastIndexOf('? ')
+            );
+            
+            // If there's a complete sentence, replace everything after it
+            if (lastSentenceIndex > 0) {
+              return prevText.substring(0, lastSentenceIndex + 2) + text + '...';
+            }
+            
+            // Otherwise, just replace everything with the new transcription (this is likely
+            // a continuation of the same utterance)
+            return `${text}...`;
+          });
+        }
+      }, isFinal ? 0 : 200); // No delay for final, 200ms debounce for interim
+    };
+    
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         
-        if (data.type === 'transcription') {
-          // Update the transcription text in real-time
-          if (data.text) {
-            if (data.isFinal) {
-              // For final transcription, append it
-              setOriginalText((prevText: string) => {
-                return prevText ? `${prevText} ${data.text}` : data.text;
-              });
-            } else {
-              // For interim transcription, update or append based on context
-              setOriginalText((prevText: string) => {
-                // If we have prior text that seems to be part of the same utterance,
-                // replace the last sentence with the new transcription
-                if (prevText && prevText.trim().endsWith('...')) {
-                  // Find the last complete sentence and replace everything after it
-                  const lastSentenceIndex = Math.max(
-                    prevText.lastIndexOf('. '),
-                    prevText.lastIndexOf('! '),
-                    prevText.lastIndexOf('? ')
-                  );
-                  
-                  if (lastSentenceIndex > 0) {
-                    return prevText.substring(0, lastSentenceIndex + 2) + data.text;
-                  }
-                }
-                
-                // Otherwise, just append the new text
-                return prevText ? `${prevText} ${data.text}...` : `${data.text}...`;
-              });
-            }
-          }
+        if (data.type === 'transcription' && data.text) {
+          debouncedTextUpdate(data.text, data.isFinal);
         }
         else if (data.type === 'error') {
           console.error("WebSocket error:", data.message);
@@ -101,6 +141,15 @@ export function useDictation() {
             variant: "destructive",
             title: "Transcription Error",
             description: data.message || "An error occurred during real-time transcription.",
+          });
+        }
+        else if (data.type === 'status' && data.status === 'stopped') {
+          // When the server confirms stopping, clean up any trailing ellipsis
+          setOriginalText((prevText: string) => {
+            if (prevText && prevText.endsWith('...')) {
+              return prevText.slice(0, -3);
+            }
+            return prevText;
           });
         }
       } catch (error) {
@@ -140,12 +189,28 @@ export function useDictation() {
       
       // If real-time mode is enabled, initialize WebSocket
       if (isRealTimeEnabled) {
-        initWebSocket();
-        
-        // When WebSocket is ready, start recording and sending audio chunks
-        if (webSocketRef.current) {
-          // Send start signal to server
-          webSocketRef.current.send(JSON.stringify({ type: 'start' }));
+        try {
+          initWebSocket();
+          
+          // When WebSocket is ready, start recording and sending audio chunks
+          // But wait until the socket is actually open
+          if (webSocketRef.current) {
+            const checkReadyState = () => {
+              if (webSocketRef.current && webSocketRef.current.readyState === WebSocket.OPEN) {
+                // Socket is open, send start signal
+                webSocketRef.current.send(JSON.stringify({ type: 'start' }));
+              } else if (webSocketRef.current) {
+                // Socket exists but not yet open, wait a bit and try again
+                setTimeout(checkReadyState, 100);
+              }
+            };
+            
+            // Start checking the ready state
+            checkReadyState();
+          }
+        } catch (wsError) {
+          console.error("WebSocket initialization error:", wsError);
+          // Continue with normal recording even if WebSocket fails
         }
       }
       

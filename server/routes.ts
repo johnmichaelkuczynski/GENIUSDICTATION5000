@@ -408,6 +408,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     let audioChunks: Buffer[] = [];
     let isTranscribing = false;
     let currentTranscription = '';
+    let lastTranscriptionTime = 0;
+    let processingTimeout: NodeJS.Timeout | null = null;
+    let silenceTimeout: NodeJS.Timeout | null = null;
+    
+    // Debounced processing function (wait 200ms between updates)
+    const processAudioChunks = async () => {
+      if (!isTranscribing || audioChunks.length === 0) return;
+      
+      const now = Date.now();
+      // Debounce - only process if it's been 200ms since the last transcription
+      if (now - lastTranscriptionTime < 200) {
+        if (processingTimeout) clearTimeout(processingTimeout);
+        processingTimeout = setTimeout(processAudioChunks, 200);
+        return;
+      }
+      
+      try {
+        const combinedBuffer = Buffer.concat(audioChunks);
+        audioChunks = []; // Clear for next batch
+        
+        // Use Gladia for transcription (preferred for real-time)
+        if (process.env.GLADIA_API_KEY) {
+          const transcription = await gladiaTranscribe(combinedBuffer);
+          
+          if (transcription && transcription !== currentTranscription) {
+            currentTranscription = transcription;
+            lastTranscriptionTime = Date.now();
+            
+            ws.send(JSON.stringify({ 
+              type: 'transcription', 
+              text: transcription,
+              isFinal: false
+            }));
+            
+            // Reset silence detection timeout
+            if (silenceTimeout) clearTimeout(silenceTimeout);
+            silenceTimeout = setTimeout(() => {
+              // If no new audio chunks arrived for 2 seconds, consider this chunk finalized
+              if (audioChunks.length === 0 && isTranscribing) {
+                ws.send(JSON.stringify({ 
+                  type: 'transcription', 
+                  text: currentTranscription,
+                  isFinal: true
+                }));
+              }
+            }, 2000);
+          }
+        }
+      } catch (error) {
+        console.error('Real-time transcription error:', error);
+        // Just continue - we'll try again with the next batch
+      }
+    };
     
     // Handle messages from client
     ws.on('message', async (message) => {
@@ -421,6 +474,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           audioChunks = [];
           currentTranscription = '';
           isTranscribing = true;
+          lastTranscriptionTime = 0;
+          
+          // Clear any existing timeouts
+          if (processingTimeout) clearTimeout(processingTimeout);
+          if (silenceTimeout) clearTimeout(silenceTimeout);
           
           // Send acknowledgment
           ws.send(JSON.stringify({ type: 'status', status: 'ready' }));
@@ -432,32 +490,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const audioBuffer = Buffer.from(data.audio, 'base64');
           audioChunks.push(audioBuffer);
           
-          // Periodically process accumulated audio for transcription
-          if (audioChunks.length >= 3) { // Process after collecting a few chunks
-            const combinedBuffer = Buffer.concat(audioChunks);
-            audioChunks = []; // Clear for next batch
-            
-            try {
-              // Use Gladia for transcription (preferred for real-time)
-              if (process.env.GLADIA_API_KEY) {
-                const transcription = await gladiaTranscribe(combinedBuffer);
-                
-                if (transcription && transcription !== currentTranscription) {
-                  currentTranscription = transcription;
-                  ws.send(JSON.stringify({ 
-                    type: 'transcription', 
-                    text: transcription,
-                    isFinal: false
-                  }));
-                }
-              }
-            } catch (error) {
-              console.error('Real-time transcription error:', error);
-              // Just continue - we'll try again with the next batch
-            }
+          // Schedule processing (debounced)
+          if (processingTimeout) clearTimeout(processingTimeout);
+          // Accumulate chunks but process after a small delay to batch them
+          if (audioChunks.length >= 3) {
+            processingTimeout = setTimeout(processAudioChunks, 50);
           }
         } 
         else if (data.type === 'stop') {
+          // Clear any pending timeouts
+          if (processingTimeout) clearTimeout(processingTimeout);
+          if (silenceTimeout) clearTimeout(silenceTimeout);
+          
           // Process any remaining audio for final transcription
           if (audioChunks.length > 0 && isTranscribing) {
             const finalBuffer = Buffer.concat(audioChunks);
