@@ -221,27 +221,11 @@ const DictationSection = () => {
                     className="min-h-[256px] resize-none"
                   />
                   
-                  {/* Microphone button directly in the textarea */}
-                  <div className="absolute top-2 right-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`rounded-full p-2 ${
-                        dictationActive ? 'bg-red-500 text-white animate-pulse' : 'bg-purple-100 text-purple-600'
-                      }`}
-                      onClick={() => {
-                        setDictationActive(!dictationActive);
-                      }}
-                    >
-                      <i className={`${dictationActive ? 'ri-stop-line' : 'ri-mic-line'} text-lg`}></i>
-                    </Button>
-                  </div>
-                  
                   {/* Dictation Status Indicator */}
                   {dictationActive && (
                     <div className="absolute bottom-3 right-3 flex items-center text-xs text-muted-foreground">
-                      <div className="h-2 w-2 rounded-full bg-green-500 mr-1 animate-pulse"></div>
-                      {dictationStatus}
+                      <div className="h-2 w-2 rounded-full bg-red-500 mr-1 animate-pulse"></div>
+                      Recording... (use floating mic button to stop)
                     </div>
                   )}
                 </div>
