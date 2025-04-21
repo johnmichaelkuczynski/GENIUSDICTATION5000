@@ -257,7 +257,14 @@ const DictationSection = () => {
                       variant="default"
                       size="lg"
                       className="w-full text-lg font-bold py-6 bg-purple-600 hover:bg-purple-700 text-white"
-                      onClick={isOriginalAudioPlaying ? pauseAudio : playRecordedAudio}
+                      onClick={() => {
+                        console.log("Big button clicked, isPlaying:", isOriginalAudioPlaying);
+                        if (isOriginalAudioPlaying) {
+                          pauseAudio(); 
+                        } else {
+                          playRecordedAudio();
+                        }
+                      }}
                     >
                       <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-2 text-xl`}></i>
                       {isOriginalAudioPlaying 

@@ -481,9 +481,21 @@ export function useDictation() {
       if (data.audioUrl) {
         serverAudioUrlRef.current = data.audioUrl;
         
-        // Create an audio element for the server audio
+        // First clean up any existing audio element
+        if (audioRef.current) {
+          try {
+            audioRef.current.pause();
+            audioRef.current.src = "";
+            audioRef.current.load();
+          } catch (error) {
+            console.error("Error cleaning up previous audio:", error);
+          }
+        }
+        
+        // Create a new audio element for the server audio
         const audio = new Audio(data.audioUrl);
         audio.addEventListener("ended", () => {
+          console.log("Audio playback ended");
           setIsPlaying(false);
         });
         
@@ -559,8 +571,9 @@ export function useDictation() {
     if (!audioRef.current) return;
     
     try {
+      // Simple approach - just pause and reset
       audioRef.current.pause();
-      audioRef.current.currentTime = 0; // Also reset to beginning
+      audioRef.current.currentTime = 0;
       setIsPlaying(false);
     } catch (error) {
       console.error("Failed to pause audio:", error);
