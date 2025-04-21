@@ -37,6 +37,7 @@ const FloatingDictationButton = () => {
     }
   }, [dictationActive, startDictation, stopDictation, setDictationActive]);
 
+  // Define toggleControls for the info button
   const toggleControls = useCallback(() => {
     setControlsVisible(prev => !prev);
   }, []);
@@ -47,13 +48,17 @@ const FloatingDictationButton = () => {
       if (e.altKey && e.key === 'd') {
         toggleDictation();
       }
+      // New shortcut: Alt+I to show info panel without starting dictation
+      if (e.altKey && e.key === 'i') {
+        setControlsVisible(prev => !prev);
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [toggleDictation]);
+  }, [toggleDictation, toggleControls]);
 
   // Close controls when clicking outside
   useEffect(() => {
@@ -84,7 +89,7 @@ const FloatingDictationButton = () => {
       {/* Main Floating Button */}
       <Button
         id="floating-dictation-button"
-        onClick={dictationActive ? toggleDictation : toggleControls}
+        onClick={toggleDictation} 
         size="icon"
         className={`w-16 h-16 rounded-full shadow-xl ${
           dictationActive 
