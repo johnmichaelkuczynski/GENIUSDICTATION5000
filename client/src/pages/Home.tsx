@@ -1,11 +1,11 @@
-import DictationSection from "@/components/DictationSection";
+import DictationSectionFixed from "@/components/DictationSectionFixed";
 import DocumentDropzone from "@/components/DocumentDropzone";
 import StyleLibrarySection from "@/components/StyleLibrarySection";
 
 const Home = () => {
   return (
     <>
-      <DictationSection />
+      <DictationSectionFixed />
       <DocumentDropzone />
       <StyleLibrarySection />
     </>
