@@ -16,25 +16,20 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
     // Convert audio buffer to base64
     const base64Audio = audioBuffer.toString('base64');
     
-    // Create JSON payload for the API request (Using the updated API format)
+    // Create JSON payload for the API request (Using the latest API format)
+    // Based on API errors, removing fields that cause validation errors
     const payload = {
-      audio_file_format: "webm", // Required field with the correct audio format
       audio: {
         data: base64Audio,
+        mime_type: "audio/webm"
       },
-      language_behavior: "automatic single language",
-      language: "english",
-      toggle_diarization: false,
-      output_format: "json", // Ensure we get JSON formatted results
-      enable_direct_translation: false
+      // Only include parameters that are specifically supported
+      language: "english"
     };
 
     console.log("Sending request to Gladia API with parameters:", JSON.stringify({
-      audio_file_format: payload.audio_file_format, 
+      mime_type: "audio/webm",
       language: payload.language,
-      language_behavior: payload.language_behavior,
-      toggle_diarization: payload.toggle_diarization,
-      output_format: payload.output_format,
       audio_data_length: base64Audio.length
     }));
 
