@@ -89,14 +89,23 @@ const DictationSection = () => {
       
       // Check file type
       const fileType = file.type;
-      if (
-        fileType !== 'application/pdf' && 
-        fileType !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' &&
-        fileType !== 'text/plain'
-      ) {
+      const isDocumentFile = 
+        fileType === 'application/pdf' || 
+        fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+        fileType === 'text/plain';
+        
+      const isAudioFile = 
+        fileType === 'audio/mpeg' || // mp3
+        fileType === 'audio/mp4' || 
+        fileType === 'audio/wav' ||
+        fileType === 'audio/x-wav' ||
+        fileType === 'audio/webm' ||
+        fileType === 'audio/ogg';
+        
+      if (!isDocumentFile && !isAudioFile) {
         toast({
           title: "Unsupported file format",
-          description: "Please upload a PDF, DOCX, or TXT file.",
+          description: "Please upload a PDF, DOCX, TXT, or audio file (MP3, WAV, etc.).",
           variant: "destructive"
         });
         return;
@@ -104,17 +113,45 @@ const DictationSection = () => {
       
       try {
         setIsUploading(true);
-        const extractedText = await processDocument(file);
-        setOriginalText(extractedText);
-        toast({
-          title: "File uploaded successfully",
-          description: `Text extracted from ${file.name}`,
-        });
+        
+        if (isDocumentFile) {
+          // Process document file
+          const extractedText = await processDocument(file);
+          setOriginalText(extractedText);
+          toast({
+            title: "File uploaded successfully",
+            description: `Text extracted from ${file.name}`,
+          });
+        } else if (isAudioFile) {
+          // Process audio file using the dictation API
+          const formData = new FormData();
+          formData.append("audio", file);
+          
+          const response = await fetch("/api/transcribe", {
+            method: "POST",
+            body: formData,
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to transcribe audio: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          setOriginalText(data.text);
+          toast({
+            title: "Audio transcribed successfully",
+            description: `Speech transcribed from ${file.name}`,
+          });
+        }
       } catch (error) {
-        console.error("Error processing document:", error);
+        console.error("Error processing file:", error);
+        const errorMessage = isAudioFile 
+          ? "Could not transcribe the audio file."
+          : "Could not extract text from the document.";
+          
         toast({
-          title: "Error processing document",
-          description: "Could not extract text from the document.",
+          title: `Error processing ${isAudioFile ? 'audio' : 'document'}`,
+          description: errorMessage,
           variant: "destructive"
         });
       } finally {
@@ -191,14 +228,23 @@ const DictationSection = () => {
         
         // Check file type
         const fileType = file.type;
-        if (
-          fileType !== 'application/pdf' && 
-          fileType !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' &&
-          fileType !== 'text/plain'
-        ) {
+        const isDocumentFile = 
+          fileType === 'application/pdf' || 
+          fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+          fileType === 'text/plain';
+          
+        const isAudioFile = 
+          fileType === 'audio/mpeg' || // mp3
+          fileType === 'audio/mp4' || 
+          fileType === 'audio/wav' ||
+          fileType === 'audio/x-wav' ||
+          fileType === 'audio/webm' ||
+          fileType === 'audio/ogg';
+          
+        if (!isDocumentFile && !isAudioFile) {
           toast({
             title: "Unsupported file format",
-            description: "Please upload a PDF, DOCX, or TXT file.",
+            description: "Please upload a PDF, DOCX, TXT, or audio file (MP3, WAV, etc.).",
             variant: "destructive"
           });
           return;
@@ -206,17 +252,45 @@ const DictationSection = () => {
         
         try {
           setIsUploading(true);
-          const extractedText = await processDocument(file);
-          setOriginalText(extractedText);
-          toast({
-            title: "File uploaded successfully",
-            description: `Text extracted from ${file.name}`,
-          });
+          
+          if (isDocumentFile) {
+            // Process document file
+            const extractedText = await processDocument(file);
+            setOriginalText(extractedText);
+            toast({
+              title: "File uploaded successfully",
+              description: `Text extracted from ${file.name}`,
+            });
+          } else if (isAudioFile) {
+            // Process audio file using the dictation API
+            const formData = new FormData();
+            formData.append("audio", file);
+            
+            const response = await fetch("/api/transcribe", {
+              method: "POST",
+              body: formData,
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Failed to transcribe audio: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            setOriginalText(data.text);
+            toast({
+              title: "Audio transcribed successfully",
+              description: `Speech transcribed from ${file.name}`,
+            });
+          }
         } catch (error) {
-          console.error("Error processing document:", error);
+          console.error("Error processing file:", error);
+          const errorMessage = isAudioFile 
+            ? "Could not transcribe the audio file."
+            : "Could not extract text from the document.";
+            
           toast({
-            title: "Error processing document",
-            description: "Could not extract text from the document.",
+            title: `Error processing ${isAudioFile ? 'audio' : 'document'}`,
+            description: errorMessage,
             variant: "destructive"
           });
         } finally {
@@ -282,7 +356,7 @@ const DictationSection = () => {
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom">
-                          <p className="text-xs">Upload PDF, DOCX, or TXT file</p>
+                          <p className="text-xs">Upload PDF, DOCX, TXT, or audio files (MP3, WAV)</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -317,7 +391,7 @@ const DictationSection = () => {
                     ref={fileInputRef}
                     type="file" 
                     className="hidden" 
-                    accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" 
+                    accept=".pdf,.docx,.txt,.mp3,.wav,.ogg,.webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,audio/mpeg,audio/wav,audio/x-wav,audio/webm,audio/ogg,audio/mp4" 
                     onChange={handleFileChange}
                   />
                   {/* Dictation Status Indicator */}
