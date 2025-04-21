@@ -180,6 +180,7 @@ const DictationSection = () => {
                         className="text-xs flex items-center bg-purple-600 hover:bg-purple-700 text-white" 
                         onClick={() => {
                           console.log("Small button clicked, isPlaying:", isOriginalAudioPlaying);
+                          // ALWAYS pause if the text says "Stop"
                           if (isOriginalAudioPlaying) {
                             pauseAudio(); 
                           } else {
@@ -260,24 +261,43 @@ const DictationSection = () => {
                 {/* Audio playback controls */}
                 {hasRecordedAudio && (
                   <div className="mt-4">
-                    <Button
-                      variant="default"
-                      size="lg"
-                      className="w-full text-lg font-bold py-6 bg-purple-600 hover:bg-purple-700 text-white"
-                      onClick={() => {
-                        console.log("Big button clicked, isPlaying:", isOriginalAudioPlaying);
-                        if (isOriginalAudioPlaying) {
-                          pauseAudio(); 
-                        } else {
+                    {isOriginalAudioPlaying ? (
+                      <Button
+                        variant="default"
+                        size="lg"
+                        className="w-full text-lg font-bold py-6 bg-red-600 hover:bg-red-700 text-white"
+                        onClick={() => {
+                          console.log("EMERGENCY STOP button clicked");
+                          // Create and force stop all audio elements
+                          pauseAudio();
+                          // Also stop all audio elements on the page
+                          document.querySelectorAll('audio').forEach(audio => {
+                            try {
+                              audio.pause();
+                              audio.currentTime = 0;
+                            } catch (e) {
+                              console.error("Error stopping audio element:", e);
+                            }
+                          });
+                        }}
+                      >
+                        <i className="ri-pause-fill mr-2 text-xl"></i>
+                        STOP AUDIO PLAYBACK NOW
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="default"
+                        size="lg"
+                        className="w-full text-lg font-bold py-6 bg-purple-600 hover:bg-purple-700 text-white"
+                        onClick={() => {
+                          console.log("Play button clicked");
                           playRecordedAudio();
-                        }
-                      }}
-                    >
-                      <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-2 text-xl`}></i>
-                      {isOriginalAudioPlaying 
-                        ? "STOP LISTENING TO ORIGINAL AUDIO" 
-                        : `LISTEN TO ORIGINAL ${audioSource === "upload" ? "UPLOADED AUDIO" : "DICTATION"}`}
-                    </Button>
+                        }}
+                      >
+                        <i className="ri-headphone-fill mr-2 text-xl"></i>
+                        {`LISTEN TO ORIGINAL ${audioSource === "upload" ? "UPLOADED AUDIO" : "DICTATION"}`}
+                      </Button>
+                    )}
                     
                     <div className="flex mt-2">
                       <Button
