@@ -454,6 +454,19 @@ const DictationSection = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    
+                    <div className="flex items-center space-x-2 ml-4">
+                      <div className="flex flex-col">
+                        <Label htmlFor="real-time-transcription" className="text-xs font-medium">Real-time:</Label>
+                        <span className="text-[10px] text-muted-foreground">See words as you speak</span>
+                      </div>
+                      <Switch
+                        id="real-time-transcription"
+                        checked={isRealTimeEnabled}
+                        onCheckedChange={toggleRealTimeTranscription}
+                        className="data-[state=checked]:bg-green-500"
+                      />
+                    </div>
                     <div className="flex items-center space-x-2">
                       <Label htmlFor="ai-model" className="text-xs font-medium">AI Model:</Label>
                       <Select
@@ -523,6 +536,19 @@ const DictationSection = () => {
                             </SelectContent>
                           </Select>
                           <p className="text-xs text-muted-foreground mt-1">Select the speech engine for transcribing audio files.</p>
+                        </div>
+                        
+                        <div className="flex items-center justify-between mt-2">
+                          <div>
+                            <Label htmlFor="real-time-doc" className="text-sm font-medium">Real-time Transcription</Label>
+                            <p className="text-xs text-muted-foreground">See transcribed text as you speak</p>
+                          </div>
+                          <Switch
+                            id="real-time-doc"
+                            checked={isRealTimeEnabled}
+                            onCheckedChange={toggleRealTimeTranscription}
+                            className="data-[state=checked]:bg-green-500"
+                          />
                         </div>
                         
                         <div>
