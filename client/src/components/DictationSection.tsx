@@ -29,7 +29,6 @@ const DictationSection = () => {
     selectedAIModel,
     setSelectedAIModel,
     dictationActive,
-    setDictationActive,
     isProcessing,
     selectedPreset,
     setSelectedPreset
@@ -48,11 +47,7 @@ const DictationSection = () => {
     playRecordedAudio,
     downloadRecordedAudio,
     uploadAudio,
-    audioSource,
-    isRealTimeEnabled,
-    toggleRealTimeTranscription,
-    startDictation,
-    stopDictation
+    audioSource
   } = useDictation();
   const { 
     isLoading: isTtsLoading, 
@@ -74,16 +69,6 @@ const DictationSection = () => {
       fetchVoices();
     }
   }, [fetchVoices, processedText]);
-  
-  // Effect to handle dictation state synchronization
-  useEffect(() => {
-    // When dictationActive changes in the global context, trigger the appropriate action in the dictation hook
-    if (dictationActive) {
-      startDictation();
-    } else {
-      stopDictation();
-    }
-  }, [dictationActive, startDictation, stopDictation]);
 
   // Handlers
   const handleTransformText = async () => {
@@ -178,15 +163,7 @@ const DictationSection = () => {
                         variant="secondary" 
                         size="sm" 
                         className="text-xs flex items-center bg-purple-600 hover:bg-purple-700 text-white" 
-                        onClick={() => {
-                          console.log("Small button clicked, isPlaying:", isOriginalAudioPlaying);
-                          // ALWAYS pause if the text says "Stop"
-                          if (isOriginalAudioPlaying) {
-                            pauseAudio(); 
-                          } else {
-                            playRecordedAudio();
-                          }
-                        }}
+                        onClick={playRecordedAudio}
                       >
                         <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-1`}></i>
                         {isOriginalAudioPlaying ? "Stop" : "Play Dictation"}
@@ -228,12 +205,11 @@ const DictationSection = () => {
                     placeholder="Start dictating or type here..."
                     className="min-h-[256px] resize-none"
                   />
-                  
                   {/* Dictation Status Indicator */}
                   {dictationActive && (
                     <div className="absolute bottom-3 right-3 flex items-center text-xs text-muted-foreground">
-                      <div className="h-2 w-2 rounded-full bg-red-500 mr-1 animate-pulse"></div>
-                      Recording... (use floating mic button to stop)
+                      <div className="h-2 w-2 rounded-full bg-green-500 mr-1 animate-pulse"></div>
+                      {dictationStatus}
                     </div>
                   )}
                 </div>
@@ -261,43 +237,17 @@ const DictationSection = () => {
                 {/* Audio playback controls */}
                 {hasRecordedAudio && (
                   <div className="mt-4">
-                    {isOriginalAudioPlaying ? (
-                      <Button
-                        variant="default"
-                        size="lg"
-                        className="w-full text-lg font-bold py-6 bg-red-600 hover:bg-red-700 text-white"
-                        onClick={() => {
-                          console.log("EMERGENCY STOP button clicked");
-                          // Create and force stop all audio elements
-                          pauseAudio();
-                          // Also stop all audio elements on the page
-                          document.querySelectorAll('audio').forEach(audio => {
-                            try {
-                              audio.pause();
-                              audio.currentTime = 0;
-                            } catch (e) {
-                              console.error("Error stopping audio element:", e);
-                            }
-                          });
-                        }}
-                      >
-                        <i className="ri-pause-fill mr-2 text-xl"></i>
-                        STOP AUDIO PLAYBACK NOW
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="default"
-                        size="lg"
-                        className="w-full text-lg font-bold py-6 bg-purple-600 hover:bg-purple-700 text-white"
-                        onClick={() => {
-                          console.log("Play button clicked");
-                          playRecordedAudio();
-                        }}
-                      >
-                        <i className="ri-headphone-fill mr-2 text-xl"></i>
-                        {`LISTEN TO ORIGINAL ${audioSource === "upload" ? "UPLOADED AUDIO" : "DICTATION"}`}
-                      </Button>
-                    )}
+                    <Button
+                      variant="default"
+                      size="lg"
+                      className="w-full text-lg font-bold py-6 bg-purple-600 hover:bg-purple-700 text-white"
+                      onClick={playRecordedAudio}
+                    >
+                      <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-2 text-xl`}></i>
+                      {isOriginalAudioPlaying 
+                        ? "STOP LISTENING TO ORIGINAL AUDIO" 
+                        : `LISTEN TO ORIGINAL ${audioSource === "upload" ? "UPLOADED AUDIO" : "DICTATION"}`}
+                    </Button>
                     
                     <div className="flex mt-2">
                       <Button
@@ -502,19 +452,6 @@ const DictationSection = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    
-                    <div className="flex items-center space-x-2 ml-4">
-                      <div className="flex flex-col">
-                        <Label htmlFor="real-time-transcription" className="text-xs font-medium">Real-time:</Label>
-                        <span className="text-[10px] text-muted-foreground">See words as you speak</span>
-                      </div>
-                      <Switch
-                        id="real-time-transcription"
-                        checked={isRealTimeEnabled}
-                        onCheckedChange={toggleRealTimeTranscription}
-                        className="data-[state=checked]:bg-green-500"
-                      />
-                    </div>
                     <div className="flex items-center space-x-2">
                       <Label htmlFor="ai-model" className="text-xs font-medium">AI Model:</Label>
                       <Select
@@ -584,19 +521,6 @@ const DictationSection = () => {
                             </SelectContent>
                           </Select>
                           <p className="text-xs text-muted-foreground mt-1">Select the speech engine for transcribing audio files.</p>
-                        </div>
-                        
-                        <div className="flex items-center justify-between mt-2">
-                          <div>
-                            <Label htmlFor="real-time-doc" className="text-sm font-medium">Real-time Transcription</Label>
-                            <p className="text-xs text-muted-foreground">See transcribed text as you speak</p>
-                          </div>
-                          <Switch
-                            id="real-time-doc"
-                            checked={isRealTimeEnabled}
-                            onCheckedChange={toggleRealTimeTranscription}
-                            className="data-[state=checked]:bg-green-500"
-                          />
                         </div>
                         
                         <div>

@@ -27,12 +27,16 @@ const FloatingDictationButton = () => {
   } = useDictation();
 
   // Handlers as callbacks to ensure consistent hook order
-  const toggleDictation = useCallback(() => {
-    // Just toggle the global dictationActive state - the effect in hooks will handle the actual dictation
-    setDictationActive(!dictationActive);
-  }, [dictationActive, setDictationActive]);
+  const toggleDictation = useCallback(async () => {
+    if (dictationActive) {
+      await stopDictation();
+      setDictationActive(false);
+    } else {
+      await startDictation();
+      setDictationActive(true);
+    }
+  }, [dictationActive, startDictation, stopDictation, setDictationActive]);
 
-  // Define toggleControls for the info button
   const toggleControls = useCallback(() => {
     setControlsVisible(prev => !prev);
   }, []);
@@ -43,17 +47,13 @@ const FloatingDictationButton = () => {
       if (e.altKey && e.key === 'd') {
         toggleDictation();
       }
-      // New shortcut: Alt+I to show info panel without starting dictation
-      if (e.altKey && e.key === 'i') {
-        setControlsVisible(prev => !prev);
-      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [toggleDictation, toggleControls]);
+  }, [toggleDictation]);
 
   // Close controls when clicking outside
   useEffect(() => {
@@ -78,23 +78,13 @@ const FloatingDictationButton = () => {
       document.removeEventListener('click', handleClickOutside);
     };
   }, [controlsVisible]);
-  
-  // Effect to handle dictation state synchronization
-  useEffect(() => {
-    // When dictationActive changes in the global context, update the UI accordingly
-    if (dictationActive) {
-      // Update UI to show active state
-    } else {
-      // Update UI to show inactive state
-    }
-  }, [dictationActive]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {/* Main Floating Button */}
       <Button
         id="floating-dictation-button"
-        onClick={toggleDictation} 
+        onClick={dictationActive ? toggleDictation : toggleControls}
         size="icon"
         className={`w-16 h-16 rounded-full shadow-xl ${
           dictationActive 
@@ -115,8 +105,8 @@ const FloatingDictationButton = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium">Universal Dictation</h3>
               <div className="flex items-center space-x-1">
-                <div className={`h-2 w-2 rounded-full ${dictationActive ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
-                <span className="text-xs text-muted-foreground">{dictationActive ? dictationStatus || 'Recording...' : 'Ready'}</span>
+                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <span className="text-xs text-muted-foreground">Ready</span>
               </div>
             </div>
             
@@ -171,10 +161,10 @@ const FloatingDictationButton = () => {
           
           <Button 
             onClick={toggleDictation}
-            className={`w-full mt-3 ${dictationActive ? 'bg-red-500 hover:bg-red-600' : ''}`}
+            className="w-full mt-3"
             size="sm"
           >
-            {dictationActive ? 'Stop Dictation' : 'Start Dictation'}
+            Start Dictation
           </Button>
         </div>
       )}
