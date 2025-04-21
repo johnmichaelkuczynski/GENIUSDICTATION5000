@@ -81,10 +81,10 @@ const FloatingDictationButton = () => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Main Floating Button */}
+      {/* Main Floating Button - Start/Stop Recording immediately */}
       <Button
         id="floating-dictation-button"
-        onClick={dictationActive ? toggleDictation : toggleControls}
+        onClick={toggleDictation} 
         size="icon"
         className={`w-16 h-16 rounded-full shadow-xl ${
           dictationActive 
@@ -95,6 +95,16 @@ const FloatingDictationButton = () => {
         <i className={`${dictationActive ? 'ri-stop-line' : 'ri-mic-line'} text-2xl text-white`}></i>
       </Button>
       
+      {/* Info Button - Shows additional options */}
+      <Button
+        variant="outline"
+        size="sm"
+        className="absolute bottom-0 right-20 bg-card"
+        onClick={toggleControls}
+      >
+        <i className="ri-information-line"></i>
+      </Button>
+      
       {/* Extended Controls */}
       {controlsVisible && (
         <div 
@@ -103,10 +113,10 @@ const FloatingDictationButton = () => {
         >
           <div className="flex flex-col space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">Universal Dictation</h3>
+              <h3 className="text-sm font-medium">Dictation Options</h3>
               <div className="flex items-center space-x-1">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span className="text-xs text-muted-foreground">Ready</span>
+                <div className={`h-2 w-2 rounded-full ${dictationActive ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
+                <span className="text-xs text-muted-foreground">{dictationActive ? 'Recording...' : 'Ready'}</span>
               </div>
             </div>
             
@@ -118,7 +128,12 @@ const FloatingDictationButton = () => {
             </div>
             
             <div className="text-xs text-muted-foreground">
-              Click mic to dictate directly into any text field
+              <p className="font-medium mb-1">Usage:</p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>Click the purple mic button to start recording</li>
+                <li>Click the red stop button to stop recording</li>
+                <li>Use Alt+D keyboard shortcut to toggle recording</li>
+              </ul>
             </div>
             
             {/* Add PROMINENT button to listen to last recording if available */}
@@ -158,14 +173,6 @@ const FloatingDictationButton = () => {
               </Button>
             </div>
           </div>
-          
-          <Button 
-            onClick={toggleDictation}
-            className="w-full mt-3"
-            size="sm"
-          >
-            Start Dictation
-          </Button>
         </div>
       )}
     </div>
