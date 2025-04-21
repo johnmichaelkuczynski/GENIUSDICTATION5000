@@ -599,7 +599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
-        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
+        safeSend({ type: 'error', message: 'Invalid message format' });
       }
     });
     
@@ -611,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     // Send initial connection acknowledgment
-    ws.send(JSON.stringify({ type: 'status', status: 'connected' }));
+    safeSend({ type: 'status', status: 'connected' });
   });
 
   return httpServer;
