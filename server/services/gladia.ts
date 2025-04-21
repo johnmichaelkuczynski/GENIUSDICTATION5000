@@ -1,5 +1,4 @@
 import axios from "axios";
-import FormData from "form-data";
 
 /**
  * Transcribe audio using Gladia API
@@ -14,22 +13,27 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
       throw new Error("Gladia API key not found");
     }
     
-    // Create form data for the API request
-    const formData = new FormData();
-    formData.append("audio", audioBuffer, {
-      filename: "audio.webm",
-      contentType: "audio/webm",
-    });
-    formData.append("language", "english");
-    formData.append("toggle_diarization", "false");
+    // Convert audio buffer to base64
+    const base64Audio = audioBuffer.toString('base64');
+    
+    // Create JSON payload for the API request (Using the updated API format)
+    const payload = {
+      audio: {
+        data: base64Audio,
+        type: "audio/webm"
+      },
+      language_behavior: "automatic single language",
+      language: "english",
+      toggle_diarization: false
+    };
 
     // Make API request to Gladia
     const response = await axios.post(
       "https://api.gladia.io/v2/transcription/",
-      formData,
+      payload,
       {
         headers: {
-          ...formData.getHeaders(),
+          "Content-Type": "application/json",
           "x-gladia-key": apiKey,
         },
       }
