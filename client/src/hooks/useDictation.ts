@@ -182,8 +182,21 @@ export function useDictation() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       
-      // Create a media recorder
-      const recorder = new MediaRecorder(stream);
+      // Create a media recorder with optimized settings for real-time transcription
+      const options = { 
+        mimeType: 'audio/webm;codecs=opus',
+        audioBitsPerSecond: 128000 
+      };
+      
+      // Some browsers may not support the options, so use them only if supported
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        console.warn("MediaRecorder options not supported, falling back to defaults", e);
+        recorder = new MediaRecorder(stream);
+      }
+      
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
       
@@ -278,8 +291,9 @@ export function useDictation() {
         }
       });
       
-      // Start recording
-      recorder.start(1000); // Collect data every second
+      // Start recording with more frequent chunks for better real-time experience
+      // Use 500ms interval for real-time mode, 1000ms for batch mode
+      recorder.start(isRealTimeEnabled ? 500 : 1000);
       setDictationActive(true);
       
       return true;

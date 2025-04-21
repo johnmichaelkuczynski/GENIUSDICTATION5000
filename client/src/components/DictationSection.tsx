@@ -49,7 +49,9 @@ const DictationSection = () => {
     uploadAudio,
     audioSource,
     isRealTimeEnabled,
-    toggleRealTimeTranscription
+    toggleRealTimeTranscription,
+    startDictation,
+    stopDictation
   } = useDictation();
   const { 
     isLoading: isTtsLoading, 
@@ -216,13 +218,7 @@ const DictationSection = () => {
                       className={`rounded-full p-2 ${
                         dictationActive ? 'bg-red-500 text-white animate-pulse' : 'bg-purple-100 text-purple-600'
                       }`}
-                      onClick={() => {
-                        if (dictationActive) {
-                          stopDictation();
-                        } else {
-                          startDictation();
-                        }
-                      }}
+                      onClick={() => setDictationActive(!dictationActive)}
                     >
                       <i className={`${dictationActive ? 'ri-stop-line' : 'ri-mic-line'} text-lg`}></i>
                     </Button>
