@@ -412,15 +412,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     let processingTimeout: NodeJS.Timeout | null = null;
     let silenceTimeout: NodeJS.Timeout | null = null;
     
-    // Debounced processing function (wait 200ms between updates)
+    // Debounced processing function with optimized timing for real-time experience
     const processAudioChunks = async () => {
       if (!isTranscribing || audioChunks.length === 0) return;
       
       const now = Date.now();
-      // Debounce - only process if it's been 200ms since the last transcription
-      if (now - lastTranscriptionTime < 200) {
+      // Use shorter debounce time for better real-time experience
+      // Reduced from 200ms to 100ms for more frequent updates
+      if (now - lastTranscriptionTime < 100) {
         if (processingTimeout) clearTimeout(processingTimeout);
-        processingTimeout = setTimeout(processAudioChunks, 200);
+        processingTimeout = setTimeout(processAudioChunks, 100);
         return;
       }
       
@@ -492,9 +493,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Schedule processing (debounced)
           if (processingTimeout) clearTimeout(processingTimeout);
-          // Accumulate chunks but process after a small delay to batch them
-          if (audioChunks.length >= 3) {
-            processingTimeout = setTimeout(processAudioChunks, 50);
+          // Process more quickly for real-time experience
+          // Lower threshold and delay for better responsiveness
+          if (audioChunks.length >= 2) {
+            processingTimeout = setTimeout(processAudioChunks, 10);
           }
         } 
         else if (data.type === 'stop') {
