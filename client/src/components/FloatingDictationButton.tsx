@@ -27,15 +27,10 @@ const FloatingDictationButton = () => {
   } = useDictation();
 
   // Handlers as callbacks to ensure consistent hook order
-  const toggleDictation = useCallback(async () => {
-    if (dictationActive) {
-      await stopDictation();
-      setDictationActive(false);
-    } else {
-      await startDictation();
-      setDictationActive(true);
-    }
-  }, [dictationActive, startDictation, stopDictation, setDictationActive]);
+  const toggleDictation = useCallback(() => {
+    // Just toggle the global dictationActive state - the effect in hooks will handle the actual dictation
+    setDictationActive(!dictationActive);
+  }, [dictationActive, setDictationActive]);
 
   // Define toggleControls for the info button
   const toggleControls = useCallback(() => {
@@ -83,6 +78,16 @@ const FloatingDictationButton = () => {
       document.removeEventListener('click', handleClickOutside);
     };
   }, [controlsVisible]);
+  
+  // Effect to handle dictation state synchronization
+  useEffect(() => {
+    // When dictationActive changes in the global context, update the UI accordingly
+    if (dictationActive) {
+      // Update UI to show active state
+    } else {
+      // Update UI to show inactive state
+    }
+  }, [dictationActive]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -110,8 +115,8 @@ const FloatingDictationButton = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium">Universal Dictation</h3>
               <div className="flex items-center space-x-1">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span className="text-xs text-muted-foreground">Ready</span>
+                <div className={`h-2 w-2 rounded-full ${dictationActive ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
+                <span className="text-xs text-muted-foreground">{dictationActive ? dictationStatus || 'Recording...' : 'Ready'}</span>
               </div>
             </div>
             
@@ -166,10 +171,10 @@ const FloatingDictationButton = () => {
           
           <Button 
             onClick={toggleDictation}
-            className="w-full mt-3"
+            className={`w-full mt-3 ${dictationActive ? 'bg-red-500 hover:bg-red-600' : ''}`}
             size="sm"
           >
-            Start Dictation
+            {dictationActive ? 'Stop Dictation' : 'Start Dictation'}
           </Button>
         </div>
       )}
