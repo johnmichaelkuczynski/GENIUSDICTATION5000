@@ -178,7 +178,7 @@ const DictationSection = () => {
                         variant="secondary" 
                         size="sm" 
                         className="text-xs flex items-center bg-purple-600 hover:bg-purple-700 text-white" 
-                        onClick={playRecordedAudio}
+                        onClick={isOriginalAudioPlaying ? pauseAudio : playRecordedAudio}
                       >
                         <i className={`${isOriginalAudioPlaying ? "ri-pause-fill" : "ri-headphone-fill"} mr-1`}></i>
                         {isOriginalAudioPlaying ? "Stop" : "Play Dictation"}

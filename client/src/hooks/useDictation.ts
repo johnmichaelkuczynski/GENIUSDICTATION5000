@@ -250,7 +250,12 @@ export function useDictation() {
             const checkReadyState = () => {
               if (webSocketRef.current && webSocketRef.current.readyState === WebSocket.OPEN) {
                 // Socket is open, send start signal
-                webSocketRef.current.send(JSON.stringify({ type: 'start' }));
+                try {
+                  console.log("Sending start signal to WebSocket");
+                  webSocketRef.current.send(JSON.stringify({ type: 'start' }));
+                } catch (error) {
+                  console.error("Error sending start signal:", error);
+                }
               } else if (webSocketRef.current) {
                 // Socket exists but not yet open, wait a bit and try again
                 setTimeout(checkReadyState, 100);
@@ -363,8 +368,13 @@ export function useDictation() {
 
       // If real-time mode was active, send stop signal to the WebSocket
       if (isRealTimeEnabled && webSocketRef.current && webSocketRef.current.readyState === WebSocket.OPEN) {
-        // Send stop signal
-        webSocketRef.current.send(JSON.stringify({ type: 'stop' }));
+        // Send stop signal safely
+        try {
+          console.log("Sending stop signal to WebSocket");
+          webSocketRef.current.send(JSON.stringify({ type: 'stop' }));
+        } catch (error) {
+          console.error("Error sending stop signal:", error);
+        }
         
         // Close the WebSocket connection after a small delay to ensure the final message is sent
         setTimeout(() => {
@@ -527,13 +537,22 @@ export function useDictation() {
     if (!audioRef.current) return;
     
     try {
+      // If already playing, stop it
+      if (isPlaying) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsPlaying(false);
+        return;
+      }
+      
+      // Otherwise, play it
       audioRef.current.play();
       setIsPlaying(true);
     } catch (error) {
       console.error("Failed to play audio:", error);
       setIsPlaying(false);
     }
-  }, []);
+  }, [isPlaying]);
 
   // Pause the audio playback
   const pauseAudio = useCallback(() => {
@@ -541,6 +560,7 @@ export function useDictation() {
     
     try {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0; // Also reset to beginning
       setIsPlaying(false);
     } catch (error) {
       console.error("Failed to pause audio:", error);

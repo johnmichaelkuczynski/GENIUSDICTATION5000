@@ -13,34 +13,26 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
       throw new Error("Gladia API key not found");
     }
     
-    // Convert audio buffer to base64
-    const base64Audio = audioBuffer.toString('base64');
+    // Prepare form data directly with the buffer
+    const formData = new FormData();
     
-    // Create JSON payload for the API request (Using the latest API format)
-    // Based on API errors, removing fields that cause validation errors
-    const payload = {
-      audio: {
-        data: base64Audio,
-        mime_type: "audio/webm"
-      },
-      // Only include parameters that are specifically supported
-      language: "english"
-    };
+    // Create a Blob directly from the original audio buffer
+    const file = new Blob([audioBuffer], { type: 'audio/webm' });
+    
+    // @ts-ignore - FormData in Node.js has a slightly different API
+    formData.append('audio', file, 'audio.webm');
+    formData.append('language', 'english');
+    
+    console.log("Sending multipart request to Gladia API with audio file");
 
-    console.log("Sending request to Gladia API with parameters:", JSON.stringify({
-      mime_type: "audio/webm",
-      language: payload.language,
-      audio_data_length: base64Audio.length
-    }));
-
-    // Make API request to Gladia
+    // Make API request to Gladia using FormData
     const response = await axios.post(
       "https://api.gladia.io/v2/transcription/",
-      payload,
+      formData,
       {
         headers: {
-          "Content-Type": "application/json",
           "x-gladia-key": apiKey,
+          // Content-Type will be set automatically with boundary by axios when using FormData
         },
         timeout: 30000 // 30 seconds timeout for longer audio
       }
