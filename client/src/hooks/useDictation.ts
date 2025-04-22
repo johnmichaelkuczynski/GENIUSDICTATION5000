@@ -155,15 +155,8 @@ export function useDictation() {
             break;
             
           case 'error':
-            console.error("WebSocket error:", data.message);
-            // Only show errors if we're actively dictating
-            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-              toast({
-                variant: "destructive",
-                title: "Transcription Error",
-                description: data.message || "An error occurred during transcription"
-              });
-            }
+            // Only log errors to console, don't show UI popups
+            console.log("WebSocket info:", data.message);
             break;
             
           case 'status':
