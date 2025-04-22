@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import multer from "multer";
 import OpenAI from "openai";
 import { z } from "zod";
+import { WebSocketServer, WebSocket } from 'ws';
 import {
   SpeechEngine, 
   AIModel, 
@@ -303,5 +304,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Set up WebSocket server for real-time transcription
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    let currentSpeechEngine = SpeechEngine.WHISPER; // default engine
+    
+    // Store WebSpeechAPI recognition instance outside the message handler for cleanup
+    let browserRecognition: any = null;
+    
+    ws.on('message', async (message) => {
+      try {
+        // Parse the message
+        const data = JSON.parse(message.toString());
+        
+        // Handle different message types
+        switch (data.type) {
+          case 'start_transcription':
+            // Set or update the speech engine when starting
+            currentSpeechEngine = data.engine || SpeechEngine.WHISPER;
+            console.log(`Starting real-time transcription with engine: ${currentSpeechEngine}`);
+            
+            // Initialize browser-based recognition if selected
+            if (data.useBrowserRecognition) {
+              // We'll handle this in the client side
+              ws.send(JSON.stringify({ 
+                type: 'status', 
+                status: 'ready', 
+                message: 'Using browser speech recognition' 
+              }));
+            } else {
+              ws.send(JSON.stringify({ 
+                type: 'status', 
+                status: 'ready', 
+                message: `Real-time transcription started with ${currentSpeechEngine}` 
+              }));
+            }
+            break;
+            
+          case 'audio_data':
+            if (!data.audioChunk) {
+              ws.send(JSON.stringify({ 
+                type: 'error', 
+                message: 'No audio data provided' 
+              }));
+              break;
+            }
+            
+            try {
+              // Convert base64 audio chunk to buffer
+              const audioBuffer = Buffer.from(data.audioChunk, 'base64');
+              
+              // Process with the selected engine
+              let transcribedText = '';
+              
+              switch (currentSpeechEngine) {
+                case SpeechEngine.GLADIA:
+                  transcribedText = await gladiaTranscribe(audioBuffer);
+                  break;
+                case SpeechEngine.DEEPGRAM:
+                  transcribedText = await deepgramTranscribe(audioBuffer);
+                  break;
+                case SpeechEngine.WHISPER:
+                default:
+                  transcribedText = await whisperTranscribe(audioBuffer);
+                  break;
+              }
+              
+              if (transcribedText.trim()) {
+                // Send back the transcribed text chunk
+                ws.send(JSON.stringify({ 
+                  type: 'transcription_result', 
+                  text: transcribedText,
+                  isFinal: true
+                }));
+              }
+            } catch (error) {
+              console.error('Error processing audio chunk:', error);
+              ws.send(JSON.stringify({ 
+                type: 'error', 
+                message: 'Failed to process audio chunk' 
+              }));
+            }
+            break;
+            
+          case 'stop_transcription':
+            console.log('Stopping real-time transcription');
+            // Clean up any resources if needed
+            if (browserRecognition) {
+              // Clean up browser recognition if it was being used
+              browserRecognition = null;
+            }
+            
+            ws.send(JSON.stringify({ 
+              type: 'status', 
+              status: 'stopped', 
+              message: 'Real-time transcription stopped' 
+            }));
+            break;
+            
+          default:
+            ws.send(JSON.stringify({ 
+              type: 'error', 
+              message: 'Unknown message type' 
+            }));
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+        ws.send(JSON.stringify({ 
+          type: 'error', 
+          message: 'Failed to process message' 
+        }));
+      }
+    });
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      // Clean up any resources
+      if (browserRecognition) {
+        browserRecognition = null;
+      }
+    });
+    
+    // Send initial connection acknowledgment
+    ws.send(JSON.stringify({ 
+      type: 'status', 
+      status: 'connected', 
+      message: 'Connected to real-time transcription service' 
+    }));
+  });
+  
   return httpServer;
 }
