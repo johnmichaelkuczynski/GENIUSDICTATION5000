@@ -196,41 +196,78 @@ export function useDictation() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
+      // Store accumulated text through recognition sessions
+      let accumulatedText = originalText || '';
+      let lastProcessedIndex = -1;
+      
       recognition.lang = 'en-US';
       recognition.continuous = true;
       recognition.interimResults = true;
       
       recognition.onresult = (event: any) => {
-        // Get the transcript from the most recent result
-        const currentIndex = event.results.length - 1;
-        const transcript = event.results[currentIndex][0].transcript;
+        // Get the full transcript from all final results that haven't been processed yet
+        let finalText = '';
+        let interimText = '';
         
-        // Check if the result is final
-        const isFinal = event.results[currentIndex].isFinal;
+        for (let i = 0; i < event.results.length; i++) {
+          if (i > lastProcessedIndex) {
+            const result = event.results[i];
+            const transcript = result[0].transcript.trim();
+            
+            if (result.isFinal) {
+              finalText += ' ' + transcript;
+              lastProcessedIndex = i;
+            } else {
+              interimText += ' ' + transcript;
+            }
+          }
+        }
         
-        if (isFinal) {
-          // For final results, append to the original text
-          const newText = originalText ? `${originalText} ${transcript}` : transcript;
-          setOriginalText(newText);
-          tempTextRef.current = ''; // Clear the temporary text
-        } else {
-          // For interim results, update the status
-          setDictationStatus(`Listening: ${transcript}`);
-          tempTextRef.current = transcript;
+        // If we have final text, append it to the accumulated text
+        if (finalText) {
+          accumulatedText = (accumulatedText + finalText).trim();
+          setOriginalText(accumulatedText);
+        }
+        
+        // Show interim results in the status
+        if (interimText) {
+          setDictationStatus(`Listening: ${interimText.trim()}`);
+          tempTextRef.current = interimText.trim();
         }
       };
       
       recognition.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-        setDictationStatus("Recognition error: " + event.error);
+        // Aborted errors are normal when stopping recognition, don't show as errors
+        if (event.error !== 'aborted') {
+          console.error("Speech recognition error:", event.error);
+          setDictationStatus("Recognition error: " + event.error);
+        }
       };
       
       recognition.onend = () => {
         // If we're still supposed to be recording, restart the recognition
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+          // Carry forward accumulated text to the next recognition session
+          if (tempTextRef.current) {
+            // If we have interim text when recognition ends, we should include it
+            accumulatedText = (accumulatedText + ' ' + tempTextRef.current).trim();
+            setOriginalText(accumulatedText);
+            tempTextRef.current = '';
+          }
+          
+          // Restart recognition
+          lastProcessedIndex = -1;
           recognition.start();
         } else {
+          // Dictation stopped intentionally
           setDictationStatus("Ready");
+          
+          // Make sure any remaining interim text is added to final result
+          if (tempTextRef.current) {
+            const finalText = (accumulatedText + ' ' + tempTextRef.current).trim();
+            setOriginalText(finalText);
+            tempTextRef.current = '';
+          }
         }
       };
       
@@ -327,13 +364,11 @@ export function useDictation() {
         }
       });
       
-      // Use browser's native speech recognition as a backup for real-time transcription
+      // Always use browser's native speech recognition for reliable real-time transcription
       let browserRecognition = null;
-      if (!wsOpenRef.current) {
-        browserRecognition = setupBrowserRecognition();
-        if (browserRecognition) {
-          browserRecognition.start();
-        }
+      browserRecognition = setupBrowserRecognition();
+      if (browserRecognition) {
+        browserRecognition.start();
       }
       
       // Start recording
