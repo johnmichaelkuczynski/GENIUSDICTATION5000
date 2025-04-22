@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SpeechEngine, AIModel } from "@shared/schema";
 import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
-import { useDictation } from "@/hooks/useDictation";
+import { useDictationSimple } from "@/hooks/useDictationSimple";
 import { useTTS } from "@/hooks/useTTS";
 import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
 import { useToast } from "@/hooks/use-toast";
@@ -44,7 +44,7 @@ const DictationSection = () => {
     isPlaying: isOriginalAudioPlaying,
     playRecordedAudio,
     downloadRecordedAudio
-  } = useDictation();
+  } = useDictationSimple();
   const { processDocument } = useDocumentProcessor();
   const { toast } = useToast();
   const { 
@@ -64,11 +64,14 @@ const DictationSection = () => {
   // Toggle dictation on/off
   const toggleDictation = useCallback(async () => {
     if (dictationActive) {
-      await stopDictation();
-      setDictationActive(false);
+      stopDictation();
+      // No need to set dictationActive as the hook handles it
     } else {
-      await startDictation();
-      setDictationActive(true);
+      const success = await startDictation();
+      if (!success) {
+        // If speech recognition failed to start, reset UI
+        setDictationActive(false);
+      }
     }
   }, [dictationActive, startDictation, stopDictation, setDictationActive]);
 
