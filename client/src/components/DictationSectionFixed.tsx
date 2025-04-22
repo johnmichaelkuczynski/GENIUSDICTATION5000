@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -29,13 +29,22 @@ const DictationSection = () => {
     selectedAIModel,
     setSelectedAIModel,
     dictationActive,
+    setDictationActive,
     isProcessing,
     selectedPreset,
     setSelectedPreset
   } = useAppContext();
 
   const { transformText } = useTransformation();
-  const { dictationStatus } = useDictation();
+  const { 
+    dictationStatus, 
+    startDictation, 
+    stopDictation, 
+    hasRecordedAudio,
+    isPlaying: isOriginalAudioPlaying,
+    playRecordedAudio,
+    downloadRecordedAudio
+  } = useDictation();
   const { processDocument } = useDocumentProcessor();
   const { toast } = useToast();
   const { 
@@ -51,6 +60,17 @@ const DictationSection = () => {
     resetAudio, 
     downloadAudio 
   } = useTTS();
+  
+  // Toggle dictation on/off
+  const toggleDictation = useCallback(async () => {
+    if (dictationActive) {
+      await stopDictation();
+      setDictationActive(false);
+    } else {
+      await startDictation();
+      setDictationActive(true);
+    }
+  }, [dictationActive, startDictation, stopDictation, setDictationActive]);
 
   const [currentTab, setCurrentTab] = useState("direct-dictation");
   const [showVoiceSelect, setShowVoiceSelect] = useState(false);
@@ -204,6 +224,20 @@ const DictationSection = () => {
     }
   }, [fetchVoices, processedText]);
   
+  // Add keyboard shortcut for Alt+D to toggle dictation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'd') {
+        toggleDictation();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [toggleDictation]);
+  
   // Set up drag and drop event listeners for the text area
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
@@ -336,6 +370,26 @@ const DictationSection = () => {
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Original Dictation</h3>
                   <div className="flex space-x-2">
+                    {/* Dictation Button */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant={dictationActive ? "destructive" : "outline"}
+                            size="sm" 
+                            className={`text-xs flex items-center ${dictationActive ? 'animate-pulse' : ''}`}
+                            onClick={toggleDictation}
+                          >
+                            <i className={`${dictationActive ? 'ri-stop-line' : 'ri-mic-line'} mr-1`}></i>
+                            {dictationActive ? "Stop" : "Record"}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          <p className="text-xs">{dictationActive ? "Stop voice recording" : "Start voice recording (Alt+D)"}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
                     {/* Upload Document Button */}
                     <TooltipProvider>
                       <Tooltip>

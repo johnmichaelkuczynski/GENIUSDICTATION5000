@@ -9,7 +9,6 @@ import Documents from "@/pages/Documents";
 import StyleLibrary from "@/pages/StyleLibrary";
 import Settings from "@/pages/Settings";
 import Navbar from "@/components/Navbar";
-import FloatingDictationButton from "@/components/FloatingDictationButton";
 import { AppProvider } from "./context/AppContext";
 
 function Router() {
@@ -35,7 +34,6 @@ function App() {
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <Router />
             </main>
-            <FloatingDictationButton />
           </div>
         </TooltipProvider>
       </AppProvider>
