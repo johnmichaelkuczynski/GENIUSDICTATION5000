@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,7 +39,8 @@ const DictationSection = () => {
     setDictationActive,
     isProcessing,
     selectedPreset,
-    setSelectedPreset
+    setSelectedPreset,
+    availableServices
   } = useAppContext();
 
   const { transformText } = useTransformation();
@@ -679,13 +680,57 @@ const DictationSection = () => {
                         value={selectedAIModel}
                         onValueChange={(value) => setSelectedAIModel(value as AIModel)}
                       >
-                        <SelectTrigger className="w-[120px] h-8 text-xs">
+                        <SelectTrigger className="w-[200px] h-8 text-xs">
                           <SelectValue placeholder="Select AI model" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={AIModel.GPT4O}>{AIModel.GPT4O}</SelectItem>
-                          <SelectItem value={AIModel.GPT4}>{AIModel.GPT4}</SelectItem>
-                          <SelectItem value={AIModel.GPT35}>{AIModel.GPT35}</SelectItem>
+                          {/* OpenAI Models */}
+                          <SelectItem 
+                            value={AIModel.GPT4O} 
+                            disabled={!availableServices.openai}
+                          >
+                            OpenAI: {AIModel.GPT4O}
+                          </SelectItem>
+                          <SelectItem 
+                            value={AIModel.GPT4} 
+                            disabled={!availableServices.openai}
+                          >
+                            OpenAI: {AIModel.GPT4}
+                          </SelectItem>
+                          <SelectItem 
+                            value={AIModel.GPT35} 
+                            disabled={!availableServices.openai}
+                          >
+                            OpenAI: {AIModel.GPT35}
+                          </SelectItem>
+                          
+                          {/* Anthropic Models */}
+                          <SelectItem 
+                            value={AIModel.CLAUDE_3_OPUS} 
+                            disabled={!availableServices.anthropic}
+                          >
+                            Anthropic: {AIModel.CLAUDE_3_OPUS}
+                          </SelectItem>
+                          <SelectItem 
+                            value={AIModel.CLAUDE_3_SONNET} 
+                            disabled={!availableServices.anthropic}
+                          >
+                            Anthropic: {AIModel.CLAUDE_3_SONNET}
+                          </SelectItem>
+                          <SelectItem 
+                            value={AIModel.CLAUDE_3_HAIKU} 
+                            disabled={!availableServices.anthropic}
+                          >
+                            Anthropic: {AIModel.CLAUDE_3_HAIKU}
+                          </SelectItem>
+                          
+                          {/* Perplexity Models */}
+                          <SelectItem 
+                            value={AIModel.PERPLEXITY_LLAMA_SONAR} 
+                            disabled={!availableServices.perplexity}
+                          >
+                            Perplexity: {AIModel.PERPLEXITY_LLAMA_SONAR}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
