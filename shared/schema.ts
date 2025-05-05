@@ -87,7 +87,11 @@ export enum SpeechEngine {
 export enum AIModel {
   GPT4O = "GPT-4o",
   GPT4 = "GPT-4",
-  GPT35 = "GPT-3.5"
+  GPT35 = "GPT-3.5",
+  CLAUDE_3_OPUS = "Claude 3 Opus",
+  CLAUDE_3_SONNET = "Claude 3 Sonnet",
+  CLAUDE_3_HAIKU = "Claude 3 Haiku",
+  PERPLEXITY_LLAMA_SONAR = "Perplexity Llama Sonar"
 }
 
 // Voice types for ElevenLabs
@@ -154,6 +158,8 @@ export const apiKeyRequestSchema = z.object({
   openaiKey: z.string().optional(),
   deepgramKey: z.string().optional(),
   elevenLabsKey: z.string().optional(),
+  anthropicKey: z.string().optional(),
+  perplexityKey: z.string().optional(),
 });
 
 export const apiStatusResponseSchema = z.object({
@@ -163,6 +169,8 @@ export const apiStatusResponseSchema = z.object({
     openai: z.boolean(),
     deepgram: z.boolean(),
     elevenLabs: z.boolean(),
+    anthropic: z.boolean(),
+    perplexity: z.boolean(),
   }),
 });
 

@@ -39,19 +39,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const openaiKey = process.env.OPENAI_API_KEY;
     const deepgramKey = process.env.DEEPGRAM_API_KEY;
     const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    const perplexityKey = process.env.PERPLEXITY_API_KEY;
     
     // Check if keys are present
     const services = {
       gladia: !!gladiaKey,
       openai: !!openaiKey,
       deepgram: !!deepgramKey,
-      elevenLabs: !!elevenLabsKey
+      elevenLabs: !!elevenLabsKey,
+      anthropic: !!anthropicKey,
+      perplexity: !!perplexityKey
     };
     
     // At least one service must be available
     const connected = services.gladia || services.openai || services.deepgram;
     
-    res.json({ connected, services });
+    // We need at least one AI service (OpenAI, Anthropic, or Perplexity) for text transformation
+    const aiConnected = services.openai || services.anthropic || services.perplexity;
+    
+    res.json({ connected: connected && aiConnected, services });
   });
 
   // Text transformation endpoint
@@ -290,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { gladiaKey, openaiKey, deepgramKey, elevenLabsKey } = result.data;
+      const { gladiaKey, openaiKey, deepgramKey, elevenLabsKey, anthropicKey, perplexityKey } = result.data;
 
       // Store keys in environment variables (in a real app, use Replit Secrets)
       // For demo purposes, we're just sending back success
