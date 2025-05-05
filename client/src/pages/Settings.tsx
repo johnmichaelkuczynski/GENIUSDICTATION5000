@@ -46,6 +46,8 @@ const Settings = () => {
           openaiKey: openaiKey || undefined,
           deepgramKey: deepgramKey || undefined,
           elevenLabsKey: elevenLabsKey || undefined,
+          anthropicKey: anthropicKey || undefined,
+          perplexityKey: perplexityKey || undefined,
         }),
       });
       
@@ -65,6 +67,8 @@ const Settings = () => {
       setOpenaiKey("");
       setDeepgramKey("");
       setElevenLabsKey("");
+      setAnthropicKey("");
+      setPerplexityKey("");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -206,8 +210,38 @@ const Settings = () => {
                     </SelectContent>
                   </Select>
                   <p className="text-sm text-muted-foreground">
-                    Select the AI model used for text transformation. GPT-4o offers the best quality but may be slower.
+                    Select the AI model used for text transformation. Multiple AI providers are available.
                   </p>
+                </div>
+                
+                <div className="grid gap-4 mt-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="anthropic-key">Anthropic API Key (for Claude models)</Label>
+                    <Input
+                      id="anthropic-key"
+                      type="password"
+                      placeholder="Enter your Anthropic API key"
+                      value={anthropicKey}
+                      onChange={(e) => setAnthropicKey(e.target.value)}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Required for using Claude models. Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">console.anthropic.com</a>.
+                    </p>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="perplexity-key">Perplexity API Key (for Llama models)</Label>
+                    <Input
+                      id="perplexity-key"
+                      type="password"
+                      placeholder="Enter your Perplexity API key"
+                      value={perplexityKey}
+                      onChange={(e) => setPerplexityKey(e.target.value)}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Required for using Perplexity Llama models. Get a key at <a href="https://www.perplexity.ai" target="_blank" rel="noopener noreferrer" className="text-primary underline">perplexity.ai</a>.
+                    </p>
+                  </div>
                 </div>
               </div>
               

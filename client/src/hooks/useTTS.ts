@@ -21,9 +21,32 @@ export function useTTS() {
   const fetchVoices = useCallback(async () => {
     try {
       const response = await fetch('/api/tts/voices');
+      
+      // Handle various error scenarios
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch voices');
+        // Try to parse the error message from the response
+        let errorMessage = 'Failed to fetch voices';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          // If we can't parse JSON, try to get the text response
+          try {
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          } catch {
+            // If all else fails, use the status text
+            errorMessage = response.statusText || errorMessage;
+          }
+        }
+        
+        // Special case for missing ElevenLabs API key
+        if (errorMessage.includes('ElevenLabs API key is not configured') || 
+            response.status === 400) {
+          throw new Error('ElevenLabs API key is required for text-to-speech. Please add it in Settings.');
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
@@ -32,7 +55,7 @@ export function useTTS() {
       // Set Charlie as the default voice if available, otherwise use the first voice
       if (data.voices?.length > 0 && !selectedVoiceId) {
         // Look for a voice named "Charlie"
-        const charlieVoice = data.voices.find(voice => voice.name.toLowerCase() === "charlie");
+        const charlieVoice = data.voices.find((voice: ElevenLabsVoice) => voice.name.toLowerCase() === "charlie");
         
         if (charlieVoice) {
           setSelectedVoiceId(charlieVoice.voice_id);
@@ -49,6 +72,9 @@ export function useTTS() {
         title: 'Failed to fetch voices',
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       });
+      
+      // Set empty voices array to prevent further errors
+      setAvailableVoices([]);
     }
   }, [toast, selectedVoiceId]);
 
@@ -84,8 +110,29 @@ export function useTTS() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate speech');
+        // Try to parse the error message from the response
+        let errorMessage = 'Failed to generate speech';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          // If we can't parse JSON, try to get the text response
+          try {
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          } catch {
+            // If all else fails, use the status text
+            errorMessage = response.statusText || errorMessage;
+          }
+        }
+        
+        // Special case for missing ElevenLabs API key
+        if (errorMessage.includes('ElevenLabs API key is not configured') || 
+            response.status === 400) {
+          throw new Error('ElevenLabs API key is required for text-to-speech. Please add it in Settings.');
+        }
+        
+        throw new Error(errorMessage);
       }
       
       // Create audio object from blob
