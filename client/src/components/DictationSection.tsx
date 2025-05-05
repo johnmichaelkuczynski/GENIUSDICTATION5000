@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import { SpeechEngine, AIModel } from "@shared/schema";
 import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
 import { useDictation } from "@/hooks/useDictation";
 import { useTTS } from "@/hooks/useTTS";
+
+// Helper function to count words in a string
+const countWords = (text: string): number => {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+};
 
 const DictationSection = () => {
   // App context
@@ -36,6 +43,10 @@ const DictationSection = () => {
   // Component state
   const [currentTab, setCurrentTab] = useState("direct-dictation");
   const [showVoiceSelect, setShowVoiceSelect] = useState(false);
+  
+  // Calculate word counts using memoization to avoid recalculating on every render
+  const originalWordCount = useMemo(() => countWords(originalText), [originalText]);
+  const processedWordCount = useMemo(() => countWords(processedText), [processedText]);
   
   // Custom hooks
   const { transformText } = useTransformation();
@@ -137,7 +148,12 @@ const DictationSection = () => {
               {/* Original Text Panel */}
               <div className="flex flex-col space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">Original Dictation</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">Original Dictation</h3>
+                    <Badge variant="outline" className="text-xs font-normal">
+                      {originalWordCount} {originalWordCount === 1 ? 'word' : 'words'}
+                    </Badge>
+                  </div>
                   <div className="flex space-x-2">
                     {hasRecordedAudio && (
                       <Button 
@@ -228,7 +244,12 @@ const DictationSection = () => {
               {/* Processed Text Panel */}
               <div className="flex flex-col space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">Processed Output</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">Processed Output</h3>
+                    <Badge variant="outline" className="text-xs font-normal">
+                      {processedWordCount} {processedWordCount === 1 ? 'word' : 'words'}
+                    </Badge>
+                  </div>
                   <div className="flex space-x-2">
                     <Button 
                       variant="ghost" 
