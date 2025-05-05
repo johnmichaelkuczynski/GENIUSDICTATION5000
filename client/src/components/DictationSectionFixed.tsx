@@ -456,7 +456,8 @@ const DictationSection = () => {
                     value={originalText}
                     onChange={(e) => setOriginalText(e.target.value)}
                     placeholder="Start dictating or type here..."
-                    className={`min-h-[256px] resize-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
+                    className={`h-[256px] resize-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
+                    style={{ maxHeight: "256px" }}
                   />
                   {/* Hidden File Input */}
                   <input 
@@ -505,7 +506,10 @@ const DictationSection = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <div className="w-full min-h-[256px] p-3 border rounded-md bg-accent/5 text-foreground overflow-auto whitespace-pre-wrap">
+                  <div 
+                    className="w-full h-[256px] p-3 border rounded-md bg-accent/5 text-foreground overflow-y-auto whitespace-pre-wrap"
+                    style={{ maxHeight: "256px" }}
+                  >
                     {processedText}
                   </div>
                 </div>
