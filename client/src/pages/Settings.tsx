@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from "@/context/AppContext";
 import { SpeechEngine, AIModel } from "@shared/schema";
 import { ToastAction } from "@/components/ui/toast";
@@ -18,7 +18,9 @@ const Settings = () => {
     setSelectedSpeechEngine,
     selectedAIModel,
     setSelectedAIModel,
-    checkApiStatus
+    checkApiStatus,
+    apisConnected,
+    availableServices
   } = useAppContext();
   
   const [gladiaKey, setGladiaKey] = useState("");
@@ -200,13 +202,59 @@ const Settings = () => {
                       <SelectValue placeholder="Select AI model" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={AIModel.GPT4O}>{AIModel.GPT4O} (Recommended)</SelectItem>
-                      <SelectItem value={AIModel.GPT4}>{AIModel.GPT4}</SelectItem>
-                      <SelectItem value={AIModel.GPT35}>{AIModel.GPT35}</SelectItem>
-                      <SelectItem value={AIModel.CLAUDE_3_OPUS}>{AIModel.CLAUDE_3_OPUS}</SelectItem>
-                      <SelectItem value={AIModel.CLAUDE_3_SONNET}>{AIModel.CLAUDE_3_SONNET}</SelectItem>
-                      <SelectItem value={AIModel.CLAUDE_3_HAIKU}>{AIModel.CLAUDE_3_HAIKU}</SelectItem>
-                      <SelectItem value={AIModel.PERPLEXITY_LLAMA_SONAR}>{AIModel.PERPLEXITY_LLAMA_SONAR}</SelectItem>
+                      <SelectGroup>
+                        <SelectLabel>OpenAI Models</SelectLabel>
+                        <SelectItem 
+                          value={AIModel.GPT4O} 
+                          disabled={!apisConnected || !availableServices.openai}
+                        >
+                          {AIModel.GPT4O} {!availableServices.openai && "(API Key Required)"}
+                        </SelectItem>
+                        <SelectItem 
+                          value={AIModel.GPT4} 
+                          disabled={!apisConnected || !availableServices.openai}
+                        >
+                          {AIModel.GPT4} {!availableServices.openai && "(API Key Required)"}
+                        </SelectItem>
+                        <SelectItem 
+                          value={AIModel.GPT35} 
+                          disabled={!apisConnected || !availableServices.openai}
+                        >
+                          {AIModel.GPT35} {!availableServices.openai && "(API Key Required)"}
+                        </SelectItem>
+                      </SelectGroup>
+                      
+                      <SelectGroup>
+                        <SelectLabel>Anthropic Models</SelectLabel>
+                        <SelectItem 
+                          value={AIModel.CLAUDE_3_OPUS} 
+                          disabled={!apisConnected || !availableServices.anthropic}
+                        >
+                          {AIModel.CLAUDE_3_OPUS} {!availableServices.anthropic && "(API Key Required)"}
+                        </SelectItem>
+                        <SelectItem 
+                          value={AIModel.CLAUDE_3_SONNET} 
+                          disabled={!apisConnected || !availableServices.anthropic}
+                        >
+                          {AIModel.CLAUDE_3_SONNET} {!availableServices.anthropic && "(API Key Required)"}
+                        </SelectItem>
+                        <SelectItem 
+                          value={AIModel.CLAUDE_3_HAIKU} 
+                          disabled={!apisConnected || !availableServices.anthropic}
+                        >
+                          {AIModel.CLAUDE_3_HAIKU} {!availableServices.anthropic && "(API Key Required)"}
+                        </SelectItem>
+                      </SelectGroup>
+                      
+                      <SelectGroup>
+                        <SelectLabel>Perplexity Models</SelectLabel>
+                        <SelectItem 
+                          value={AIModel.PERPLEXITY_LLAMA_SONAR} 
+                          disabled={!apisConnected || !availableServices.perplexity}
+                        >
+                          {AIModel.PERPLEXITY_LLAMA_SONAR} {!availableServices.perplexity && "(API Key Required)"}
+                        </SelectItem>
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
                   <p className="text-sm text-muted-foreground">

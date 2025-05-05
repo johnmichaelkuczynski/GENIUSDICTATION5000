@@ -9,6 +9,15 @@ interface StyleReference {
   documentCount: number;
 }
 
+interface ApiServices {
+  gladia: boolean;
+  openai: boolean;
+  deepgram: boolean;
+  elevenLabs: boolean;
+  anthropic: boolean;
+  perplexity: boolean;
+}
+
 type AppContextType = {
   dictationActive: boolean;
   setDictationActive: (active: boolean) => void;
@@ -32,6 +41,7 @@ type AppContextType = {
   setIsProcessing: (processing: boolean) => void;
   selectedPreset: string;
   setSelectedPreset: (preset: string) => void;
+  availableServices: ApiServices;
   checkApiStatus: () => Promise<void>;
 };
 
@@ -66,12 +76,70 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [apisConnected, setApisConnected] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState("Academic");
+  const [availableServices, setAvailableServices] = useState<ApiServices>({
+    gladia: false,
+    openai: false,
+    deepgram: false,
+    elevenLabs: false,
+    anthropic: false,
+    perplexity: false
+  });
 
   const checkApiStatus = async () => {
     try {
       const response = await fetch("/api/status");
       const data = await response.json();
       setApisConnected(data.connected);
+      
+      // Update available services if provided in response
+      if (data.services) {
+        setAvailableServices(data.services);
+        
+        // If the currently selected model's service is not available, switch to an available one
+        if (selectedAIModel.includes('Claude') && !data.services.anthropic) {
+          // Switch to GPT-4o if OpenAI is available, otherwise Perplexity if available
+          if (data.services.openai) {
+            setSelectedAIModel(AIModel.GPT4O);
+          } else if (data.services.perplexity) {
+            setSelectedAIModel(AIModel.PERPLEXITY_LLAMA_SONAR);
+          }
+        } else if (selectedAIModel.includes('GPT') && !data.services.openai) {
+          // Switch to Claude if Anthropic is available, otherwise Perplexity if available
+          if (data.services.anthropic) {
+            setSelectedAIModel(AIModel.CLAUDE_3_SONNET);
+          } else if (data.services.perplexity) {
+            setSelectedAIModel(AIModel.PERPLEXITY_LLAMA_SONAR);
+          }
+        } else if (selectedAIModel.includes('Perplexity') && !data.services.perplexity) {
+          // Switch to GPT-4o if OpenAI is available, otherwise Claude if available
+          if (data.services.openai) {
+            setSelectedAIModel(AIModel.GPT4O);
+          } else if (data.services.anthropic) {
+            setSelectedAIModel(AIModel.CLAUDE_3_SONNET);
+          }
+        }
+        
+        // Same logic for speech engine
+        if (selectedSpeechEngine === SpeechEngine.GLADIA && !data.services.gladia) {
+          if (data.services.openai) {
+            setSelectedSpeechEngine(SpeechEngine.WHISPER);
+          } else if (data.services.deepgram) {
+            setSelectedSpeechEngine(SpeechEngine.DEEPGRAM);
+          }
+        } else if (selectedSpeechEngine === SpeechEngine.WHISPER && !data.services.openai) {
+          if (data.services.gladia) {
+            setSelectedSpeechEngine(SpeechEngine.GLADIA);
+          } else if (data.services.deepgram) {
+            setSelectedSpeechEngine(SpeechEngine.DEEPGRAM);
+          }
+        } else if (selectedSpeechEngine === SpeechEngine.DEEPGRAM && !data.services.deepgram) {
+          if (data.services.gladia) {
+            setSelectedSpeechEngine(SpeechEngine.GLADIA);
+          } else if (data.services.openai) {
+            setSelectedSpeechEngine(SpeechEngine.WHISPER);
+          }
+        }
+      }
     } catch (error) {
       console.error("Failed to check API status:", error);
       setApisConnected(false);
@@ -80,6 +148,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     checkApiStatus();
+    
+    // Set up regular status checks every 30 seconds
+    const intervalId = setInterval(checkApiStatus, 30000);
+    
+    // Clean up on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
@@ -107,6 +181,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsProcessing,
         selectedPreset,
         setSelectedPreset,
+        availableServices,
         checkApiStatus
       }}
     >
