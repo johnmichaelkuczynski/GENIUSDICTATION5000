@@ -689,7 +689,6 @@ const DictationSection = () => {
             </div>
           </TabsContent>
           
-
           <TabsContent value="style-emulation">
             <CardContent className="p-6">
               <p className="text-sm text-muted-foreground">
