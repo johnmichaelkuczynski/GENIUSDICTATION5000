@@ -157,7 +157,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ text: transformedText, model });
     } catch (error) {
       console.error("Error transforming text:", error);
-      res.status(500).json({ error: "Failed to transform text" });
+      
+      let errorMessage = "Failed to transform text";
+      
+      // Provide more detailed error messages for common issues
+      if (error instanceof Error) {
+        if (error.message.includes("Anthropic API")) {
+          errorMessage = `Anthropic API error: ${error.message}`;
+        } else if (error.message.includes("Perplexity API")) {
+          errorMessage = `Perplexity API error: ${error.message}`;
+        } else if (error.message.includes("OpenAI API")) {
+          errorMessage = `OpenAI API error: ${error.message}`;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      res.status(500).json({ error: errorMessage });
     }
   });
 
@@ -329,14 +345,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { gladiaKey, openaiKey, deepgramKey, elevenLabsKey, anthropicKey, perplexityKey } = result.data;
 
-      // Store keys in environment variables (in a real app, use Replit Secrets)
-      // For demo purposes, we're just sending back success
-      // In a production app, these would be securely stored
+      // In a real application, these would be stored in Replit Secrets
+      // For the purposes of this demo, we're setting them in process.env
+      // but they will not persist between restarts
       
-      res.json({ success: true, message: "API keys updated successfully" });
+      if (gladiaKey) process.env.GLADIA_API_KEY = gladiaKey;
+      if (openaiKey) process.env.OPENAI_API_KEY = openaiKey;
+      if (deepgramKey) process.env.DEEPGRAM_API_KEY = deepgramKey;
+      if (elevenLabsKey) process.env.ELEVENLABS_API_KEY = elevenLabsKey;
+      if (anthropicKey) process.env.ANTHROPIC_API_KEY = anthropicKey;
+      if (perplexityKey) process.env.PERPLEXITY_API_KEY = perplexityKey;
+      
+      // Return the updated service status
+      const services = {
+        gladia: !!process.env.GLADIA_API_KEY,
+        openai: !!process.env.OPENAI_API_KEY,
+        deepgram: !!process.env.DEEPGRAM_API_KEY,
+        elevenLabs: !!process.env.ELEVENLABS_API_KEY,
+        anthropic: !!process.env.ANTHROPIC_API_KEY,
+        perplexity: !!process.env.PERPLEXITY_API_KEY
+      };
+      
+      res.json({ 
+        success: true, 
+        message: "API keys updated successfully",
+        services 
+      });
     } catch (error) {
       console.error("Error updating API keys:", error);
-      res.status(500).json({ error: "Failed to update API keys" });
+      let errorMessage = "Failed to update API keys";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      res.status(500).json({ error: errorMessage });
     }
   });
 

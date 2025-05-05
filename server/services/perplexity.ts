@@ -22,16 +22,21 @@ export async function transformText({
       messages: [
         {
           role: "system",
-          content: "You're a text transformation assistant."
+          content: "You're a text transformation assistant. Be precise and concise."
         },
         {
           role: "user",
           content: `${instructions}:\n\n${text}`
         }
       ],
-      temperature: 0.2,
+      temperature: 0.3,
       max_tokens: 4000,
       top_p: 0.9,
+      search_domain_filter: ["perplexity.ai"],
+      return_images: false,
+      return_related_questions: false,
+      search_recency_filter: "month",
+      top_k: 0,
       stream: false,
       presence_penalty: 0,
       frequency_penalty: 1
