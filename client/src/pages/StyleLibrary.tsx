@@ -32,6 +32,8 @@ const StyleLibrary = () => {
   const [selectedStyle, setSelectedStyle] = useState<StyleReference | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [styleToDelete, setStyleToDelete] = useState<StyleReference | null>(null);
   const [newStyleName, setNewStyleName] = useState("");
   const [newStyleDescription, setNewStyleDescription] = useState("");
   const [newDocumentName, setNewDocumentName] = useState("");
@@ -195,15 +197,54 @@ const StyleLibrary = () => {
     setIsAddDocDialogOpen(false);
   };
 
-  const deleteStyle = (id: number) => {
+  // Handle confirming style deletion
+  const confirmDeleteStyle = (style: StyleReference, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    setStyleToDelete(style);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  // Handle the actual style deletion after confirmation
+  const deleteStyle = () => {
+    if (!styleToDelete) return;
+    
+    const id = styleToDelete.id;
+    const name = styleToDelete.name;
+    
     setStyleReferences(styleReferences.filter(style => style.id !== id));
     setReferenceDocuments(referenceDocuments.filter(doc => doc.styleId !== id));
+    
     if (selectedStyle?.id === id) {
       setSelectedStyle(null);
     }
+    
+    toast({
+      title: "Style deleted",
+      description: `Style "${name}" has been removed`
+    });
+    
+    setStyleToDelete(null);
+    setIsDeleteDialogOpen(false);
   };
 
-  const deleteDocument = (id: string, styleId: number) => {
+  // State for document deletion confirmation
+  const [isDeleteDocDialogOpen, setIsDeleteDocDialogOpen] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<{ id: string, name: string, styleId: number } | null>(null);
+  
+  // Handle confirming document deletion
+  const confirmDeleteDocument = (id: string, name: string, styleId: number) => {
+    setDocToDelete({ id, name, styleId });
+    setIsDeleteDocDialogOpen(true);
+  };
+  
+  // Handle the actual document deletion
+  const deleteDocument = () => {
+    if (!docToDelete) return;
+    
+    const { id, name, styleId } = docToDelete;
+    
     setReferenceDocuments(referenceDocuments.filter(doc => doc.id !== id));
     
     // Update document count for the style
@@ -212,6 +253,14 @@ const StyleLibrary = () => {
         style.id === styleId ? { ...style, documentCount: style.documentCount - 1 } : style
       )
     );
+    
+    toast({
+      title: "Document deleted",
+      description: `Document "${name}" has been removed`
+    });
+    
+    setDocToDelete(null);
+    setIsDeleteDocDialogOpen(false);
   };
   
   // Handle file upload for reference documents
@@ -400,10 +449,7 @@ const StyleLibrary = () => {
                       variant="ghost" 
                       size="sm" 
                       className="text-xs hover:text-red-500"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteStyle(style.id);
-                      }}
+                      onClick={(e) => confirmDeleteStyle(style, e)}
                     >
                       <i className="ri-delete-bin-line"></i>
                     </Button>
@@ -598,7 +644,7 @@ const StyleLibrary = () => {
                                   variant="ghost" 
                                   size="sm" 
                                   className="hover:text-red-500"
-                                  onClick={() => deleteDocument(doc.id, selectedStyle.id)}
+                                  onClick={() => confirmDeleteDocument(doc.id, doc.name, selectedStyle.id)}
                                 >
                                   <i className="ri-delete-bin-line"></i>
                                 </Button>
@@ -618,6 +664,75 @@ const StyleLibrary = () => {
           </div>
         )}
       </div>
+      
+      {/* Delete Style Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Style</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this style? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {styleToDelete && (
+              <div className="bg-muted/50 p-3 rounded-md">
+                <p className="font-medium text-sm">{styleToDelete.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">{styleToDelete.description}</p>
+                <div className="flex items-center mt-2">
+                  <Badge variant="outline" className="text-xs">
+                    {styleToDelete.documentCount} document{styleToDelete.documentCount !== 1 ? 's' : ''}
+                  </Badge>
+                  <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                    styleToDelete.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 
+                    'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                  }`}>
+                    {styleToDelete.active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex space-x-2 sm:justify-end">
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={deleteStyle}>
+              Delete Style
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Document Confirmation Dialog */}
+      <Dialog open={isDeleteDocDialogOpen} onOpenChange={setIsDeleteDocDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this reference document? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {docToDelete && (
+              <div className="bg-muted/50 p-3 rounded-md">
+                <p className="font-medium text-sm">{docToDelete.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This document will be removed from the reference library.
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex space-x-2 sm:justify-end">
+            <Button variant="outline" onClick={() => setIsDeleteDocDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={deleteDocument}>
+              Delete Document
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
