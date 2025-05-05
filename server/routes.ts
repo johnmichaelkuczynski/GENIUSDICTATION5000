@@ -13,7 +13,9 @@ import {
   extractTextRequestSchema,
   ttsRequestSchema
 } from "@shared/schema";
-import { transformText } from "./services/openai";
+import { transformText as openaiTransform } from "./services/openai";
+import { transformText as anthropicTransform } from "./services/anthropic";
+import { transformText as perplexityTransform } from "./services/perplexity";
 import { transcribeAudio as gladiaTranscribe } from "./services/gladia";
 import { transcribeAudio as deepgramTranscribe } from "./services/deepgram";
 import { transcribeAudio as whisperTranscribe } from "./services/openai";
@@ -117,12 +119,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         instructions
       ].filter(Boolean).join(" ");
 
-      // Transform text using OpenAI
-      const transformedText = await transformText({
-        text,
-        instructions: combinedInstructions || "Improve this text",
-        model
-      });
+      // Determine which service to use based on the selected model
+      let transformedText = "";
+      
+      if (model.includes('Claude')) {
+        // Use Anthropic for Claude models
+        if (!process.env.ANTHROPIC_API_KEY) {
+          return res.status(400).json({ error: "Anthropic API key is not configured" });
+        }
+        transformedText = await anthropicTransform({
+          text,
+          instructions: combinedInstructions || "Improve this text",
+          model
+        });
+      } else if (model.includes('Perplexity')) {
+        // Use Perplexity for Llama models
+        if (!process.env.PERPLEXITY_API_KEY) {
+          return res.status(400).json({ error: "Perplexity API key is not configured" });
+        }
+        transformedText = await perplexityTransform({
+          text,
+          instructions: combinedInstructions || "Improve this text",
+          model
+        });
+      } else {
+        // Default to OpenAI for GPT models
+        if (!process.env.OPENAI_API_KEY) {
+          return res.status(400).json({ error: "OpenAI API key is not configured" });
+        }
+        transformedText = await openaiTransform({
+          text,
+          instructions: combinedInstructions || "Improve this text",
+          model
+        });
+      }
 
       res.json({ text: transformedText, model });
     } catch (error) {

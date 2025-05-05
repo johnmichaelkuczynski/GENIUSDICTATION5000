@@ -25,6 +25,8 @@ const Settings = () => {
   const [openaiKey, setOpenaiKey] = useState("");
   const [deepgramKey, setDeepgramKey] = useState("");
   const [elevenLabsKey, setElevenLabsKey] = useState("");
+  const [anthropicKey, setAnthropicKey] = useState("");
+  const [perplexityKey, setPerplexityKey] = useState("");
   const [isSavingKeys, setIsSavingKeys] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
   const [continuousDictation, setContinuousDictation] = useState(true);
@@ -197,6 +199,10 @@ const Settings = () => {
                       <SelectItem value={AIModel.GPT4O}>{AIModel.GPT4O} (Recommended)</SelectItem>
                       <SelectItem value={AIModel.GPT4}>{AIModel.GPT4}</SelectItem>
                       <SelectItem value={AIModel.GPT35}>{AIModel.GPT35}</SelectItem>
+                      <SelectItem value={AIModel.CLAUDE_3_OPUS}>{AIModel.CLAUDE_3_OPUS}</SelectItem>
+                      <SelectItem value={AIModel.CLAUDE_3_SONNET}>{AIModel.CLAUDE_3_SONNET}</SelectItem>
+                      <SelectItem value={AIModel.CLAUDE_3_HAIKU}>{AIModel.CLAUDE_3_HAIKU}</SelectItem>
+                      <SelectItem value={AIModel.PERPLEXITY_LLAMA_SONAR}>{AIModel.PERPLEXITY_LLAMA_SONAR}</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-sm text-muted-foreground">
