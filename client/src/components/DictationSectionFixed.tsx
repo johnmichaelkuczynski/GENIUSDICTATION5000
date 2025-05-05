@@ -43,7 +43,7 @@ const DictationSection = () => {
     availableServices
   } = useAppContext();
 
-  const { transformText } = useTransformation();
+  const { transformText, processingProgress, isChunkedProcessing } = useTransformation();
   const { 
     dictationStatus, 
     startDictation, 
@@ -487,6 +487,19 @@ const DictationSection = () => {
                       {processedWordCount} {processedWordCount === 1 ? 'word' : 'words'}
                     </Badge>
                   </div>
+                  
+                  {/* Show progress indicator during chunked processing */}
+                  {isChunkedProcessing && processingProgress > 0 && (
+                    <div className="flex items-center gap-2 w-1/2">
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                        <div 
+                          className="bg-primary h-2.5 rounded-full transition-all" 
+                          style={{ width: `${processingProgress}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{processingProgress}%</span>
+                    </div>
+                  )}
                   <div className="flex space-x-2">
                     <Button 
                       variant="ghost" 
@@ -745,7 +758,9 @@ const DictationSection = () => {
                     {isProcessing ? (
                       <>
                         <span className="animate-spin h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
-                        Processing...
+                        {isChunkedProcessing 
+                          ? `Processing Chunks (${processingProgress}%)` 
+                          : "Processing..."}
                       </>
                     ) : (
                       <>

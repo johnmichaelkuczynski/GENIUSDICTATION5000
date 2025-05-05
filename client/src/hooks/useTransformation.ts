@@ -19,6 +19,7 @@ export function useTransformation() {
   
   const { toast } = useToast();
   const [processingProgress, setProcessingProgress] = useState(0);
+  const [isChunkedProcessing, setIsChunkedProcessing] = useState(false);
 
   // Get active style references
   const getActiveStyleReferences = useCallback(() => {
@@ -53,6 +54,7 @@ export function useTransformation() {
       // For large documents, show a toast notification
       const isLargeDocument = originalText.length > 8000;
       if (isLargeDocument) {
+        setIsChunkedProcessing(true);
         toast({
           title: "Processing Large Document",
           description: "Your document is being split into chunks for processing. This might take some time.",
@@ -61,6 +63,8 @@ export function useTransformation() {
         
         // Set initial content to show progress
         setProcessedText("Processing document in chunks... (0% complete)");
+      } else {
+        setIsChunkedProcessing(false);
       }
       
       // Use the chunking implementation in textTransformation.ts
@@ -115,6 +119,7 @@ export function useTransformation() {
       setProcessedText(errorMessage);
     } finally {
       setProcessingProgress(0);
+      setIsChunkedProcessing(false);
       setIsProcessing(false);
     }
   }, [
@@ -128,6 +133,8 @@ export function useTransformation() {
   ]);
 
   return {
-    transformText
+    transformText,
+    processingProgress,
+    isChunkedProcessing
   };
 }
