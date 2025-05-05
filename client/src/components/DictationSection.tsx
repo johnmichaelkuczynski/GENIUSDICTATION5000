@@ -136,9 +136,8 @@ const DictationSection = () => {
       <Card>
         {/* Tab Navigation */}
         <Tabs defaultValue="direct-dictation" className="w-full" onValueChange={setCurrentTab} value={currentTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="direct-dictation">Direct Dictation</TabsTrigger>
-            <TabsTrigger value="document-processing">Document Processing</TabsTrigger>
             <TabsTrigger value="style-emulation">Style Emulation</TabsTrigger>
           </TabsList>
           
@@ -473,15 +472,6 @@ const DictationSection = () => {
                 </div>
               </div>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="document-processing">
-            <CardContent className="p-6">
-              <p className="text-sm text-muted-foreground">
-                Document processing will be available in this tab.
-                Switch to the "Documents" page for full document handling functionality.
-              </p>
-            </CardContent>
           </TabsContent>
           
           <TabsContent value="style-emulation">
