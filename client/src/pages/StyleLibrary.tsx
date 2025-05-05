@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppContext } from "@/context/AppContext";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface StyleReference {
   id: number;
@@ -25,6 +27,7 @@ interface ReferenceDocument {
 
 const StyleLibrary = () => {
   const { styleReferences, setStyleReferences } = useAppContext();
+  const { toast } = useToast();
   const [referenceDocuments, setReferenceDocuments] = useState<ReferenceDocument[]>([]);
   const [selectedStyle, setSelectedStyle] = useState<StyleReference | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -33,6 +36,11 @@ const StyleLibrary = () => {
   const [newStyleDescription, setNewStyleDescription] = useState("");
   const [newDocumentName, setNewDocumentName] = useState("");
   const [newDocumentContent, setNewDocumentContent] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // References for file inputs
+  const styleDocFileInputRef = useRef<HTMLInputElement>(null);
+  const refDocFileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleStyleActive = (id: number) => {
     setStyleReferences(
@@ -42,11 +50,84 @@ const StyleLibrary = () => {
     );
   };
 
+  // Handle file upload for new style reference
+  const handleStyleDocFileUpload = () => {
+    if (styleDocFileInputRef.current) {
+      styleDocFileInputRef.current.click();
+    }
+  };
+
+  // Handle file change for new style reference document
+  const handleStyleDocFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    
+    // Check if it's a text file
+    if (!file.type.includes('text') && !file.name.endsWith('.txt')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a text file (.txt)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      
+      // Read the file
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target && typeof event.target.result === 'string') {
+          if (!newStyleName || newStyleName === '') {
+            // Try to use the filename for the style name if not set
+            const baseName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+            setNewStyleName(baseName);
+          }
+          
+          // Set an initial description if empty
+          if (!newStyleDescription || newStyleDescription === '') {
+            setNewStyleDescription(`Style reference based on "${file.name}"`);
+          }
+          
+          // We will create the style first, then add this document to it
+          // So store the content for later
+          setNewDocumentName(file.name);
+          setNewDocumentContent(event.target.result);
+          
+          toast({
+            title: "File uploaded",
+            description: "Text content has been extracted. The document will be added to the style after creation.",
+          });
+        }
+      };
+      reader.readAsText(file);
+      
+    } catch (error) {
+      toast({
+        title: "Error reading file",
+        description: "Could not read the file content",
+        variant: "destructive"
+      });
+      console.error("File reading error:", error);
+    } finally {
+      setIsUploading(false);
+      
+      // Reset the file input
+      if (styleDocFileInputRef.current) {
+        styleDocFileInputRef.current.value = "";
+      }
+    }
+  };
+
   const addNewStyle = () => {
     if (newStyleName.trim() === "") return;
     
+    const styleId = Date.now();
+    
     const newStyle: StyleReference = {
-      id: Date.now(),
+      id: styleId,
       name: newStyleName,
       description: newStyleDescription,
       active: false,
@@ -54,8 +135,39 @@ const StyleLibrary = () => {
     };
     
     setStyleReferences([...styleReferences, newStyle]);
+    
+    // If we also have document content ready, add it to this style
+    if (newDocumentName && newDocumentContent) {
+      const newDoc: ReferenceDocument = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: newDocumentName,
+        content: newDocumentContent,
+        styleId: styleId,
+      };
+      
+      setReferenceDocuments([...referenceDocuments, newDoc]);
+      
+      // Update the document count for the style
+      newStyle.documentCount = 1;
+      
+      // Select the new style
+      setSelectedStyle(newStyle);
+      
+      toast({
+        title: "Style created with document",
+        description: `Created style "${newStyleName}" with reference document "${newDocumentName}"`,
+      });
+    } else {
+      toast({
+        title: "Style created",
+        description: `Created style "${newStyleName}"`,
+      });
+    }
+    
     setNewStyleName("");
     setNewStyleDescription("");
+    setNewDocumentName("");
+    setNewDocumentContent("");
     setIsAddDialogOpen(false);
   };
 
@@ -101,6 +213,86 @@ const StyleLibrary = () => {
       )
     );
   };
+  
+  // Handle file upload for reference documents
+  const handleRefDocFileUpload = () => {
+    if (refDocFileInputRef.current) {
+      refDocFileInputRef.current.click();
+    }
+  };
+
+  // Handle file change for reference documents
+  const handleRefDocFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedStyle || !e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    
+    // Check if it's a text file
+    if (!file.type.includes('text') && !file.name.endsWith('.txt')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a text file (.txt)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      
+      // Read the file
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target && typeof event.target.result === 'string') {
+          // Set the content
+          setNewDocumentName(file.name);
+          setNewDocumentContent(event.target.result);
+          
+          // Open the dialog to confirm
+          setIsAddDocDialogOpen(true);
+        }
+      };
+      reader.readAsText(file);
+      
+    } catch (error) {
+      toast({
+        title: "Error reading file",
+        description: "Could not read the file content",
+        variant: "destructive"
+      });
+      console.error("File reading error:", error);
+    } finally {
+      setIsUploading(false);
+      
+      // Reset the file input
+      if (refDocFileInputRef.current) {
+        refDocFileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Extract text from document files (PDF, DOCX, TXT)
+  const extractTextFromDocument = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("document", file);
+    
+    try {
+      const response = await fetch("/api/extract-text", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to extract text: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      return data.text;
+    } catch (error) {
+      console.error("Error extracting text:", error);
+      throw error;
+    }
+  };
 
   // Filter documents for selected style
   const filteredDocuments = selectedStyle
@@ -142,6 +334,31 @@ const StyleLibrary = () => {
                   onChange={(e) => setNewStyleDescription(e.target.value)} 
                   placeholder="Describe the key characteristics of this style"
                 />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label>Upload a sample text document (optional)</Label>
+                <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition cursor-pointer" onClick={handleStyleDocFileUpload}>
+                  <i className="ri-upload-cloud-line text-2xl text-muted-foreground"></i>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Drop a text file here or click to upload
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This document will be used as a reference for this style
+                  </p>
+                  {newDocumentName && (
+                    <Badge className="mt-2" variant="outline">
+                      <i className="ri-file-text-line mr-1"></i> {newDocumentName}
+                    </Badge>
+                  )}
+                  <input
+                    ref={styleDocFileInputRef}
+                    type="file"
+                    accept=".txt,text/plain"
+                    className="hidden"
+                    onChange={handleStyleDocFileChange}
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -251,13 +468,42 @@ const StyleLibrary = () => {
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="doc-content">Document Content</Label>
-                          <Textarea 
-                            id="doc-content" 
-                            value={newDocumentContent} 
-                            onChange={(e) => setNewDocumentContent(e.target.value)} 
-                            placeholder="Paste or type the reference text here"
-                            rows={10}
-                          />
+                          <div className="relative">
+                            <Textarea 
+                              id="doc-content" 
+                              value={newDocumentContent} 
+                              onChange={(e) => setNewDocumentContent(e.target.value)} 
+                              placeholder="Paste or type the reference text here"
+                              rows={10}
+                              className={`${isUploading ? 'opacity-70' : ''}`}
+                            />
+                            <div className="absolute top-2 right-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={handleRefDocFileUpload}
+                                disabled={isUploading}
+                              >
+                                {isUploading ? (
+                                  <i className="ri-loader-2-line animate-spin"></i>
+                                ) : (
+                                  <i className="ri-upload-line"></i>
+                                )}
+                                <span className="ml-1">Upload TXT</span>
+                              </Button>
+                              <input
+                                ref={refDocFileInputRef}
+                                type="file"
+                                accept=".txt,text/plain"
+                                className="hidden"
+                                onChange={handleRefDocFileChange}
+                              />
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            You can paste text directly or upload a text file to use as reference
+                          </p>
                         </div>
                       </div>
                       <DialogFooter>
@@ -304,17 +550,50 @@ const StyleLibrary = () => {
                     {filteredDocuments.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
                         <p>No reference documents added yet</p>
-                        <Button className="mt-4" onClick={() => setIsAddDocDialogOpen(true)}>
-                          Add Reference Document
-                        </Button>
+                        <div className="flex items-center justify-center space-x-2 mt-4">
+                          <Button onClick={() => setIsAddDocDialogOpen(true)}>
+                            <i className="ri-add-line mr-1"></i> Add Document
+                          </Button>
+                          <Button variant="outline" onClick={handleRefDocFileUpload}>
+                            <i className="ri-upload-line mr-1"></i> Upload Text File
+                          </Button>
+                          <input
+                            ref={refDocFileInputRef}
+                            type="file"
+                            accept=".txt,text/plain"
+                            className="hidden"
+                            onChange={handleRefDocFileChange}
+                          />
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-4">
+                        <div className="flex items-center justify-end space-x-2 mb-2">
+                          <Button size="sm" onClick={() => setIsAddDocDialogOpen(true)}>
+                            <i className="ri-add-line mr-1"></i> Add Document
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={handleRefDocFileUpload}>
+                            <i className="ri-upload-line mr-1"></i> Upload Text
+                          </Button>
+                          <input
+                            ref={refDocFileInputRef}
+                            type="file"
+                            accept=".txt,text/plain"
+                            className="hidden"
+                            onChange={handleRefDocFileChange}
+                          />
+                        </div>
+                        
                         {filteredDocuments.map((doc) => (
                           <Card key={doc.id}>
                             <CardContent className="p-4">
                               <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-medium">{doc.name}</h3>
+                                <div className="flex items-center">
+                                  <h3 className="font-medium">{doc.name}</h3>
+                                  <Badge variant="outline" className="ml-2">
+                                    text
+                                  </Badge>
+                                </div>
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
