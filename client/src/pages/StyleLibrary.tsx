@@ -198,7 +198,7 @@ const StyleLibrary = () => {
   };
 
   // Handle confirming style deletion
-  const confirmDeleteStyle = (style: StyleReference, event?: React.MouseEvent) => {
+  const confirmDeleteStyle = (style: StyleReference, event?: React.MouseEvent<HTMLButtonElement>) => {
     if (event) {
       event.stopPropagation();
     }
@@ -587,6 +587,12 @@ const StyleLibrary = () => {
                           onClick={() => toggleStyleActive(selectedStyle.id)}
                         >
                           {selectedStyle.active ? 'Deactivate' : 'Activate'}
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          onClick={() => confirmDeleteStyle(selectedStyle)}
+                        >
+                          <i className="ri-delete-bin-line mr-1"></i> Delete Style
                         </Button>
                       </div>
                     </div>
