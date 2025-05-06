@@ -136,10 +136,13 @@ const DictationSection = () => {
 
   const handleClearAll = () => {
     clearAll();
+    clearDetectionResult();
+    clearOutputDetectionResult();
   };
 
   const handleClearOriginal = () => {
     setOriginalText("");
+    clearDetectionResult();
   };
 
   const handleCopyOriginal = () => {
@@ -149,6 +152,31 @@ const DictationSection = () => {
   const handleCopyProcessed = () => {
     navigator.clipboard.writeText(processedText);
   };
+  
+  // AI Detection handlers
+  const handleDetectInputAI = useCallback(async () => {
+    if (originalText.trim().length > 0) {
+      await detectAI(originalText);
+    } else {
+      toast({
+        title: "No text to analyze",
+        description: "Please enter or dictate some text first",
+        variant: "destructive"
+      });
+    }
+  }, [originalText, detectAI, toast]);
+  
+  const handleDetectOutputAI = useCallback(async () => {
+    if (processedText.trim().length > 0) {
+      await detectOutputAI(processedText);
+    } else {
+      toast({
+        title: "No processed text to analyze",
+        description: "Please transform your text first",
+        variant: "destructive"
+      });
+    }
+  }, [processedText, detectOutputAI, toast]);
   
   // File upload handlers
   const handleFileUploadClick = () => {
@@ -776,11 +804,39 @@ const DictationSection = () => {
                     </Button>
                   </div>
                 </div>
+                {/* AI Detection Button */}
+                <div className="flex items-center justify-end">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handleDetectInputAI}
+                    disabled={isDetectingAI || !originalText || originalText.length < 50}
+                    className="text-xs"
+                  >
+                    <i className="ri-shield-check-line mr-1.5"></i>
+                    {isDetectingAI ? "Analyzing..." : "Detect AI Content"}
+                  </Button>
+                </div>
+                
+                {/* AI Detection Indicator */}
+                {(isDetectingAI || aiDetectionResult) && (
+                  <div className="mt-1.5 mb-2">
+                    <AIDetectionIndicator 
+                      result={aiDetectionResult}
+                      isDetecting={isDetectingAI}
+                      onRequestDetection={handleDetectInputAI}
+                    />
+                  </div>
+                )}
+                
                 <div className="flex-1 relative">
                   <Textarea
                     ref={textareaRef}
                     value={originalText}
-                    onChange={(e) => setOriginalText(e.target.value)}
+                    onChange={(e) => {
+                      setOriginalText(e.target.value);
+                      clearDetectionResult(); // Clear detection when text changes
+                    }}
                     placeholder="Start dictating or type here..."
                     className={`h-[256px] resize-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
                     style={{ maxHeight: "256px" }}
@@ -844,6 +900,31 @@ const DictationSection = () => {
                     </Button>
                   </div>
                 </div>
+                {/* AI Detection Button for Processed Text */}
+                <div className="flex items-center justify-end">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handleDetectOutputAI}
+                    disabled={isDetectingOutputAI || !processedText || processedText.length < 50}
+                    className="text-xs"
+                  >
+                    <i className="ri-shield-check-line mr-1.5"></i>
+                    {isDetectingOutputAI ? "Analyzing..." : "Detect AI Content"}
+                  </Button>
+                </div>
+                
+                {/* AI Detection Indicator for Processed Text */}
+                {(isDetectingOutputAI || outputAiDetectionResult) && (
+                  <div className="mt-1.5 mb-2">
+                    <AIDetectionIndicator 
+                      result={outputAiDetectionResult}
+                      isDetecting={isDetectingOutputAI}
+                      onRequestDetection={handleDetectOutputAI}
+                    />
+                  </div>
+                )}
+                
                 <div className="flex-1">
                   <div 
                     className="w-full h-[256px] p-3 border rounded-md bg-accent/5 text-foreground overflow-y-auto whitespace-pre-wrap"
