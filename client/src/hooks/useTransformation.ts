@@ -8,20 +8,24 @@ import { useToast } from "@/hooks/use-toast";
 export function useTransformation() {
   const {
     originalText,
+    setOriginalText,
     setProcessedText,
     customInstructions,
+    setCustomInstructions,
     useStyleReference,
     useContentReference,
     selectedAIModel,
     styleReferences,
     contentReferences,
     setIsProcessing,
-    selectedPreset
+    selectedPreset,
+    setSelectedPreset
   } = useAppContext();
   
   const { toast } = useToast();
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isChunkedProcessing, setIsChunkedProcessing] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   // Get active style references
   const getActiveStyleReferences = useCallback(() => {
@@ -33,6 +37,37 @@ export function useTransformation() {
     return contentReferences.filter(content => content.active);
   }, [contentReferences]);
 
+  // Cancel the ongoing transformation
+  const cancelTransformation = useCallback(() => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+      
+      toast({
+        title: "Transformation Cancelled",
+        description: "The text transformation process has been cancelled."
+      });
+      
+      setIsProcessing(false);
+      setIsChunkedProcessing(false);
+      setProcessingProgress(0);
+      setProcessedText("Transformation cancelled by user.");
+    }
+  }, [abortController, toast, setProcessedText, setIsProcessing]);
+
+  // Clear all inputs and outputs
+  const clearAll = useCallback(() => {
+    setProcessedText("");
+    setCustomInstructions("");
+    setOriginalText("");
+    setSelectedPreset("Academic"); // Reset to default preset
+    
+    toast({
+      title: "All Cleared",
+      description: "All inputs and outputs have been cleared."
+    });
+  }, [setProcessedText, setCustomInstructions, setOriginalText, setSelectedPreset, toast]);
+
   // Transform text using AI, with support for chunking large documents
   const transformText = useCallback(async () => {
     if (!originalText) return;
@@ -40,6 +75,10 @@ export function useTransformation() {
     // Reset progress
     setProcessingProgress(0);
     setProcessedText("");
+
+    // Create a new AbortController
+    const controller = new AbortController();
+    setAbortController(controller);
 
     try {
       setIsProcessing(true);
@@ -57,7 +96,8 @@ export function useTransformation() {
         useStyleReference,
         styleReferences: useStyleReference ? getActiveStyleReferences() : [],
         useContentReference,
-        contentReferences: useContentReference ? getActiveContentReferences() : []
+        contentReferences: useContentReference ? getActiveContentReferences() : [],
+        signal: controller.signal,
       };
 
       // For large documents, show a toast notification
@@ -95,7 +135,12 @@ export function useTransformation() {
         
         // Update the result
         setProcessedText(result);
-      } catch (error) {
+      } catch (error: any) {
+        // Check if this was an abort error
+        if (error && error.name === 'AbortError') {
+          console.log('Transformation was aborted');
+          return;
+        }
         throw error;
       }
     } catch (error) {
@@ -145,7 +190,10 @@ export function useTransformation() {
 
   return {
     transformText,
+    cancelTransformation,
+    clearAll,
     processingProgress,
-    isChunkedProcessing
+    isChunkedProcessing,
+    isProcessing: abortController !== null
   };
 }
