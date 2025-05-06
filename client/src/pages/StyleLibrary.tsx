@@ -889,12 +889,12 @@ const StyleLibrary = () => {
                             <i className="ri-add-line mr-1"></i> Add Document
                           </Button>
                           <Button size="sm" variant="outline" onClick={handleRefDocFileUpload}>
-                            <i className="ri-upload-line mr-1"></i> Upload Text
+                            <i className="ri-upload-line mr-1"></i> Upload Document
                           </Button>
                           <input
                             ref={refDocFileInputRef}
                             type="file"
-                            accept=".txt,text/plain"
+                            accept=".txt,text/plain,.pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                             className="hidden"
                             onChange={handleRefDocFileChange}
                           />
