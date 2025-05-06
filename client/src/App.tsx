@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Documents from "@/pages/Documents";
 import StyleLibrary from "@/pages/StyleLibrary";
+import ContentLibrary from "@/pages/ContentLibrary";
 import Settings from "@/pages/Settings";
 import Navbar from "@/components/Navbar";
 import { AppProvider } from "./context/AppContext";
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/documents" component={Documents} />
       <Route path="/style-library" component={StyleLibrary} />
+      <Route path="/content-library" component={ContentLibrary} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>

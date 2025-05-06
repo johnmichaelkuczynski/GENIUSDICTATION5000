@@ -30,6 +30,9 @@ const Navbar = () => {
               <Link href="/style-library" className={`${location === "/style-library" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
                 Style Library
               </Link>
+              <Link href="/content-library" className={`${location === "/content-library" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
+                Content Library
+              </Link>
               <Link href="/settings" className={`${location === "/settings" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
                 Settings
               </Link>
