@@ -31,6 +31,8 @@ const DictationSection = () => {
     setCustomInstructions,
     useStyleReference,
     setUseStyleReference,
+    useContentReference,
+    setUseContentReference,
     selectedSpeechEngine,
     setSelectedSpeechEngine,
     selectedAIModel,
@@ -371,9 +373,10 @@ const DictationSection = () => {
       <Card>
         {/* Tab Navigation */}
         <Tabs defaultValue="direct-dictation" className="w-full" onValueChange={setCurrentTab} value={currentTab}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="direct-dictation">Direct Dictation</TabsTrigger>
             <TabsTrigger value="style-emulation">Style Emulation</TabsTrigger>
+            <TabsTrigger value="content-reference">Content Reference</TabsTrigger>
           </TabsList>
           
           <TabsContent value="direct-dictation" className="p-6">
@@ -668,6 +671,23 @@ const DictationSection = () => {
                   </Button>
                 </div>
                 
+                {/* Content Reference Toggle */}
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      id="use-content-reference" 
+                      checked={useContentReference}
+                      onCheckedChange={setUseContentReference}
+                    />
+                    <Label htmlFor="use-content-reference" className="text-xs font-medium">
+                      Use Personal Content References
+                    </Label>
+                  </div>
+                  <Button variant="link" size="sm" className="text-xs px-0 h-auto">
+                    <i className="ri-settings-line mr-1"></i> Configure
+                  </Button>
+                </div>
+                
                 {/* API Selection */}
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center space-x-4 flex-wrap gap-2">
@@ -779,6 +799,15 @@ const DictationSection = () => {
               <p className="text-sm text-muted-foreground">
                 Style emulation will be available in this tab.
                 Switch to the "Style Library" page to manage your personal style references.
+              </p>
+            </CardContent>
+          </TabsContent>
+          
+          <TabsContent value="content-reference">
+            <CardContent className="p-6">
+              <p className="text-sm text-muted-foreground">
+                Content references will be available in this tab.
+                Switch to the "Content Library" page to manage your personal content references.
               </p>
             </CardContent>
           </TabsContent>

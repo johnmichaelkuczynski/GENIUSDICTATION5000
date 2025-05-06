@@ -11,8 +11,10 @@ export function useTransformation() {
     setProcessedText,
     customInstructions,
     useStyleReference,
+    useContentReference,
     selectedAIModel,
     styleReferences,
+    contentReferences,
     setIsProcessing,
     selectedPreset
   } = useAppContext();
