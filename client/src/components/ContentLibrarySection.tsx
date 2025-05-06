@@ -39,6 +39,7 @@ const ContentLibrarySection = () => {
   const [contentDocuments, setContentDocuments] = useState<ContentDocument[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const contentFileInputRef = useRef<HTMLInputElement>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
   const { processDocument } = useDocumentProcessor();
   const { toast } = useToast();
@@ -61,22 +62,44 @@ const ContentLibrarySection = () => {
       return;
     }
 
+    const newContentId = Date.now();
+    const hasDocument = newDocumentContent && newDocumentName;
+    
     const newContent: ContentReference = {
-      id: Date.now(),
+      id: newContentId,
       name: newContentName,
       description: newContentDescription,
       active: true,
-      documentCount: 0
+      documentCount: hasDocument ? 1 : 0
     };
-
+    
+    // Add the content first
     setContentReferences([...contentReferences, newContent]);
+    
+    // If we have document content from an upload, add it to the new content reference
+    if (hasDocument) {
+      const newDoc: ContentDocument = {
+        id: Date.now().toString(),
+        name: newDocumentName,
+        content: newDocumentContent,
+        contentId: newContentId
+      };
+      
+      setContentDocuments([...contentDocuments, newDoc]);
+    }
+    
+    // Reset form fields
     setNewContentName("");
     setNewContentDescription("");
+    setNewDocumentName("");
+    setNewDocumentContent("");
     setIsAddDialogOpen(false);
 
     toast({
       title: "Success",
-      description: "Content reference added successfully"
+      description: hasDocument 
+        ? "Content reference and document added successfully" 
+        : "Content reference added successfully"
     });
   };
 
@@ -258,6 +281,58 @@ const ContentLibrarySection = () => {
       e.target.value = '';
     }
   };
+  
+  const handleContentFileUpload = () => {
+    if (contentFileInputRef.current) {
+      contentFileInputRef.current.click();
+    }
+  };
+  
+  const handleContentFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    
+    try {
+      setIsUploading(true);
+      
+      // Extract text from the file
+      const extractedText = await processDocument(file);
+      
+      // Try to use the filename for the content name if not set
+      if (!newContentName || newContentName === '') {
+        const baseName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+        setNewContentName(baseName);
+      }
+      
+      // Set an initial description if empty
+      if (!newContentDescription || newContentDescription === '') {
+        setNewContentDescription(`Content reference based on "${file.name}"`);
+      }
+      
+      // Store the document info for when content is created
+      setNewDocumentName(file.name);
+      setNewDocumentContent(extractedText);
+      
+      setIsUploading(false);
+      
+      toast({
+        title: "File processed",
+        description: `${file.name} processed successfully and will be added after content creation`,
+      });
+      
+    } catch (error) {
+      setIsUploading(false);
+      console.error("Error processing file:", error);
+      toast({
+        title: "Error",
+        description: "Failed to process document",
+        variant: "destructive"
+      });
+    } finally {
+      e.target.value = '';
+    }
+  };
 
   return (
     <section className="mb-8">
@@ -297,10 +372,62 @@ const ContentLibrarySection = () => {
                       placeholder="Describe the purpose of this content reference"
                     />
                   </div>
+                  
+                  <div className="grid gap-2">
+                    <Label>Upload Document (PDF, DOCX, TXT)</Label>
+                    <div 
+                      className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition cursor-pointer ${isDragging ? "border-primary bg-primary/5" : ""}`}
+                      onClick={handleContentFileUpload}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                      }}
+                      onDragLeave={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          const file = e.dataTransfer.files[0];
+                          handleContentFileChange({ target: { files: e.dataTransfer.files } } as any);
+                        }
+                      }}
+                    >
+                      <i className="ri-upload-cloud-line text-2xl text-muted-foreground"></i>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Drop a document here or click to upload
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        This document will become part of this content reference
+                      </p>
+                      {newDocumentName && (
+                        <div className="mt-2 p-2 bg-accent/20 rounded-md text-sm">
+                          <i className="ri-file-text-line mr-1"></i> {newDocumentName}
+                        </div>
+                      )}
+                      <input
+                        ref={contentFileInputRef}
+                        type="file"
+                        accept=".txt,.pdf,.docx,.doc,.rtf"
+                        className="hidden"
+                        onChange={handleContentFileChange}
+                      />
+                    </div>
+                    {isUploading && (
+                      <div className="flex items-center justify-center gap-2 py-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                        <p className="text-xs">Processing document...</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                  <Button onClick={handleAddContent}>Add Content</Button>
+                  <Button onClick={handleAddContent}>
+                    {newDocumentContent ? "Add Content with Document" : "Add Content"}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
