@@ -352,7 +352,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API key management endpoint
+  // AI Detection endpoint using GPTZero
+  app.post("/api/detect-ai", async (req, res) => {
+    try {
+      // Validate request
+      const result = detectAIRequestSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ error: result.error.message });
+      }
+
+      const { text } = result.data;
+
+      // Check if GPTZero API key is available
+      if (!process.env.GPTZERO_API_KEY) {
+        return res.status(400).json({ error: "GPTZero API key is not configured" });
+      }
+
+      // Detect if text is AI-generated
+      const detectionResult = await detectAIContent(text);
+      
+      res.json(detectionResult);
+    } catch (error) {
+      console.error("Error detecting AI content:", error);
+      let errorMessage = "Failed to detect AI content";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
   app.post("/api/settings/api-keys", async (req, res) => {
     try {
       const result = apiKeyRequestSchema.safeParse(req.body);
@@ -360,7 +389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { gladiaKey, openaiKey, deepgramKey, elevenLabsKey, anthropicKey, perplexityKey } = result.data;
+      const { gladiaKey, openaiKey, deepgramKey, elevenLabsKey, anthropicKey, perplexityKey, gptzeroKey } = result.data;
 
       // In a real application, these would be stored in Replit Secrets
       // For the purposes of this demo, we're setting them in process.env
@@ -372,6 +401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (elevenLabsKey) process.env.ELEVENLABS_API_KEY = elevenLabsKey;
       if (anthropicKey) process.env.ANTHROPIC_API_KEY = anthropicKey;
       if (perplexityKey) process.env.PERPLEXITY_API_KEY = perplexityKey;
+      if (gptzeroKey) process.env.GPTZERO_API_KEY = gptzeroKey;
       
       // Return the updated service status
       const services = {
@@ -380,7 +410,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deepgram: !!process.env.DEEPGRAM_API_KEY,
         elevenLabs: !!process.env.ELEVENLABS_API_KEY,
         anthropic: !!process.env.ANTHROPIC_API_KEY,
-        perplexity: !!process.env.PERPLEXITY_API_KEY
+        perplexity: !!process.env.PERPLEXITY_API_KEY,
+        gptzero: !!process.env.GPTZERO_API_KEY
       };
       
       res.json({ 

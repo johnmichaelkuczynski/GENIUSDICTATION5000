@@ -206,6 +206,7 @@ export const apiKeyRequestSchema = z.object({
   elevenLabsKey: z.string().optional(),
   anthropicKey: z.string().optional(),
   perplexityKey: z.string().optional(),
+  gptzeroKey: z.string().optional(),
 });
 
 export const apiStatusResponseSchema = z.object({
@@ -217,6 +218,7 @@ export const apiStatusResponseSchema = z.object({
     elevenLabs: z.boolean(),
     anthropic: z.boolean(),
     perplexity: z.boolean(),
+    gptzero: z.boolean(),
   }),
 });
 
