@@ -26,23 +26,35 @@ interface ReferenceDocument {
 }
 
 const StyleLibrary = () => {
-  const { styleReferences, setStyleReferences } = useAppContext();
+  const { 
+    styleReferences, 
+    setStyleReferences, 
+    originalText, 
+    setOriginalText 
+  } = useAppContext();
+  
   const { toast } = useToast();
   const [referenceDocuments, setReferenceDocuments] = useState<ReferenceDocument[]>([]);
   const [selectedStyle, setSelectedStyle] = useState<StyleReference | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
+  const [isAddCurrentTextDialogOpen, setIsAddCurrentTextDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [styleToDelete, setStyleToDelete] = useState<StyleReference | null>(null);
+  const [styleForText, setStyleForText] = useState<StyleReference | null>(null);
   const [newStyleName, setNewStyleName] = useState("");
   const [newStyleDescription, setNewStyleDescription] = useState("");
   const [newDocumentName, setNewDocumentName] = useState("");
   const [newDocumentContent, setNewDocumentContent] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   
+  // State for drag and drop
+  const [isDragging, setIsDragging] = useState(false);
+  
   // References for file inputs
   const styleDocFileInputRef = useRef<HTMLInputElement>(null);
   const refDocFileInputRef = useRef<HTMLInputElement>(null);
+  const dropzoneRef = useRef<HTMLDivElement>(null);
 
   const toggleStyleActive = (id: number) => {
     setStyleReferences(
@@ -445,14 +457,28 @@ const StyleLibrary = () => {
                   </p>
                   <p className="text-xs line-clamp-3">{style.description}</p>
                   <div className="flex justify-between mt-3">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs hover:text-red-500"
-                      onClick={(e) => confirmDeleteStyle(style, e)}
-                    >
-                      <i className="ri-delete-bin-line"></i>
-                    </Button>
+                    <div className="flex space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs hover:text-red-500"
+                        onClick={(e) => confirmDeleteStyle(style, e)}
+                      >
+                        <i className="ri-delete-bin-line"></i>
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs hover:text-blue-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          associateCurrentTextWithStyle(style);
+                        }}
+                        title="Apply this style to the current text"
+                      >
+                        <i className="ri-file-text-line"></i>
+                      </Button>
+                    </div>
                     <Button 
                       variant="ghost" 
                       size="sm" 
