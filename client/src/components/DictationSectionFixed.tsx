@@ -16,6 +16,8 @@ import { useTransformation } from "@/hooks/useTransformation";
 import { useDictationSimple } from "@/hooks/useDictationSimple";
 import { useTTS } from "@/hooks/useTTS";
 import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
+import { useAIDetection } from "@/hooks/useAIDetection";
+import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -62,6 +64,18 @@ const DictationSection = () => {
   } = useDictationSimple();
   const { processDocument } = useDocumentProcessor();
   const { toast } = useToast();
+  const { 
+    detectAI, 
+    clearDetectionResult, 
+    isDetecting: isDetectingAI, 
+    detectionResult: aiDetectionResult 
+  } = useAIDetection();
+  const {
+    detectAI: detectOutputAI,
+    clearDetectionResult: clearOutputDetectionResult,
+    isDetecting: isDetectingOutputAI,
+    detectionResult: outputAiDetectionResult
+  } = useAIDetection();
   const { 
     isLoading: isTtsLoading, 
     isPlaying, 

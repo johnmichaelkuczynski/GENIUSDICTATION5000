@@ -50,7 +50,7 @@ export function AIDetectionIndicator({
 
   // Render result indicator based on AI detection result
   const getColorClass = () => {
-    if (!result) return '';
+    if (!result || result.probability === undefined) return '';
     
     if (result.probability < 0.3) return 'bg-green-600';
     if (result.probability < 0.7) return 'bg-yellow-500';
@@ -58,7 +58,7 @@ export function AIDetectionIndicator({
   };
 
   const getIcon = () => {
-    if (!result) return null;
+    if (!result || result.probability === undefined) return null;
     
     if (result.probability < 0.3) {
       return <CheckCircle className="h-3.5 w-3.5 text-green-600" />;
@@ -83,8 +83,8 @@ export function AIDetectionIndicator({
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs text-xs">
-                <p><strong>AI Probability:</strong> {(result?.probability * 100).toFixed(1)}%</p>
-                <p><strong>Burstiness:</strong> {result?.burstiness.toFixed(2)} 
+                <p><strong>AI Probability:</strong> {result?.probability !== undefined ? (result.probability * 100).toFixed(1) : 0}%</p>
+                <p><strong>Burstiness:</strong> {result?.burstiness !== undefined ? result.burstiness.toFixed(2) : 0} 
                   (Higher values typically indicate more human-like writing)</p>
                 <p className="mt-1 text-[10px] text-muted-foreground">Powered by GPTZero</p>
               </TooltipContent>
@@ -98,7 +98,7 @@ export function AIDetectionIndicator({
           {result?.isAIGenerated ? "AI Generated" : "Likely Human"}
         </Badge>
       </div>
-      <Progress value={result?.probability ? result.probability * 100 : 0} className="h-1.5" indicatorClassName={getColorClass()} />
+      <Progress value={result?.probability ? result.probability * 100 : 0} className={`h-1.5 ${getColorClass()}`} />
     </div>
   );
 }

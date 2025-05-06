@@ -29,13 +29,21 @@ export function useAIDetection() {
     setDetectionResult(null);
 
     try {
-      const result = await apiRequest<AIDetectionResult>("/api/detect-ai", {
+      const response = await fetch("/api/detect-ai", {
         method: "POST",
-        body: { text }
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
       });
-
-      setDetectionResult(result);
-      return result;
+      
+      if (!response.ok) {
+        throw new Error(`GPTZero API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const detectionResult = await response.json() as AIDetectionResult;
+      setDetectionResult(detectionResult);
+      return detectionResult;
     } catch (error) {
       console.error("Error detecting AI content:", error);
       
