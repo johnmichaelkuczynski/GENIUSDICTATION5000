@@ -27,6 +27,11 @@ export function useTransformation() {
   const getActiveStyleReferences = useCallback(() => {
     return styleReferences.filter(style => style.active);
   }, [styleReferences]);
+  
+  // Get active content references
+  const getActiveContentReferences = useCallback(() => {
+    return contentReferences.filter(content => content.active);
+  }, [contentReferences]);
 
   // Transform text using AI, with support for chunking large documents
   const transformText = useCallback(async () => {
@@ -50,7 +55,9 @@ export function useTransformation() {
         model: selectedAIModel,
         preset: selectedPreset,
         useStyleReference,
-        styleReferences: useStyleReference ? getActiveStyleReferences() : []
+        styleReferences: useStyleReference ? getActiveStyleReferences() : [],
+        useContentReference,
+        contentReferences: useContentReference ? getActiveContentReferences() : []
       };
 
       // For large documents, show a toast notification
@@ -130,6 +137,8 @@ export function useTransformation() {
     selectedAIModel,
     useStyleReference,
     styleReferences,
+    useContentReference,
+    contentReferences,
     selectedPreset,
     toast
   ]);
