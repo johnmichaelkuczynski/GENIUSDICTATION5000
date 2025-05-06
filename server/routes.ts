@@ -78,7 +78,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         model = AIModel.GPT4O,
         preset,
         useStyleReference,
-        styleReferences
+        styleReferences,
+        useContentReference,
+        contentReferences
       } = result.data;
 
       // Prepare style references if needed
@@ -87,6 +89,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const activeStyles = styleReferences.filter(style => style.active);
         if (activeStyles.length > 0) {
           styleReferenceText = `Use these style references: ${activeStyles.map(style => style.name).join(", ")}. `;
+        }
+      }
+      
+      // Prepare content references if needed
+      let contentReferenceText = "";
+      if (useContentReference && contentReferences && contentReferences.length > 0) {
+        const activeContents = contentReferences.filter(content => content.active);
+        if (activeContents.length > 0) {
+          contentReferenceText = `Use these content references for information: ${activeContents.map(content => content.name).join(", ")}. `;
         }
       }
 
@@ -115,6 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Combine instructions
       const combinedInstructions = [
         styleReferenceText,
+        contentReferenceText,
         presetInstructions,
         instructions
       ].filter(Boolean).join(" ");
