@@ -50,7 +50,7 @@ const DictationSection = () => {
     setContentReferences
   } = useAppContext();
 
-  const { transformText, processingProgress, isChunkedProcessing } = useTransformation();
+  const { transformText, cancelTransformation, clearAll, processingProgress, isChunkedProcessing } = useTransformation();
   const { 
     dictationStatus, 
     startDictation, 
@@ -114,6 +114,14 @@ const DictationSection = () => {
   // Handlers
   const handleTransformText = async () => {
     await transformText();
+  };
+
+  const handleCancelTransformation = () => {
+    cancelTransformation();
+  };
+
+  const handleClearAll = () => {
+    clearAll();
   };
 
   const handleClearOriginal = () => {
