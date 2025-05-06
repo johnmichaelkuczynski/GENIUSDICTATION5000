@@ -1077,26 +1077,51 @@ const DictationSection = () => {
                     </div>
                   </div>
                   
-                  {/* Process Button */}
-                  <Button 
-                    className="flex items-center" 
-                    onClick={handleTransformText}
-                    disabled={isProcessing || !originalText}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <span className="animate-spin h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
-                        {isChunkedProcessing 
-                          ? `Processing Chunks (${processingProgress}%)` 
-                          : "Processing..."}
-                      </>
-                    ) : (
-                      <>
-                        <i className="ri-magic-line mr-2"></i>
-                        Transform Text
-                      </>
+                  {/* Action Buttons Group */}
+                  <div className="flex items-center space-x-2">
+                    {/* Transform Button */}
+                    <Button 
+                      className="flex items-center" 
+                      onClick={handleTransformText}
+                      disabled={isProcessing || !originalText}
+                    >
+                      {isProcessing ? (
+                        <>
+                          <span className="animate-spin h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
+                          {isChunkedProcessing 
+                            ? `Processing Chunks (${processingProgress}%)` 
+                            : "Processing..."}
+                        </>
+                      ) : (
+                        <>
+                          <i className="ri-magic-line mr-2"></i>
+                          Transform Text
+                        </>
+                      )}
+                    </Button>
+                    
+                    {/* Cancel Button - Only show when processing */}
+                    {isProcessing && (
+                      <Button 
+                        variant="destructive" 
+                        className="flex items-center" 
+                        onClick={handleCancelTransformation}
+                      >
+                        <i className="ri-close-line mr-2"></i>
+                        Cancel
+                      </Button>
                     )}
-                  </Button>
+                    
+                    {/* Clear All Button */}
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center" 
+                      onClick={handleClearAll}
+                    >
+                      <i className="ri-delete-bin-line mr-2"></i>
+                      Clear All
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
