@@ -45,22 +45,7 @@ type AppContextType = {
   checkApiStatus: () => Promise<void>;
 };
 
-const defaultStyleReferences: StyleReference[] = [
-  {
-    id: 1,
-    name: "Academic Writing",
-    description: "Formal academic style with emphasis on theoretical frameworks, methodological rigor, and precise terminology. Uses third-person perspective and passive voice.",
-    active: true,
-    documentCount: 3,
-  },
-  {
-    id: 2,
-    name: "Professional Emails",
-    description: "Concise and direct business communication style. Clear subject lines, professional greeting, and actionable conclusions. Moderate formality with personal touches.",
-    active: false,
-    documentCount: 5,
-  },
-];
+const defaultStyleReferences: StyleReference[] = [];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 

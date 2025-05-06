@@ -653,7 +653,7 @@ const StyleLibrary = () => {
                   <input
                     ref={styleDocFileInputRef}
                     type="file"
-                    accept=".txt,text/plain"
+                    accept=".txt,text/plain,.pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     className="hidden"
                     onChange={handleStyleDocFileChange}
                   />
@@ -800,12 +800,12 @@ const StyleLibrary = () => {
                                 ) : (
                                   <i className="ri-upload-line"></i>
                                 )}
-                                <span className="ml-1">Upload TXT</span>
+                                <span className="ml-1">Upload File</span>
                               </Button>
                               <input
                                 ref={refDocFileInputRef}
                                 type="file"
-                                accept=".txt,text/plain"
+                                accept=".txt,text/plain,.pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                 className="hidden"
                                 onChange={handleRefDocFileChange}
                               />
@@ -871,12 +871,12 @@ const StyleLibrary = () => {
                             <i className="ri-add-line mr-1"></i> Add Document
                           </Button>
                           <Button variant="outline" onClick={handleRefDocFileUpload}>
-                            <i className="ri-upload-line mr-1"></i> Upload Text File
+                            <i className="ri-upload-line mr-1"></i> Upload Document
                           </Button>
                           <input
                             ref={refDocFileInputRef}
                             type="file"
-                            accept=".txt,text/plain"
+                            accept=".txt,text/plain,.pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                             className="hidden"
                             onChange={handleRefDocFileChange}
                           />
