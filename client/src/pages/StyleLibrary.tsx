@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppContext } from "@/context/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useLocation } from "wouter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface StyleReference {
   id: number;
@@ -355,6 +357,242 @@ const StyleLibrary = () => {
     }
   };
 
+  // Associate the current text with a style
+  const associateCurrentTextWithStyle = (style: StyleReference) => {
+    setStyleForText(style);
+    
+    if (originalText.trim()) {
+      // If there's text in the dictation area, use it directly
+      setNewDocumentName(`Text sample ${new Date().toLocaleString()}`);
+      setNewDocumentContent(originalText);
+      setIsAddCurrentTextDialogOpen(true);
+    } else {
+      // If no text is present, open dialog to input text with multiple methods
+      setIsAddCurrentTextDialogOpen(true);
+    }
+  };
+  
+  // Add the current text as a reference document to the selected style
+  const addCurrentTextAsReferenceDocument = () => {
+    if (!styleForText || newDocumentName.trim() === "" || newDocumentContent.trim() === "") return;
+    
+    const newDoc: ReferenceDocument = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newDocumentName,
+      content: newDocumentContent,
+      styleId: styleForText.id,
+    };
+    
+    setReferenceDocuments([...referenceDocuments, newDoc]);
+    
+    // Update document count for the style
+    setStyleReferences(
+      styleReferences.map((style) =>
+        style.id === styleForText.id ? { ...style, documentCount: style.documentCount + 1 } : style
+      )
+    );
+    
+    // Select this style
+    setSelectedStyle(styleForText);
+    
+    setNewDocumentName("");
+    setNewDocumentContent("");
+    setIsAddCurrentTextDialogOpen(false);
+    
+    toast({
+      title: "Text sample added",
+      description: `Added text sample to "${styleForText.name}" style`,
+    });
+  };
+  
+  // Handle file upload for text sample
+  const handleTextSampleFileUpload = () => {
+    if (!styleForText) return;
+    
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.txt,text/plain,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    
+    input.onchange = async (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (!target.files || target.files.length === 0) return;
+      
+      const file = target.files[0];
+      
+      try {
+        setIsUploading(true);
+        
+        let extractedText = "";
+        
+        // For text files, use FileReader
+        if (file.type.includes('text') || file.name.endsWith('.txt')) {
+          const reader = new FileReader();
+          extractedText = await new Promise((resolve, reject) => {
+            reader.onload = (event) => {
+              if (event.target && typeof event.target.result === 'string') {
+                resolve(event.target.result);
+              } else {
+                reject(new Error("Failed to read file"));
+              }
+            };
+            reader.onerror = () => reject(new Error("FileReader error"));
+            reader.readAsText(file);
+          });
+        } else {
+          // For other document types, use the server API
+          extractedText = await extractTextFromDocument(file);
+        }
+        
+        // Set the content
+        setNewDocumentName(file.name);
+        setNewDocumentContent(extractedText);
+        
+        toast({
+          title: "File processed",
+          description: `Text extracted from "${file.name}"`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error processing file",
+          description: "Could not extract text from the file",
+          variant: "destructive"
+        });
+        console.error("File processing error:", error);
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    
+    input.click();
+  };
+  
+  // Handle drag over event
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+  
+  // Handle drag leave event
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+  
+  // Handle drop event
+  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (!styleForText) return;
+    
+    const files = e.dataTransfer.files;
+    if (files.length === 0) {
+      // If no files, check if there's text
+      const text = e.dataTransfer.getData('text');
+      if (text) {
+        setNewDocumentName(`Dropped text ${new Date().toLocaleString()}`);
+        setNewDocumentContent(text);
+        
+        toast({
+          title: "Text received",
+          description: "Text has been added to the sample",
+        });
+      }
+      return;
+    }
+    
+    const file = files[0];
+    
+    try {
+      setIsUploading(true);
+      
+      let extractedText = "";
+      
+      // For text files, use FileReader
+      if (file.type.includes('text') || file.name.endsWith('.txt')) {
+        const reader = new FileReader();
+        extractedText = await new Promise((resolve, reject) => {
+          reader.onload = (event) => {
+            if (event.target && typeof event.target.result === 'string') {
+              resolve(event.target.result);
+            } else {
+              reject(new Error("Failed to read file"));
+            }
+          };
+          reader.onerror = () => reject(new Error("FileReader error"));
+          reader.readAsText(file);
+        });
+      } else {
+        // For other document types, use the server API
+        extractedText = await extractTextFromDocument(file);
+      }
+      
+      // Set the content
+      setNewDocumentName(file.name);
+      setNewDocumentContent(extractedText);
+      
+      toast({
+        title: "File processed",
+        description: `Text extracted from "${file.name}"`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error processing file",
+        description: "Could not extract text from the file",
+        variant: "destructive"
+      });
+      console.error("File processing error:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [styleForText, toast]);
+  
+  // Handle copying text from the clipboard
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setNewDocumentName(`Clipboard text ${new Date().toLocaleString()}`);
+        setNewDocumentContent(text);
+        
+        toast({
+          title: "Text pasted",
+          description: "Text from clipboard has been added",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Clipboard error",
+        description: "Could not access clipboard. Please paste text manually.",
+        variant: "destructive"
+      });
+      console.error("Clipboard error:", error);
+    }
+  };
+  
+  // Navigate to home with selected style
+  const navigateToHomeWithStyle = () => {
+    if (!styleForText) return;
+    
+    // Set the style active in the app context
+    setStyleReferences(
+      styleReferences.map((style) =>
+        style.id === styleForText.id ? { ...style, active: true } : style
+      )
+    );
+    
+    // Go to home page
+    window.location.href = '/';
+    
+    toast({
+      title: "Style activated",
+      description: `Style "${styleForText.name}" is now active for dictation`
+    });
+  };
+  
   // Filter documents for selected style
   const filteredDocuments = selectedStyle
     ? referenceDocuments.filter(doc => doc.styleId === selectedStyle.id)
@@ -762,6 +1000,117 @@ const StyleLibrary = () => {
             <Button variant="destructive" onClick={deleteDocument}>
               Delete Document
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Text to Style Dialog */}
+      <Dialog open={isAddCurrentTextDialogOpen} onOpenChange={setIsAddCurrentTextDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Add Text to Style: {styleForText?.name}</DialogTitle>
+            <DialogDescription>
+              Add text to use as a reference for this style. You can type, paste, upload, or drag & drop text.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="text-sample-name">Sample Name</Label>
+              <Input 
+                id="text-sample-name" 
+                value={newDocumentName} 
+                onChange={(e) => setNewDocumentName(e.target.value)} 
+                placeholder="e.g., Essay Sample, Email Template"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="text-sample-content">Text Content</Label>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 text-xs"
+                    onClick={handleTextSampleFileUpload}
+                  >
+                    <i className="ri-upload-line mr-1"></i> Upload
+                  </Button>
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 text-xs"
+                    onClick={handlePasteFromClipboard}
+                  >
+                    <i className="ri-clipboard-line mr-1"></i> Paste
+                  </Button>
+                </div>
+              </div>
+              
+              <div 
+                ref={dropzoneRef}
+                className={`relative border rounded-md transition ${
+                  isDragging ? 'border-primary border-2' : 'border-input'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <Textarea 
+                  id="text-sample-content" 
+                  value={newDocumentContent} 
+                  onChange={(e) => setNewDocumentContent(e.target.value)} 
+                  placeholder="Type or paste your text here. You can also drag and drop text or files onto this area."
+                  rows={10}
+                  className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                
+                {isDragging && (
+                  <div className="absolute inset-0 bg-primary/10 flex items-center justify-center rounded-md">
+                    <div className="bg-background p-4 rounded-md shadow-lg">
+                      <p className="text-center">Drop your text or file here</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-xs text-muted-foreground">
+                Drag and drop a text or document file here, or use the buttons above to upload or paste content.
+              </p>
+            </div>
+            
+            {originalText && (
+              <Alert>
+                <AlertDescription className="text-sm">
+                  Text from the dictation area has been automatically added. You can edit it as needed.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+          
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <div className="flex-1 order-2 sm:order-1">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsAddCurrentTextDialogOpen(false)}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2">
+              <Button 
+                type="button"
+                onClick={addCurrentTextAsReferenceDocument}
+                className="w-full sm:w-auto"
+                disabled={!newDocumentContent.trim() || !newDocumentName.trim()}
+              >
+                <i className="ri-file-add-line mr-1"></i> Add Text Sample
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
