@@ -32,6 +32,7 @@ const DictationSection = () => {
     originalText,
     setOriginalText,
     processedText,
+    setProcessedText,
     customInstructions,
     setCustomInstructions,
     useStyleReference,
@@ -153,6 +154,13 @@ const DictationSection = () => {
     navigator.clipboard.writeText(processedText);
   };
   
+  const handleClearProcessed = () => {
+    // Clear the processed text in the app context
+    setProcessedText("");
+    // Also clear any AI detection result for the processed text
+    clearOutputDetectionResult();
+  };
+  
   // AI Detection handlers
   const handleDetectInputAI = useCallback(async () => {
     if (originalText.trim().length > 0) {
@@ -176,7 +184,7 @@ const DictationSection = () => {
         variant: "destructive"
       });
     }
-  }, [processedText, detectOutputAI, toast]);
+  }, [processedText, detectOutputAI, toast, clearOutputDetectionResult]);
   
   // File upload handlers
   const handleFileUploadClick = () => {
@@ -882,6 +890,14 @@ const DictationSection = () => {
                     </div>
                   )}
                   <div className="flex space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center"
+                      onClick={handleClearProcessed}
+                    >
+                      <i className="ri-delete-bin-line mr-1"></i> Clear
+                    </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
