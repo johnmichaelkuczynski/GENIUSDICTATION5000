@@ -9,6 +9,14 @@ interface StyleReference {
   documentCount: number;
 }
 
+interface ContentReference {
+  id: number;
+  name: string;
+  description: string;
+  active: boolean;
+  documentCount: number;
+}
+
 interface ApiServices {
   gladia: boolean;
   openai: boolean;
@@ -29,12 +37,16 @@ type AppContextType = {
   setCustomInstructions: (instructions: string) => void;
   useStyleReference: boolean;
   setUseStyleReference: (use: boolean) => void;
+  useContentReference: boolean;
+  setUseContentReference: (use: boolean) => void;
   selectedSpeechEngine: SpeechEngine;
   setSelectedSpeechEngine: (engine: SpeechEngine) => void;
   selectedAIModel: AIModel;
   setSelectedAIModel: (model: AIModel) => void;
   styleReferences: StyleReference[];
   setStyleReferences: (references: StyleReference[]) => void;
+  contentReferences: ContentReference[];
+  setContentReferences: (references: ContentReference[]) => void;
   apisConnected: boolean;
   setApisConnected: (connected: boolean) => void;
   isProcessing: boolean;
@@ -46,6 +58,7 @@ type AppContextType = {
 };
 
 const defaultStyleReferences: StyleReference[] = [];
+const defaultContentReferences: ContentReference[] = [];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -55,9 +68,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [processedText, setProcessedText] = useState("");
   const [customInstructions, setCustomInstructions] = useState("Rewrite in the style of an academic paper with a focus on theoretical frameworks. Expand on the implications for human-AI collaboration.");
   const [useStyleReference, setUseStyleReference] = useState(true);
+  const [useContentReference, setUseContentReference] = useState(true);
   const [selectedSpeechEngine, setSelectedSpeechEngine] = useState<SpeechEngine>(SpeechEngine.GLADIA);
   const [selectedAIModel, setSelectedAIModel] = useState<AIModel>(AIModel.GPT4O);
   const [styleReferences, setStyleReferences] = useState<StyleReference[]>(defaultStyleReferences);
+  const [contentReferences, setContentReferences] = useState<ContentReference[]>(defaultContentReferences);
   const [apisConnected, setApisConnected] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState("Academic");

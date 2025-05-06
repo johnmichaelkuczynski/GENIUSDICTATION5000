@@ -28,6 +28,24 @@ export const referenceDocuments = pgTable("reference_documents", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const contentReferences = pgTable("content_references", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  active: boolean("active").default(false),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const contentDocuments = pgTable("content_documents", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  content: text("content").notNull(),
+  contentId: integer("content_id").references(() => contentReferences.id),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const dictationSessions = pgTable("dictation_sessions", {
   id: serial("id").primaryKey(),
   originalText: text("original_text"),
@@ -57,6 +75,20 @@ export const insertReferenceDocumentSchema = createInsertSchema(referenceDocumen
   userId: true,
 });
 
+export const insertContentReferenceSchema = createInsertSchema(contentReferences).pick({
+  name: true,
+  description: true,
+  active: true,
+  userId: true,
+});
+
+export const insertContentDocumentSchema = createInsertSchema(contentDocuments).pick({
+  name: true,
+  content: true,
+  contentId: true,
+  userId: true,
+});
+
 export const insertDictationSessionSchema = createInsertSchema(dictationSessions).pick({
   originalText: true,
   processedText: true,
@@ -73,6 +105,12 @@ export type StyleReference = typeof styleReferences.$inferSelect;
 
 export type InsertReferenceDocument = z.infer<typeof insertReferenceDocumentSchema>;
 export type ReferenceDocument = typeof referenceDocuments.$inferSelect;
+
+export type InsertContentReference = z.infer<typeof insertContentReferenceSchema>;
+export type ContentReference = typeof contentReferences.$inferSelect;
+
+export type InsertContentDocument = z.infer<typeof insertContentDocumentSchema>;
+export type ContentDocument = typeof contentDocuments.$inferSelect;
 
 export type InsertDictationSession = z.infer<typeof insertDictationSessionSchema>;
 export type DictationSession = typeof dictationSessions.$inferSelect;
@@ -120,6 +158,14 @@ export const transformRequestSchema = z.object({
   preset: z.string().optional(),
   useStyleReference: z.boolean().optional(),
   styleReferences: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    description: z.string().optional(),
+    active: z.boolean().optional(),
+    documentCount: z.number().optional(),
+  })).optional(),
+  useContentReference: z.boolean().optional(),
+  contentReferences: z.array(z.object({
     id: z.number(),
     name: z.string(),
     description: z.string().optional(),
