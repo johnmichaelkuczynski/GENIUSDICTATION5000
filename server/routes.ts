@@ -11,7 +11,9 @@ import {
   transformRequestSchema, 
   apiKeyRequestSchema,
   extractTextRequestSchema,
-  ttsRequestSchema
+  ttsRequestSchema,
+  detectAIRequestSchema,
+  detectAIResponseSchema
 } from "@shared/schema";
 import { transformText as openaiTransform } from "./services/openai";
 import { transformText as anthropicTransform } from "./services/anthropic";
@@ -27,6 +29,7 @@ import {
   generateSpeech,
   getAvailableVoices
 } from "./services/elevenlabs";
+import { detectAIContent } from "./services/gptzero";
 
 // Set up multer for file uploads
 const upload = multer({ 
@@ -43,6 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
     const anthropicKey = process.env.ANTHROPIC_API_KEY;
     const perplexityKey = process.env.PERPLEXITY_API_KEY;
+    const gptzeroKey = process.env.GPTZERO_API_KEY;
     
     // Check if keys are present
     const services = {
@@ -51,7 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       deepgram: !!deepgramKey,
       elevenLabs: !!elevenLabsKey,
       anthropic: !!anthropicKey,
-      perplexity: !!perplexityKey
+      perplexity: !!perplexityKey,
+      gptzero: !!gptzeroKey
     };
     
     // At least one service must be available

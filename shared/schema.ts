@@ -228,3 +228,16 @@ export const voicesResponseSchema = z.object({
     description: z.string().optional(),
   })),
 });
+
+// GPTZero AI Detection schemas
+export const detectAIRequestSchema = z.object({
+  text: z.string().min(1, "Text is required")
+});
+
+export const detectAIResponseSchema = z.object({
+  isAIGenerated: z.boolean(),
+  probability: z.number(),
+  burstiness: z.number(),
+  humanLikelihood: z.string(),
+  rawResponse: z.any().optional()
+});
