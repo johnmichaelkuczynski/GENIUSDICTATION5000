@@ -290,11 +290,17 @@ const StyleLibrary = () => {
     
     const file = e.target.files[0];
     
-    // Check if it's a text file
-    if (!file.type.includes('text') && !file.name.endsWith('.txt')) {
+    // Check if it's a supported file type
+    const supportedTypes = ['text/plain', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const supportedExtensions = ['.txt', '.pdf', '.docx'];
+    
+    const hasValidType = supportedTypes.some(type => file.type.includes(type));
+    const hasValidExtension = supportedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    
+    if (!hasValidType && !hasValidExtension) {
       toast({
         title: "Invalid file type",
-        description: "Please upload a text file (.txt)",
+        description: "Please upload a supported file (PDF, DOCX, or TXT)",
         variant: "destructive"
       });
       return;
@@ -303,19 +309,33 @@ const StyleLibrary = () => {
     try {
       setIsUploading(true);
       
-      // Read the file
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target && typeof event.target.result === 'string') {
-          // Set the content
-          setNewDocumentName(file.name);
-          setNewDocumentContent(event.target.result);
-          
-          // Open the dialog to confirm
-          setIsAddDocDialogOpen(true);
-        }
-      };
-      reader.readAsText(file);
+      let extractedText = "";
+      
+      // For text files, use FileReader
+      if (file.type.includes('text') || file.name.endsWith('.txt')) {
+        const reader = new FileReader();
+        extractedText = await new Promise((resolve, reject) => {
+          reader.onload = (event) => {
+            if (event.target && typeof event.target.result === 'string') {
+              resolve(event.target.result);
+            } else {
+              reject(new Error("Failed to read file"));
+            }
+          };
+          reader.onerror = () => reject(new Error("FileReader error"));
+          reader.readAsText(file);
+        });
+      } else {
+        // For PDF/DOCX, use the document extraction API
+        extractedText = await extractTextFromDocument(file);
+      }
+      
+      // Set the content
+      setNewDocumentName(file.name);
+      setNewDocumentContent(extractedText);
+      
+      // Open the dialog to confirm
+      setIsAddDocDialogOpen(true);
       
     } catch (error) {
       toast({
