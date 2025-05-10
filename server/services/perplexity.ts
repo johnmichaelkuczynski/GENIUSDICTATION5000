@@ -22,11 +22,16 @@ export async function transformText({
       messages: [
         {
           role: "system",
-          content: "You're a text transformation assistant. Be precise and concise."
+          content: "You're a text transformation assistant. Your output must always be longer than the input text."
         },
         {
           role: "user",
-          content: `${instructions}:\n\n${text}`
+          content: `${instructions}
+
+IMPORTANT: Your transformed text MUST be LONGER than the original text. The original text has approximately ${text.trim().split(/\s+/).length} words. Your response MUST be at least ${Math.ceil(text.trim().split(/\s+/).length * 1.125)} words. This is a non-negotiable requirement.
+
+Original text to transform:
+${text}`
         }
       ],
       temperature: 0.3,

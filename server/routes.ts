@@ -139,6 +139,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine which service to use based on the selected model
       let transformedText = "";
       
+      // Count words in the original text
+      const originalWordCount = text.trim().split(/\s+/).length;
+      
       if (model.includes('Claude')) {
         // Use Anthropic for Claude models
         if (!process.env.ANTHROPIC_API_KEY) {
@@ -169,6 +172,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           instructions: combinedInstructions || "Improve this text",
           model
         });
+      }
+      
+      // Verify that the transformed text is longer than the original
+      const transformedWordCount = transformedText.trim().split(/\s+/).length;
+      
+      if (transformedWordCount <= originalWordCount) {
+        console.warn(`AI model failed to produce longer text. Original: ${originalWordCount} words, Transformed: ${transformedWordCount} words. Retrying...`);
+        
+        // Add more explicit instructions for longer text and retry
+        const retryInstructions = `${combinedInstructions || "Improve this text"} CRITICAL: Your response MUST be significantly longer than the original text. Add more details, examples, and explanations to make the text longer.`;
+        
+        if (model.includes('Claude')) {
+          transformedText = await anthropicTransform({
+            text,
+            instructions: retryInstructions,
+            model
+          });
+        } else if (model.includes('Perplexity')) {
+          transformedText = await perplexityTransform({
+            text,
+            instructions: retryInstructions,
+            model
+          });
+        } else {
+          transformedText = await openaiTransform({
+            text,
+            instructions: retryInstructions,
+            model
+          });
+        }
+        
+        // Check again
+        const retryWordCount = transformedText.trim().split(/\s+/).length;
+        console.log(`After retry - Original: ${originalWordCount} words, Transformed: ${retryWordCount} words`);
       }
 
       res.json({ text: transformedText, model });

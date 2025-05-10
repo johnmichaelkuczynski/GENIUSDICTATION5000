@@ -25,9 +25,16 @@ export async function transformText({
         ? "gpt-4" 
         : "gpt-3.5-turbo";
 
+    // Count words in the original text
+    const wordCount = text.trim().split(/\s+/).length;
+    const minRequiredWords = Math.ceil(wordCount * 1.125); // Ensure at least 12.5% more words
+    
     const prompt = `
 You are an expert text transformation assistant. Your task is to transform the user's text according to their instructions.
 You should return ONLY the transformed text without additional commentary, explanations, or formatting.
+
+IMPORTANT: Your transformed text MUST be LONGER than the original text. The original text has approximately ${wordCount} words. 
+Your response MUST be at least ${minRequiredWords} words to be acceptable. This is a non-negotiable requirement.
 
 Instructions: ${instructions}
 

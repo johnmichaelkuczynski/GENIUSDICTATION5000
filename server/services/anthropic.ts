@@ -37,8 +37,17 @@ export async function transformText({
         modelId = 'claude-3-7-sonnet-20250219'; // Default to Sonnet
     }
 
-    // Construct the message
-    const prompt = `${instructions}:\n\n${text}`;
+    // Count words in the original text
+    const wordCount = text.trim().split(/\s+/).length;
+    const minRequiredWords = Math.ceil(wordCount * 1.125); // Ensure at least 12.5% more words
+    
+    // Construct the message with the length requirement
+    const prompt = `${instructions}
+    
+IMPORTANT: Your transformed text MUST be LONGER than the original text. The original text has approximately ${wordCount} words. Your response MUST be at least ${minRequiredWords} words. This is a non-negotiable requirement.
+
+Original text to transform:
+${text}`;
 
     const response = await anthropic.messages.create({
       model: modelId,
