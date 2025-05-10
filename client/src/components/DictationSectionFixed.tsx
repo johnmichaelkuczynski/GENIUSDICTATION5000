@@ -942,12 +942,13 @@ const DictationSection = () => {
                 )}
                 
                 <div className="flex-1">
-                  <div 
-                    className="w-full h-[256px] p-3 border rounded-md bg-accent/5 text-foreground overflow-y-auto whitespace-pre-wrap"
+                  <Textarea 
+                    className="min-h-[256px] resize-none"
+                    value={processedText}
+                    onChange={(e) => setProcessedText(e.target.value)}
+                    placeholder="Processed text will appear here..."
                     style={{ maxHeight: "256px" }}
-                  >
-                    {processedText}
-                  </div>
+                  />
                 </div>
 
                 {/* TTS Controls - Only show when there's processed text */}
