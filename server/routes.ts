@@ -28,7 +28,7 @@ import {
 import {
   generateSpeech,
   getAvailableVoices
-} from "./services/elevenlabs";
+} from "./services/azureSpeech";
 import { detectAIContent } from "./services/gptzero";
 
 // Set up multer for file uploads
@@ -43,7 +43,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const gladiaKey = process.env.GLADIA_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
     const deepgramKey = process.env.DEEPGRAM_API_KEY;
-    const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
+    const azureSpeechKey = process.env.AZURE_SPEECH_KEY;
+    const azureSpeechEndpoint = process.env.AZURE_SPEECH_ENDPOINT;
     const anthropicKey = process.env.ANTHROPIC_API_KEY;
     const perplexityKey = process.env.PERPLEXITY_API_KEY;
     const gptzeroKey = process.env.GPTZERO_API_KEY;
@@ -53,7 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       gladia: !!gladiaKey,
       openai: !!openaiKey,
       deepgram: !!deepgramKey,
-      elevenLabs: !!elevenLabsKey,
+      azureSpeech: !!(azureSpeechKey && azureSpeechEndpoint),
       anthropic: !!anthropicKey,
       perplexity: !!perplexityKey,
       gptzero: !!gptzeroKey
@@ -351,13 +352,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { text, voiceId } = result.data;
 
-      // Check if ElevenLabs key is available
-      if (!process.env.ELEVENLABS_API_KEY) {
-        return res.status(400).json({ error: "ElevenLabs API key is not configured" });
+      // Check if Azure Speech credentials are available
+      if (!process.env.AZURE_SPEECH_KEY || !process.env.AZURE_SPEECH_ENDPOINT) {
+        return res.status(400).json({ error: "Azure Speech credentials are not configured" });
       }
 
       // Generate speech
-      const audioBuffer = await generateSpeech(text, voiceId);
+      const audioBuffer = await generateSpeech(text);
 
       // Set response headers
       res.setHeader('Content-Type', 'audio/mpeg');
@@ -374,9 +375,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get available voices endpoint
   app.get("/api/tts/voices", async (req, res) => {
     try {
-      // Check if ElevenLabs key is available
-      if (!process.env.ELEVENLABS_API_KEY) {
-        return res.status(400).json({ error: "ElevenLabs API key is not configured" });
+      // Check if Azure Speech credentials are available
+      if (!process.env.AZURE_SPEECH_KEY || !process.env.AZURE_SPEECH_ENDPOINT) {
+        return res.status(400).json({ error: "Azure Speech credentials are not configured" });
       }
 
       // Get available voices
