@@ -877,16 +877,7 @@ const DictationSection = () => {
                     {isDetectingAI ? "Analyzing..." : "Detect AI Content"}
                   </Button>
                   
-                  {/* Add Assessment Button */}
-                  <Button 
-                    variant="outline"
-                    onClick={() => setIsAssessmentDialogOpen(true)}
-                    disabled={!aiDetectionResult || !originalText}
-                    className="text-xs"
-                  >
-                    <i className="ri-file-list-line mr-1.5"></i>
-                    Add Context
-                  </Button>
+
                 </div>
                 
                 {/* AI Detection Indicator */}

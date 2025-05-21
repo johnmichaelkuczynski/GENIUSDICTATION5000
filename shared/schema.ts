@@ -241,5 +241,6 @@ export const detectAIResponseSchema = z.object({
   probability: z.number(),
   burstiness: z.number(),
   humanLikelihood: z.string(),
+  assessment: z.string().optional(),
   rawResponse: z.any().optional()
 });
