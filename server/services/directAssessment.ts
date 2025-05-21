@@ -35,13 +35,18 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
 
   try {
     const systemPrompt = `You are an expert text analyst specializing in evaluating writing quality and detecting AI-generated content. 
-    Analyze the provided text and provide:
-    1. An evaluation of whether the text appears to be AI-generated or human-written
-    2. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
-    3. A detailed assessment of the text's style, quality, and characteristics
-    4. Specific aspects that could be improved`;
+    Create a comprehensive formal intelligence assessment report for the provided text.
 
-    const userPrompt = `Please analyze this text:
+    Your assessment should include:
+    1. An overall intelligence score (0-100)
+    2. Surface-level analysis (grammar, syntax, lexical precision, stylistic control)
+    3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality)
+    4. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
+    5. Psychological profile indicators about the author
+    6. A detailed conclusion about the text's quality and characteristics
+    7. Specific recommendations for improvement`;
+
+    const userPrompt = `Please analyze this text and provide a formal intelligence assessment report:
     
     ${text.slice(0, 3000)}${text.length > 3000 ? "..." : ""}
     
@@ -49,7 +54,19 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
     {
       "probability": [number between 0 and 1],
       "isAIGenerated": [boolean],
-      "assessment": [detailed assessment as a paragraph]
+      "intelligenceScore": [number between 0-100],
+      "surfaceAnalysis": {
+        "grammar": [short assessment with score],
+        "lexicalPrecision": [short assessment with score],
+        "stylistic": [short assessment with score]
+      },
+      "deepAnalysis": {
+        "conceptualDepth": [short assessment with score],
+        "logicalStructure": [short assessment with score],
+        "originality": [short assessment with score] 
+      },
+      "psychologicalProfile": [brief profile of author based on writing],
+      "assessment": [detailed comprehensive assessment formatted as a formal report]
     }`;
 
     const response = await openai.chat.completions.create({

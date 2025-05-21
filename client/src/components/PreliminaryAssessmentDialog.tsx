@@ -26,6 +26,7 @@ export function PreliminaryAssessmentDialog({
   const [isAssessing, setIsAssessing] = useState(false);
   const [assessment, setAssessment] = useState('');
   const [assessmentScore, setAssessmentScore] = useState(0);
+  const [fullReport, setFullReport] = useState<any>(null);
   const { toast } = useToast();
 
   // Run assessment when dialog opens
@@ -71,6 +72,7 @@ export function PreliminaryAssessmentDialog({
       // Set the assessment text and score
       setAssessment(result.assessment || getDefaultAssessment(result.probability));
       setAssessmentScore(result.probability * 100);
+      setFullReport(result);
     } catch (error) {
       console.error("Error getting assessment:", error);
       
@@ -138,12 +140,21 @@ export function PreliminaryAssessmentDialog({
             </div>
           ) : assessment ? (
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                {getIcon()}
-                <span className={`font-medium ${getColorClass()}`}>
-                  {assessmentScore < 30 ? 'Likely Human-Written' : 
-                   assessmentScore < 70 ? 'Mixed Elements' : 'Likely AI-Generated'}
-                </span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {getIcon()}
+                  <span className={`font-medium ${getColorClass()}`}>
+                    {assessmentScore < 30 ? 'Likely Human-Written' : 
+                    assessmentScore < 70 ? 'Mixed Elements' : 'Likely AI-Generated'}
+                  </span>
+                </div>
+                
+                {fullReport?.intelligenceScore && (
+                  <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-md">
+                    <span className="text-xs font-semibold">Intelligence Score:</span>
+                    <span className="text-sm font-bold">{fullReport.intelligenceScore}/100</span>
+                  </div>
+                )}
               </div>
               
               <Progress value={assessmentScore} 
@@ -154,8 +165,75 @@ export function PreliminaryAssessmentDialog({
                 }`} 
               />
               
-              <div className="text-sm bg-secondary/30 p-3 rounded-md border">
-                {assessment}
+              {/* Formal Assessment Report */}
+              <div className="overflow-y-auto max-h-96 text-sm border rounded-md">
+                <div className="p-3 bg-secondary text-secondary-foreground font-semibold border-b">
+                  INTELLIGENCE ASSESSMENT REPORT
+                </div>
+                
+                {fullReport?.surfaceAnalysis ? (
+                  <div className="p-3 border-b">
+                    <h3 className="font-medium mb-2">Surface-Level Analysis</h3>
+                    <div className="space-y-1 text-xs">
+                      {fullReport.surfaceAnalysis.grammar && (
+                        <div className="flex justify-between">
+                          <span>Grammar and Syntax:</span>
+                          <span className="font-medium">{fullReport.surfaceAnalysis.grammar}</span>
+                        </div>
+                      )}
+                      {fullReport.surfaceAnalysis.lexicalPrecision && (
+                        <div className="flex justify-between">
+                          <span>Lexical Precision:</span>
+                          <span className="font-medium">{fullReport.surfaceAnalysis.lexicalPrecision}</span>
+                        </div>
+                      )}
+                      {fullReport.surfaceAnalysis.stylistic && (
+                        <div className="flex justify-between">
+                          <span>Stylistic Control:</span>
+                          <span className="font-medium">{fullReport.surfaceAnalysis.stylistic}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+                
+                {fullReport?.deepAnalysis ? (
+                  <div className="p-3 border-b">
+                    <h3 className="font-medium mb-2">Deep-Level Analysis</h3>
+                    <div className="space-y-1 text-xs">
+                      {fullReport.deepAnalysis.conceptualDepth && (
+                        <div className="flex justify-between">
+                          <span>Conceptual Depth:</span>
+                          <span className="font-medium">{fullReport.deepAnalysis.conceptualDepth}</span>
+                        </div>
+                      )}
+                      {fullReport.deepAnalysis.logicalStructure && (
+                        <div className="flex justify-between">
+                          <span>Logical Structure:</span>
+                          <span className="font-medium">{fullReport.deepAnalysis.logicalStructure}</span>
+                        </div>
+                      )}
+                      {fullReport.deepAnalysis.originality && (
+                        <div className="flex justify-between">
+                          <span>Originality:</span>
+                          <span className="font-medium">{fullReport.deepAnalysis.originality}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+                
+                {fullReport?.psychologicalProfile ? (
+                  <div className="p-3 border-b">
+                    <h3 className="font-medium mb-2">Psychological Profile</h3>
+                    <p className="text-xs">{fullReport.psychologicalProfile}</p>
+                  </div>
+                ) : null}
+                
+                <div className="p-3">
+                  <h3 className="font-medium mb-2">Analysis & Recommendations</h3>
+                  <p className="text-xs whitespace-pre-line">{assessment}</p>
+                </div>
               </div>
             </div>
           ) : (
