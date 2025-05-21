@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
 import { useDictation } from "@/hooks/useDictation";
 import { useTTS } from "@/hooks/useTTS";
+import { useAIDetection } from "@/hooks/useAIDetection";
+import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 
 // Helper function to count words in a string
 const countWords = (text: string): number => {
@@ -43,6 +45,10 @@ const DictationSection = () => {
   // Component state
   const [currentTab, setCurrentTab] = useState("direct-dictation");
   const [showVoiceSelect, setShowVoiceSelect] = useState(false);
+  const [shouldAutoAssess, setShouldAutoAssess] = useState(true);
+  
+  // AI detection state
+  const { detectAI, isDetecting: isDetectingAI, detectionResult: aiDetectionResult } = useAIDetection();
   
   // Calculate word counts using memoization to avoid recalculating on every render
   const originalWordCount = useMemo(() => countWords(originalText), [originalText]);
@@ -86,6 +92,37 @@ const DictationSection = () => {
   const handleClearOriginal = () => {
     setOriginalText("");
   };
+  
+  // Function to detect AI in the input text
+  const handleDetectInputAI = useCallback(async () => {
+    if (!originalText || originalText.trim().length < 50) {
+      return;
+    }
+    await detectAI(originalText);
+  }, [originalText, detectAI]);
+  
+  // Handler for submitting context and custom instructions
+  const handleSubmitContext = useCallback((context: string, instructions: string) => {
+    // Combine context and instructions into a more comprehensive prompt
+    let combinedInstructions = "";
+    
+    if (context) {
+      combinedInstructions += `Context: ${context}\n\n`;
+    }
+    
+    if (instructions) {
+      combinedInstructions += instructions;
+    } else {
+      // Provide default instructions if none specified
+      combinedInstructions += "Improve this text based on the given context while preserving the original meaning.";
+    }
+    
+    // Set the custom instructions in the app context
+    setCustomInstructions(combinedInstructions);
+    
+    // Automatically trigger the transformation
+    transformText();
+  }, [setCustomInstructions, transformText]);
 
   const handleCopyOriginal = () => {
     navigator.clipboard.writeText(originalText);
