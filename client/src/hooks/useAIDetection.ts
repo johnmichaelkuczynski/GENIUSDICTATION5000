@@ -9,6 +9,11 @@ export interface AIDetectionResult {
   humanLikelihood: string;
   assessment?: string;
   recommendations?: string;
+  errata?: Array<{
+    quote: string;
+    issue: string;
+    correction: string;
+  }>;
   intelligenceScore?: number;
   surfaceAnalysis?: any;
   deepAnalysis?: any;

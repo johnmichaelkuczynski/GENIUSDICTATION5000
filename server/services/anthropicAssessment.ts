@@ -131,7 +131,7 @@ export async function assessWithAnthropic(text: string): Promise<AssessmentResul
     }
 
     // Try to extract errata if available
-    let errata = [];
+    let errata: Array<{quote: string; issue: string; correction: string}> = [];
     try {
       // Try to find a section mentioning errata or errors
       const errataSection = responseText.match(/errata|errors|incomplete sentences|grammatical issues|syntax errors/i);
@@ -141,7 +141,7 @@ export async function assessWithAnthropic(text: string): Promise<AssessmentResul
         const errataItems = responseText.match(/["']([^"']+)["'].*?(?:should be|correction|issue:|error:)/gi);
         
         if (errataItems && errataItems.length > 0) {
-          errata = errataItems.map(item => {
+          errata = errataItems.map((item: string) => {
             const quote = item.match(/["']([^"']+)["']/)?.[1] || "Unspecified text";
             const issue = "Grammatical or syntax error";
             const correction = item.match(/(?:should be|correction:)\s*["']?([^"']+)["']?/i)?.[1] || "Needs revision";

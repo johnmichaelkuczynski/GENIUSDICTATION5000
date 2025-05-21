@@ -137,6 +137,31 @@ export async function assessWithPerplexity(text: string): Promise<AssessmentResu
       }
     }
 
+    // Try to extract errata if available
+    let errata: Array<{quote: string; issue: string; correction: string}> = [];
+    try {
+      // Try to find a section mentioning errata or errors
+      const errataSection = responseText.match(/errata|errors|incomplete sentences|grammatical issues|syntax errors/i);
+      
+      if (errataSection) {
+        // Extract a list of items from the errata section
+        const errataItems = responseText.match(/["']([^"']+)["'].*?(?:should be|correction|issue:|error:)/gi);
+        
+        if (errataItems && errataItems.length > 0) {
+          errata = errataItems.map((item: string) => {
+            const quote = item.match(/["']([^"']+)["']/)?.[1] || "Unspecified text";
+            const issue = "Grammatical or syntax error";
+            const correction = item.match(/(?:should be|correction:)\s*["']?([^"']+)["']?/i)?.[1] || "Needs revision";
+            
+            return { quote, issue, correction };
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Error extracting errata:", e);
+      errata = [];
+    }
+
     return {
       isAIGenerated,
       probability,
@@ -144,6 +169,7 @@ export async function assessWithPerplexity(text: string): Promise<AssessmentResu
       humanLikelihood,
       assessment,
       recommendations,
+      errata,
       intelligenceScore,
       psychologicalProfile
     };

@@ -6,8 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { 
+  AlertCircle, 
+  CheckCircle, 
+  AlertTriangle, 
+  Loader2, 
+  Download, 
+  ExternalLink, 
+  FileText, 
+  Send,
+  Expand,
+  Maximize2
+} from 'lucide-react';
 import { AssessmentModelSelector, AssessmentModel } from './AssessmentModelSelector';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface PreliminaryAssessmentDialogProps {
   isOpen: boolean;
@@ -29,6 +41,7 @@ export function PreliminaryAssessmentDialog({
   const [assessmentScore, setAssessmentScore] = useState(0);
   const [fullReport, setFullReport] = useState<any>(null);
   const [selectedModel, setSelectedModel] = useState<AssessmentModel>('openai');
+  const [expandedReport, setExpandedReport] = useState(false);
   const [availableModels, setAvailableModels] = useState({
     openai: false,
     anthropic: false,
@@ -72,6 +85,96 @@ export function PreliminaryAssessmentDialog({
   const handleSubmit = () => {
     onSubmitContext(context, customInstructions);
     onClose();
+  };
+  
+  const getHumanLikelihood = () => {
+    const score = assessmentScore;
+    
+    if (score < 20) return "Very High (Likely Human)";
+    if (score < 40) return "High";
+    if (score < 60) return "Moderate";
+    if (score < 80) return "Low";
+    return "Very Low (Likely AI)";
+  };
+  
+  const handleDownloadReport = () => {
+    if (!fullReport && !assessment) return;
+    
+    let reportContent = '';
+    const currentDate = new Date().toLocaleString();
+    
+    // Create a detailed report in text format
+    reportContent += "INTELLIGENCE ASSESSMENT REPORT\n";
+    reportContent += `Date: ${currentDate}\n`;
+    reportContent += "==================================\n\n";
+    
+    if (fullReport?.intelligenceScore) {
+      reportContent += `INTELLIGENCE SCORE: ${fullReport.intelligenceScore}/100\n\n`;
+    }
+    
+    reportContent += `PROBABILITY OF AI-GENERATED: ${Math.round(assessmentScore)}%\n`;
+    reportContent += `HUMAN LIKELIHOOD: ${getHumanLikelihood()}\n\n`;
+    
+    reportContent += "SURFACE-LEVEL ANALYSIS\n";
+    reportContent += "==================================\n";
+    if (fullReport?.surfaceAnalysis) {
+      Object.entries(fullReport.surfaceAnalysis).forEach(([key, value]) => {
+        reportContent += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}\n`;
+      });
+    }
+    reportContent += "\n";
+    
+    reportContent += "DEEP-LEVEL ANALYSIS\n";
+    reportContent += "==================================\n";
+    if (fullReport?.deepAnalysis) {
+      Object.entries(fullReport.deepAnalysis).forEach(([key, value]) => {
+        reportContent += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}\n`;
+      });
+    }
+    reportContent += "\n";
+    
+    if (fullReport?.psychologicalProfile) {
+      reportContent += "PSYCHOLOGICAL PROFILE\n";
+      reportContent += "==================================\n";
+      reportContent += fullReport.psychologicalProfile + "\n\n";
+    }
+    
+    if (fullReport?.errata && fullReport.errata.length > 0) {
+      reportContent += "ERRATA & CORRECTIONS\n";
+      reportContent += "==================================\n";
+      fullReport.errata.forEach((item, index) => {
+        reportContent += `${index + 1}. "${item.quote}"\n`;
+        reportContent += `   Issue: ${item.issue}\n`;
+        reportContent += `   Correction: ${item.correction}\n\n`;
+      });
+      reportContent += "\n";
+    }
+    
+    reportContent += "DETAILED ASSESSMENT\n";
+    reportContent += "==================================\n";
+    reportContent += (fullReport?.assessment || assessment) + "\n\n";
+    
+    reportContent += "RECOMMENDATIONS\n";
+    reportContent += "==================================\n";
+    reportContent += (fullReport?.recommendations || 
+      "Consider adding more specific examples to illustrate key points. Enhance clarity by simplifying complex sentences and using more direct language.") + "\n";
+    
+    // Create and download the file
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `intelligence-assessment-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Report Downloaded",
+      description: "The intelligence assessment report has been downloaded.",
+      variant: "default"
+    });
   };
 
   const handleGetAssessment = async () => {
