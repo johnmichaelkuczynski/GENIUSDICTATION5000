@@ -29,6 +29,10 @@ const ContentLibrarySection = () => {
   const { contentReferences, setContentReferences, originalText } = useAppContext();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [contentToDelete, setContentToDelete] = useState<ContentReference | null>(null);
+  const [documentToDelete, setDocumentToDelete] = useState<ContentDocument | null>(null);
+  const [isDocumentDeleteDialogOpen, setIsDocumentDeleteDialogOpen] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const [newContentDescription, setNewContentDescription] = useState("");
   const [selectedContentId, setSelectedContentId] = useState<number | null>(null);
@@ -333,6 +337,83 @@ const ContentLibrarySection = () => {
       e.target.value = '';
     }
   };
+  
+  // Confirm deleting a content reference
+  const confirmDeleteContent = (contentId: number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const content = contentReferences.find(item => item.id === contentId);
+    if (content) {
+      setContentToDelete(content);
+      setIsDeleteDialogOpen(true);
+    }
+  };
+  
+  // Delete a content reference and all associated documents
+  const handleDeleteContent = () => {
+    if (!contentToDelete) return;
+    
+    const contentId = contentToDelete.id;
+    
+    // Remove all documents associated with this content
+    setContentDocuments(contentDocuments.filter(doc => doc.contentId !== contentId));
+    
+    // Remove the content reference itself
+    setContentReferences(contentReferences.filter(content => content.id !== contentId));
+    
+    // Reset selected content if it was the one deleted
+    if (selectedContentId === contentId) {
+      setSelectedContentId(null);
+    }
+    
+    toast({
+      title: "Content deleted",
+      description: `Content reference "${contentToDelete.name}" and all its documents have been removed`
+    });
+    
+    setContentToDelete(null);
+    setIsDeleteDialogOpen(false);
+  };
+  
+  // Confirm deleting a document
+  const confirmDeleteDocument = (documentId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const document = contentDocuments.find(doc => doc.id === documentId);
+    if (document) {
+      setDocumentToDelete(document);
+      setIsDocumentDeleteDialogOpen(true);
+    }
+  };
+  
+  // Delete a single document
+  const handleDeleteDocument = () => {
+    if (!documentToDelete || !selectedContentId) return;
+    
+    // Remove the document
+    setContentDocuments(contentDocuments.filter(doc => doc.id !== documentToDelete.id));
+    
+    // Update the document count for the content reference
+    setContentReferences(
+      contentReferences.map(content => 
+        content.id === selectedContentId
+          ? { ...content, documentCount: content.documentCount - 1 }
+          : content
+      )
+    );
+    
+    toast({
+      title: "Document deleted",
+      description: `Document "${documentToDelete.name}" has been removed`
+    });
+    
+    setDocumentToDelete(null);
+    setIsDocumentDeleteDialogOpen(false);
+  };
 
   return (
     <section className="mb-8">
@@ -454,16 +535,26 @@ const ContentLibrarySection = () => {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <div className="font-medium">{content.name}</div>
-                      <Button
-                        size="sm"
-                        variant={content.active ? "default" : "outline"}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleContentActive(content.id);
-                        }}
-                      >
-                        {content.active ? "Active" : "Inactive"}
-                      </Button>
+                      <div className="flex space-x-1">
+                        <Button
+                          size="sm"
+                          variant={content.active ? "default" : "outline"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleContentActive(content.id);
+                          }}
+                        >
+                          {content.active ? "Active" : "Inactive"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                          onClick={(e) => confirmDeleteContent(content.id, e)}
+                        >
+                          <i className="ri-delete-bin-line"></i>
+                        </Button>
+                      </div>
                     </div>
                     {content.description && (
                       <p className="text-sm text-muted-foreground mb-2">
