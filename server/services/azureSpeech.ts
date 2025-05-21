@@ -19,23 +19,14 @@ export async function generateSpeech(text: string): Promise<Buffer> {
       throw new Error('Azure Speech credentials are not configured');
     }
 
-    // For Azure Speech, we need to get an access token first
-    const tokenUrl = `${endpoint}/sts/v1.0/issuetoken`;
-    const tokenResponse = await axios.post(
-      tokenUrl,
-      {},
-      {
-        headers: {
-          'Ocp-Apim-Subscription-Key': apiKey,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    );
+    // Direct speech synthesis approach using the API key
+    // Azure Speech doesn't require token acquisition first in this method
     
-    const accessToken = tokenResponse.data;
+    // Format the endpoint correctly - remove any trailing slashes
+    const baseEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
     
-    // Now we can make the actual TTS request
-    const ttsEndpoint = `${endpoint}/cognitiveservices/v1`;
+    // The speech synthesis endpoint
+    const ttsEndpoint = `${baseEndpoint}/cognitiveservices/v1`;
     const requestId = uuidv4();
     
     const ssml = `
@@ -51,7 +42,7 @@ export async function generateSpeech(text: string): Promise<Buffer> {
       ssml,
       {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          'Ocp-Apim-Subscription-Key': apiKey,
           'Content-Type': 'application/ssml+xml',
           'X-Microsoft-OutputFormat': 'audio-16khz-128kbitrate-mono-mp3',
           'User-Agent': 'TextToSpeechApp',
