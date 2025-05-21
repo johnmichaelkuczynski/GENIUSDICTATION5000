@@ -15,6 +15,7 @@ interface AssessmentResult {
   burstiness: number;
   humanLikelihood: string;
   assessment: string;
+  recommendations?: string;
 }
 
 /**
@@ -43,8 +44,9 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
     3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality)
     4. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
     5. Psychological profile indicators about the author
-    6. A detailed conclusion about the text's quality and characteristics
-    7. Specific recommendations for improvement`;
+    6. A detailed two-paragraph assessment:
+       - Paragraph 1: Analysis of the text's quality, characteristics, style, and overall evaluation
+       - Paragraph 2: Specific recommendations for improvement and enhancement`;
 
     const userPrompt = `Please analyze this text and provide a formal intelligence assessment report:
     
@@ -66,7 +68,8 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
         "originality": [short assessment with score] 
       },
       "psychologicalProfile": [brief profile of author based on writing],
-      "assessment": [detailed comprehensive assessment formatted as a formal report]
+      "assessment": [paragraph 1: detailed analysis of the text],
+      "recommendations": [paragraph 2: specific recommendations for improvement]
     }`;
 
     const response = await openai.chat.completions.create({
@@ -91,8 +94,9 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
       // Determine if the text is AI-generated
       const isAIGenerated = parsedResponse.isAIGenerated || probability > 0.5;
       
-      // Create a human-readable assessment
+      // Get assessment and recommendations
       const assessment = parsedResponse.assessment || generateDefaultAssessment(probability);
+      const recommendations = parsedResponse.recommendations || "";
       
       // Generate human likelihood text
       const humanLikelihood = getHumanLikelihood(probability);
@@ -102,7 +106,8 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
         probability,
         burstiness: 1 - probability, // Approximate burstiness as inverse of AI probability
         humanLikelihood,
-        assessment
+        assessment,
+        recommendations
       };
     } catch (parseError) {
       console.error("Error parsing AI assessment response:", parseError);

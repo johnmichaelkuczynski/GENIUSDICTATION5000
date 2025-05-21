@@ -160,7 +160,7 @@ export function PreliminaryAssessmentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Text Assessment & Improvement</DialogTitle>
           <DialogDescription>
@@ -287,9 +287,10 @@ export function PreliminaryAssessmentDialog({
 
           <div className="grid gap-2">
             <Label htmlFor="context">Content Context</Label>
-            <Input 
+            <Textarea
               id="context"
               placeholder="e.g., This is a haiku about whales..."
+              className="min-h-[100px]"
               value={context}
               onChange={(e) => setContext(e.target.value)}
             />

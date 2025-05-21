@@ -48,8 +48,9 @@ export async function assessWithAnthropic(text: string): Promise<AssessmentResul
     3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality)
     4. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
     5. Psychological profile indicators about the author
-    6. A detailed conclusion about the text's quality and characteristics
-    7. Specific recommendations for improvement`;
+    6. A detailed two-paragraph assessment:
+       - Paragraph 1: Analysis of the text's quality, characteristics, style, and overall evaluation
+       - Paragraph 2: Specific recommendations for improvement and enhancement`;
 
     const userPrompt = `Please analyze this text and provide a formal intelligence assessment report:
     
