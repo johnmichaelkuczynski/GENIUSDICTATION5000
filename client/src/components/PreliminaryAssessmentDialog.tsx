@@ -110,13 +110,14 @@ export function PreliminaryAssessmentDialog({
     return "Very Low (Likely AI)";
   };
   
-  const handleDownloadReport = () => {
-    if (!fullReport && !assessment) return;
+  // Generate the report content
+  const generateReportContent = () => {
+    if (!fullReport && !assessment) return '';
     
     let reportContent = '';
     const currentDate = new Date().toLocaleString();
     
-    // Create a detailed report in text format
+    // Create a detailed report 
     reportContent += "INTELLIGENCE ASSESSMENT REPORT\n";
     reportContent += `Date: ${currentDate}\n`;
     reportContent += "==================================\n\n";
@@ -171,23 +172,72 @@ export function PreliminaryAssessmentDialog({
     reportContent += "==================================\n";
     reportContent += (fullReport?.recommendations || 
       "Consider adding more specific examples to illustrate key points. Enhance clarity by simplifying complex sentences and using more direct language.") + "\n";
+      
+    return reportContent;
+  };
+  
+  // Download report in specified format
+  const handleDownloadReport = async (format: 'txt' | 'docx' | 'pdf' = 'docx') => {
+    if (!fullReport && !assessment) return;
     
-    // Create and download the file
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `intelligence-assessment-${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const reportContent = generateReportContent();
+    const fileName = `intelligence-assessment-${new Date().toISOString().slice(0, 10)}`;
     
-    toast({
-      title: "Report Downloaded",
-      description: "The intelligence assessment report has been downloaded.",
-      variant: "default"
-    });
+    try {
+      if (format === 'txt') {
+        // Download as plain text
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${fileName}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // Use server-side generation for DOCX and PDF
+        const response = await fetch("/api/generate-document", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ 
+            text: reportContent,
+            format,
+            fileName
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Document generation failed: ${response.status}`);
+        }
+        
+        // Get blob from response and download
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${fileName}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+      
+      toast({
+        title: "Report Downloaded",
+        description: `The assessment report has been downloaded in ${format.toUpperCase()} format.`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Error generating document:", error);
+      toast({
+        title: "Download Failed",
+        description: error instanceof Error ? error.message : "Failed to generate document",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleGetAssessment = async () => {
@@ -467,14 +517,35 @@ export function PreliminaryAssessmentDialog({
           </Button>
           
           {assessment && fullReport && (
-            <Button 
-              variant="outline" 
-              onClick={handleDownloadReport}
-              className="flex items-center gap-1"
-            >
-              <Download className="h-4 w-4" />
-              Download Report
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => handleDownloadReport('docx')}
+                className="flex items-center gap-1"
+                size="sm"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Word
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => handleDownloadReport('pdf')}
+                className="flex items-center gap-1"
+                size="sm"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                PDF
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => handleDownloadReport('txt')}
+                className="flex items-center gap-1"
+                size="sm"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Text
+              </Button>
+            </div>
           )}
           
           <Button variant="outline" onClick={onClose}>Cancel</Button>

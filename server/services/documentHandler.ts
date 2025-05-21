@@ -158,11 +158,193 @@ async function generateDOCX(text: string, fileName: string): Promise<Buffer> {
  * @param fileName The output file name
  * @returns Buffer containing the PDF document
  */
-async function generatePDF(text: string, fileName: string): Promise<Buffer> {
+/**
+ * Generate a formatted assessment report document
+ * @param text The report content
+ * @param format The target format (txt, docx, pdf)
+ * @param fileName The output file name (without extension)
+ * @returns Buffer containing the generated document
+ */
+export async function generateAssessmentReport(
+  text: string,
+  format: 'txt' | 'docx' | 'pdf',
+  fileName: string = 'intelligence-assessment'
+): Promise<Buffer> {
+  try {
+    switch (format) {
+      case 'txt':
+        return Buffer.from(text, 'utf-8');
+      
+      case 'docx':
+        return generateFormattedDOCX(text, fileName);
+      
+      case 'pdf':
+        return generateFormattedPDF(text, fileName);
+      
+      default:
+        throw new Error(`Unsupported format: ${format}`);
+    }
+  } catch (error) {
+    console.error(`Error generating ${format} assessment report:`, error);
+    throw new Error(`Report generation failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/**
+ * Generate a professionally formatted DOCX document for assessment reports
+ * @param text The report content
+ * @param fileName The output file name
+ * @returns Buffer containing the DOCX document
+ */
+async function generateFormattedDOCX(text: string, fileName: string): Promise<Buffer> {
+  try {
+    // Parse report sections
+    const sections = text.split('==================================').map(section => section.trim());
+    const title = sections[0] || 'INTELLIGENCE ASSESSMENT REPORT';
+    
+    // Create paragraphs with formatting based on content structure
+    const paragraphs: Paragraph[] = [];
+    
+    // Add title
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'INTELLIGENCE ASSESSMENT REPORT',
+            bold: true,
+            size: 32, // 16pt
+          }),
+        ],
+        spacing: {
+          after: 300,
+        },
+      })
+    );
+    
+    // Add date 
+    const dateMatch = text.match(/Date: (.*)/);
+    if (dateMatch && dateMatch[1]) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Date: ${dateMatch[1]}`,
+              size: 24, // 12pt
+            }),
+          ],
+          spacing: {
+            after: 400,
+          },
+        })
+      );
+    }
+    
+    // Process each section
+    sections.forEach((section) => {
+      // Skip empty sections
+      if (!section.trim()) return;
+      
+      // Extract section title if available
+      const lines = section.split('\n');
+      if (lines.length > 0) {
+        const sectionTitle = lines[0].trim();
+        
+        // Add section title as heading
+        if (sectionTitle && !sectionTitle.startsWith('Date:')) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: sectionTitle,
+                  bold: true,
+                  size: 28, // 14pt
+                }),
+              ],
+              spacing: {
+                before: 400,
+                after: 200,
+              },
+            })
+          );
+        }
+        
+        // Add section content
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line) {
+            // Check if it's a subsection
+            if (line.includes(':') && line.length < 50 && !line.startsWith('•') && !line.startsWith('-')) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: line,
+                      bold: true,
+                      size: 24, // 12pt
+                    }),
+                  ],
+                  spacing: {
+                    before: 200,
+                    after: 100,
+                  },
+                })
+              );
+            } else {
+              // Regular paragraph
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: line,
+                      size: 24, // 12pt
+                    }),
+                  ],
+                  spacing: {
+                    after: 100,
+                  },
+                })
+              );
+            }
+          } else {
+            // Add empty line for spacing
+            paragraphs.push(
+              new Paragraph({
+                children: [new TextRun('')],
+                spacing: { after: 100 },
+              })
+            );
+          }
+        }
+      }
+    });
+
+    // Create document
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: paragraphs
+      }]
+    });
+
+    // Generate document as buffer
+    return await Packer.toBuffer(doc);
+  } catch (error) {
+    console.error('Error generating formatted DOCX:', error);
+    throw new Error(`Formatted DOCX generation failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/**
+ * Generate a professionally formatted PDF document for assessment reports
+ * @param text The report content
+ * @param fileName The output file name
+ * @returns Buffer containing the PDF document
+ */
+async function generateFormattedPDF(text: string, fileName: string): Promise<Buffer> {
   try {
     // Create a new PDF document
     const pdfDoc = await PDFLib.create();
-    const page = pdfDoc.addPage();
+    const page = pdfDoc.addPage([612, 792]); // US Letter
     
     // Set page dimensions
     const { width, height } = page.getSize();
