@@ -16,6 +16,11 @@ interface AssessmentResult {
   humanLikelihood: string;
   assessment: string;
   recommendations?: string;
+  errata?: Array<{
+    quote: string;
+    issue: string;
+    correction: string;
+  }>;
 }
 
 /**
@@ -40,13 +45,16 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
 
     Your assessment should include:
     1. An overall intelligence score (0-100)
-    2. Surface-level analysis (grammar, syntax, lexical precision, stylistic control)
-    3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality)
-    4. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
-    5. Psychological profile indicators about the author
-    6. A detailed two-paragraph assessment:
-       - Paragraph 1: Analysis of the text's quality, characteristics, style, and overall evaluation
-       - Paragraph 2: Specific recommendations for improvement and enhancement`;
+    2. Surface-level analysis (grammar, syntax, lexical precision, stylistic control) with specific examples quoted from the text
+    3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality) with supporting quotations
+    4. A list of errata or incomplete sentences, with direct quotes and suggested corrections
+    5. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
+    6. Psychological profile indicators about the author based on writing style and content
+    7. A thorough and detailed assessment (at least 2-3 paragraphs):
+       - First section: In-depth analysis of the text's quality, characteristics, style, strengths, and overall evaluation with direct quotations as evidence
+       - Second section: Detailed and specific recommendations for improvement, including structural, stylistic, and content-based suggestions
+    
+    Be extremely thorough and provide supporting quotations from the text for all of your observations and analyses. When identifying issues, always include the exact text you're referring to.`;
 
     const userPrompt = `Please analyze this text and provide a formal intelligence assessment report:
     
@@ -58,18 +66,19 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
       "isAIGenerated": [boolean],
       "intelligenceScore": [number between 0-100],
       "surfaceAnalysis": {
-        "grammar": [short assessment with score],
-        "lexicalPrecision": [short assessment with score],
-        "stylistic": [short assessment with score]
+        "grammar": [assessment with score and quoted examples],
+        "lexicalPrecision": [assessment with score and quoted examples],
+        "stylistic": [assessment with score and quoted examples]
       },
       "deepAnalysis": {
-        "conceptualDepth": [short assessment with score],
-        "logicalStructure": [short assessment with score],
-        "originality": [short assessment with score] 
+        "conceptualDepth": [assessment with score and quoted examples],
+        "logicalStructure": [assessment with score and quoted examples],
+        "originality": [assessment with score and quoted examples] 
       },
-      "psychologicalProfile": [brief profile of author based on writing],
-      "assessment": [paragraph 1: detailed analysis of the text],
-      "recommendations": [paragraph 2: specific recommendations for improvement]
+      "errata": [array of objects with format {"quote": "problematic text", "issue": "description of issue", "correction": "suggested fix"}],
+      "psychologicalProfile": [detailed profile of author based on writing style],
+      "assessment": [multi-paragraph detailed analysis with quotes from the text],
+      "recommendations": [detailed specific recommendations for improvement]
     }`;
 
     const response = await openai.chat.completions.create({
@@ -94,9 +103,10 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
       // Determine if the text is AI-generated
       const isAIGenerated = parsedResponse.isAIGenerated || probability > 0.5;
       
-      // Get assessment and recommendations
+      // Get assessment, recommendations, and errata
       const assessment = parsedResponse.assessment || generateDefaultAssessment(probability);
       const recommendations = parsedResponse.recommendations || "";
+      const errata = parsedResponse.errata || [];
       
       // Generate human likelihood text
       const humanLikelihood = getHumanLikelihood(probability);
@@ -107,7 +117,8 @@ export async function directAssessText(text: string): Promise<AssessmentResult> 
         burstiness: 1 - probability, // Approximate burstiness as inverse of AI probability
         humanLikelihood,
         assessment,
-        recommendations
+        recommendations,
+        errata
       };
     } catch (parseError) {
       console.error("Error parsing AI assessment response:", parseError);
