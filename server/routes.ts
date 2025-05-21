@@ -346,6 +346,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Assessment report generation endpoint
+  app.post("/api/generate-assessment-report", async (req, res) => {
+    try {
+      const { text, format, fileName = "intelligence-assessment" } = req.body;
+
+      if (!text || !format) {
+        return res.status(400).json({ error: "Text and format are required" });
+      }
+
+      const documentBuffer = await generateAssessmentReport(text, format, fileName);
+      
+      // Set appropriate content type
+      let contentType = "text/plain";
+      switch (format) {
+        case "docx":
+          contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+          break;
+        case "pdf":
+          contentType = "application/pdf";
+          break;
+      }
+      
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Content-Disposition", `attachment; filename=${fileName}.${format}`);
+      res.send(documentBuffer);
+    } catch (error) {
+      console.error("Error generating assessment report:", error);
+      res.status(500).json({ error: "Failed to generate assessment report" });
+    }
+  });
+
   // Text-to-speech endpoint
   app.post("/api/tts", async (req, res) => {
     try {
