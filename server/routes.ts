@@ -23,7 +23,8 @@ import { transcribeAudio as deepgramTranscribe } from "./services/deepgram";
 import { transcribeAudio as whisperTranscribe } from "./services/openai";
 import { 
   extractTextFromDocument, 
-  generateDocument
+  generateDocument,
+  generateAssessmentReport
 } from "./services/documentHandler";
 import {
   generateSpeech,

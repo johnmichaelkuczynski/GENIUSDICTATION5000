@@ -197,7 +197,7 @@ export function PreliminaryAssessmentDialog({
         URL.revokeObjectURL(url);
       } else {
         // Use server-side generation for DOCX and PDF
-        const response = await fetch("/api/generate-document", {
+        const response = await fetch("/api/generate-assessment-report", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

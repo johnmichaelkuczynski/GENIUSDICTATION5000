@@ -110,7 +110,7 @@ export async function generateDocument(
         return generateDOCX(text, fileName);
       
       case 'pdf':
-        return generatePDF(text, fileName);
+        return generateFormattedPDF(text, fileName);
       
       default:
         throw new Error(`Unsupported format: ${format}`);
