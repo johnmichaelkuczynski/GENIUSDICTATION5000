@@ -19,6 +19,7 @@ import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
 import { useAIDetection } from "@/hooks/useAIDetection";
 import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
+import { PreliminaryAssessmentDialog } from "@/components/PreliminaryAssessmentDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -865,19 +866,28 @@ const DictationSection = () => {
                   </div>
                 </div>
                 {/* AI Detection Button */}
-                <div className="flex items-center justify-end">
+                <div className="flex items-center justify-end space-x-2">
                   <Button 
                     size="sm" 
                     variant="outline" 
                     onClick={handleDetectInputAI}
                     disabled={isDetectingAI || !originalText || originalText.length < 50}
-                    className="text-xs mr-2"
+                    className="text-xs"
                   >
                     <i className="ri-shield-check-line mr-1.5"></i>
                     {isDetectingAI ? "Analyzing..." : "Detect AI Content"}
                   </Button>
                   
-
+                  <Button 
+                    size="sm"
+                    variant="secondary" 
+                    onClick={() => setIsAssessmentDialogOpen(true)}
+                    disabled={!originalText || originalText.length < 50}
+                    className="text-xs"
+                  >
+                    <i className="ri-file-list-line mr-1.5"></i>
+                    Get Assessment
+                  </Button>
                 </div>
                 
                 {/* AI Detection Indicator */}
@@ -1581,12 +1591,11 @@ const DictationSection = () => {
         </Tabs>
       </Card>
       
-      {/* Text Assessment Dialog */}
-      <TextAssessmentDialog
+      {/* Text Assessment Dialogs */}
+      <PreliminaryAssessmentDialog
         isOpen={isAssessmentDialogOpen}
         onClose={() => setIsAssessmentDialogOpen(false)}
         originalText={originalText}
-        aiResult={aiDetectionResult}
         onSubmitContext={handleSubmitContext}
       />
     </section>
