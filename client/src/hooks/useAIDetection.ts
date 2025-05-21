@@ -8,6 +8,11 @@ export interface AIDetectionResult {
   burstiness: number;
   humanLikelihood: string;
   assessment?: string;
+  recommendations?: string;
+  intelligenceScore?: number;
+  surfaceAnalysis?: any;
+  deepAnalysis?: any;
+  psychologicalProfile?: string;
   rawResponse?: any;
 }
 
