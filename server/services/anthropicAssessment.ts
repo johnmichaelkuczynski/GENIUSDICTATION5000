@@ -15,6 +15,7 @@ interface AssessmentResult {
   burstiness: number;
   humanLikelihood: string;
   assessment: string;
+  recommendations?: string;
   intelligenceScore?: number;
   surfaceAnalysis?: any;
   deepAnalysis?: any;
@@ -91,13 +92,43 @@ export async function assessWithAnthropic(text: string): Promise<AssessmentResul
     // Extract psychological profile if available
     const psychologicalProfileMatch = responseText.match(/psychological profile.+?:(.*?)(?:\n\n|\n[A-Z]|$)/i);
     const psychologicalProfile = psychologicalProfileMatch ? psychologicalProfileMatch[1].trim() : undefined;
+    
+    // Split the assessment into analysis and recommendations
+    let assessment = "";
+    let recommendations = "";
+    
+    // Try to extract recommendations section first
+    const recommendationsMatch = responseText.match(/recommendations?:?\s*(.*?)(?:\n\n|\n[A-Z]|$)/i);
+    if (recommendationsMatch) {
+      recommendations = recommendationsMatch[1].trim();
+      
+      // Separate the main assessment from recommendations
+      const mainText = responseText.split(/recommendations?:?/i)[0].trim();
+      assessment = mainText;
+    } else {
+      // If no explicit recommendations section, try to intelligently split the text
+      const paragraphs = responseText.split(/\n\n+/);
+      
+      if (paragraphs.length > 1) {
+        // Use the last paragraph as recommendations
+        recommendations = paragraphs[paragraphs.length - 1].trim();
+        // Use everything else as assessment
+        assessment = paragraphs.slice(0, -1).join("\n\n").trim();
+      } else {
+        // If we can't split properly, just use the whole text as assessment
+        // and generate a generic recommendation
+        assessment = responseText;
+        recommendations = "Consider revising for clarity and conciseness. Add more specific examples to illustrate key points. Ensure consistency in tone and style throughout the text.";
+      }
+    }
 
     return {
       isAIGenerated,
       probability,
       burstiness: 1 - probability, // Approximate burstiness as inverse of AI probability
       humanLikelihood,
-      assessment: responseText,
+      assessment,
+      recommendations,
       intelligenceScore,
       psychologicalProfile
     };

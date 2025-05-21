@@ -279,7 +279,8 @@ export function PreliminaryAssessmentDialog({
                 </div>
                 <div className="p-3">
                   <h3 className="font-medium mb-2">Recommendations</h3>
-                  <p className="text-xs whitespace-pre-line">{fullReport?.recommendations || "No specific recommendations available."}</p>
+                  <p className="text-xs whitespace-pre-line">{fullReport?.recommendations || 
+                    "To improve this text, consider adding more specific examples to illustrate key points. Enhance clarity by simplifying complex sentences and using more direct language. Consider revising the structure to ensure a logical flow of ideas. You might also expand on the implications or applications of the concepts discussed to provide greater context and depth."}</p>
                 </div>
               </div>
             </div>
