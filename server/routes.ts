@@ -32,6 +32,8 @@ import {
 import { detectAIContent } from "./services/gptzero";
 import { assessText } from "./services/textAssessment";
 import { directAssessText } from "./services/directAssessment";
+import { assessWithAnthropic } from "./services/anthropicAssessment";
+import { assessWithPerplexity } from "./services/perplexityAssessment";
 
 // Set up multer for file uploads
 const upload = multer({ 
