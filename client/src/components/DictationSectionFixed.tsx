@@ -175,7 +175,7 @@ const DictationSection = () => {
   // AI Detection handlers
   const handleDetectInputAI = useCallback(async () => {
     if (originalText.trim().length > 0) {
-      const result = await detectAI(originalText);
+      const result = await detectAI(originalText, selectedAssessmentModel);
       // If auto-assessment is enabled and we have a result, show the assessment dialog
       if (shouldAutoAssess && result) {
         setIsAssessmentDialogOpen(true);
@@ -914,16 +914,23 @@ const DictationSection = () => {
                     {isDetectingAI ? "Analyzing..." : "Detect AI Content"}
                   </Button>
                   
-                  <Button 
-                    size="sm"
-                    variant="secondary" 
-                    onClick={() => setIsAssessmentDialogOpen(true)}
-                    disabled={!originalText || originalText.length < 50}
-                    className="text-xs"
-                  >
-                    <i className="ri-file-list-line mr-1.5"></i>
-                    Get Assessment
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <AssessmentModelSelector
+                      selectedModel={selectedAssessmentModel}
+                      onChange={setSelectedAssessmentModel}
+                      availableModels={availableModels}
+                    />
+                    <Button 
+                      size="sm"
+                      variant="secondary" 
+                      onClick={() => setIsAssessmentDialogOpen(true)}
+                      disabled={!originalText || originalText.length < 50}
+                      className="text-xs"
+                    >
+                      <i className="ri-file-list-line mr-1.5"></i>
+                      Get Assessment
+                    </Button>
+                  </div>
                 </div>
                 
                 {/* AI Detection Indicator */}
