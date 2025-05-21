@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppContext } from "@/context/AppContext";
 import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
+import { useToast } from "@/hooks/use-toast";
 
 interface StyleReference {
   id: number;
@@ -28,6 +29,8 @@ const StyleLibrarySection = () => {
   const { styleReferences, setStyleReferences, originalText } = useAppContext();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [styleToDelete, setStyleToDelete] = useState<StyleReference | null>(null);
   const [newStyleName, setNewStyleName] = useState("");
   const [newStyleDescription, setNewStyleDescription] = useState("");
   const [selectedStyleId, setSelectedStyleId] = useState<number | null>(null);
@@ -36,7 +39,8 @@ const StyleLibrarySection = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [referenceDocuments, setReferenceDocuments] = useState<ReferenceDocument[]>([]);
-
+  
+  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
   const { processDocument } = useDocumentProcessor();
@@ -148,6 +152,45 @@ const StyleLibrarySection = () => {
     setNewDocumentName("");
     setNewDocumentContent("");
   };
+  
+  // Open delete confirmation dialog for a style
+  const confirmDeleteStyle = (styleId: number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const styleToDelete = styleReferences.find(style => style.id === styleId);
+    if (styleToDelete) {
+      setStyleToDelete(styleToDelete);
+      setIsDeleteDialogOpen(true);
+    }
+  };
+  
+  // Delete a style and all its associated documents
+  const handleDeleteStyle = () => {
+    if (!styleToDelete) return;
+    
+    const styleId = styleToDelete.id;
+    
+    // Remove all documents associated with this style
+    setReferenceDocuments(referenceDocuments.filter(doc => doc.styleId !== styleId));
+    
+    // Remove the style itself
+    setStyleReferences(styleReferences.filter(style => style.id !== styleId));
+    
+    // Reset selected style if it was the one deleted
+    if (selectedStyleId === styleId) {
+      setSelectedStyleId(null);
+    }
+    
+    toast({
+      title: "Style deleted",
+      description: `Style reference "${styleToDelete.name}" and all its documents have been removed`
+    });
+    
+    setStyleToDelete(null);
+    setIsDeleteDialogOpen(false);
+  };
 
   return (
     <section className="mb-8">
@@ -257,14 +300,24 @@ const StyleLibrarySection = () => {
                     >
                       <i className="ri-file-add-line mr-1"></i> Add Document
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs"
-                      onClick={() => toggleStyleActive(style.id)}
-                    >
-                      {style.active ? 'Deactivate' : 'Activate'}
-                    </Button>
+                    <div className="flex space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs"
+                        onClick={() => toggleStyleActive(style.id)}
+                      >
+                        {style.active ? 'Deactivate' : 'Activate'}
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                        onClick={(e) => confirmDeleteStyle(style.id, e)}
+                      >
+                        <i className="ri-delete-bin-line mr-1"></i>Delete
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -376,6 +429,30 @@ const StyleLibrarySection = () => {
               disabled={!newDocumentContent.trim() || !newDocumentName.trim()}
             >
               Add Document
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this style reference? This will also delete all associated documents.
+              {styleToDelete && <p className="font-medium mt-2">{styleToDelete.name}</p>}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteStyle}>
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
