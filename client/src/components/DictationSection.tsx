@@ -232,6 +232,19 @@ const DictationSection = () => {
                   </div>
                 </div>
                 <div className="flex-1 relative">
+                  {/* AI Detection Indicator */}
+                  {originalText && originalText.length >= 50 && (
+                    <div className="mb-2">
+                      <AIDetectionIndicator
+                        result={aiDetectionResult}
+                        isDetecting={isDetectingAI}
+                        onRequestDetection={handleDetectInputAI}
+                        originalText={originalText}
+                        onApplyContext={handleSubmitContext}
+                      />
+                    </div>
+                  )}
+                  
                   <Textarea
                     value={originalText}
                     onChange={(e) => setOriginalText(e.target.value)}
