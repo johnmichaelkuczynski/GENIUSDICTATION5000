@@ -388,7 +388,7 @@ const StyleLibrarySection = () => {
                       </span>
                       <Button 
                         variant="ghost" 
-                        size="xs" 
+                        size="sm" 
                         className="h-6 w-6 p-0"
                         onClick={(e) => openEditStyleDialog(style.id, e)}
                       >
@@ -543,6 +543,49 @@ const StyleLibrarySection = () => {
         </DialogContent>
       </Dialog>
       
+      {/* Edit Style Dialog */}
+      <Dialog open={isEditStyleDialogOpen} onOpenChange={setIsEditStyleDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Style Reference</DialogTitle>
+            <DialogDescription>
+              Update this style reference's details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-style-name">Style Name</Label>
+              <Input 
+                id="edit-style-name" 
+                value={newStyleName} 
+                onChange={(e) => setNewStyleName(e.target.value)} 
+                placeholder="e.g., Technical Documentation"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-style-description">Description</Label>
+              <Textarea 
+                id="edit-style-description" 
+                value={newStyleDescription} 
+                onChange={(e) => setNewStyleDescription(e.target.value)} 
+                placeholder="Describe the key characteristics of this style"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsEditStyleDialogOpen(false);
+              setEditingStyle(null);
+              setNewStyleName("");
+              setNewStyleDescription("");
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateStyle}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="max-w-md">
@@ -562,6 +605,30 @@ const StyleLibrarySection = () => {
             </Button>
             <Button variant="destructive" onClick={handleDeleteStyle}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Document Dialog */}
+      <Dialog open={isDocumentDeleteDialogOpen} onOpenChange={setIsDocumentDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Document Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this document?
+              {documentToDelete && <p className="font-medium mt-2">{documentToDelete.name}</p>}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDocumentDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteDocument}>
+              Delete Document
             </Button>
           </DialogFooter>
         </DialogContent>
