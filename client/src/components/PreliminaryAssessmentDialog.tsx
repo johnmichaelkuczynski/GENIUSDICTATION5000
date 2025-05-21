@@ -465,6 +465,18 @@ export function PreliminaryAssessmentDialog({
           >
             Get New Assessment
           </Button>
+          
+          {assessment && fullReport && (
+            <Button 
+              variant="outline" 
+              onClick={handleDownloadReport}
+              className="flex items-center gap-1"
+            >
+              <Download className="h-4 w-4" />
+              Download Report
+            </Button>
+          )}
+          
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={handleSubmit}>Apply & Rewrite</Button>
         </DialogFooter>
