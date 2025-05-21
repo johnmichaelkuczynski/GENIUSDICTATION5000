@@ -41,6 +41,8 @@ const ContentLibrarySection = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [contentDocuments, setContentDocuments] = useState<ContentDocument[]>([]);
+  const [isEditContentDialogOpen, setIsEditContentDialogOpen] = useState(false);
+  const [editingContent, setEditingContent] = useState<ContentReference | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentFileInputRef = useRef<HTMLInputElement>(null);
@@ -57,13 +59,12 @@ const ContentLibrarySection = () => {
   };
 
   const handleAddContent = () => {
-    if (!newContentName.trim()) {
-      toast({
-        title: "Error",
-        description: "Content name cannot be empty",
-        variant: "destructive"
-      });
-      return;
+    // Generate a default name if empty
+    let contentName = newContentName.trim();
+    if (!contentName) {
+      contentName = newDocumentName ? 
+        `Content based on ${newDocumentName}` : 
+        `Content ${contentReferences.length + 1}`;
     }
 
     const newContentId = Date.now();
@@ -71,8 +72,8 @@ const ContentLibrarySection = () => {
     
     const newContent: ContentReference = {
       id: newContentId,
-      name: newContentName,
-      description: newContentDescription,
+      name: contentName,
+      description: newContentDescription || "Content reference",
       active: true,
       documentCount: hasDocument ? 1 : 0
     };
@@ -98,6 +99,9 @@ const ContentLibrarySection = () => {
     setNewDocumentName("");
     setNewDocumentContent("");
     setIsAddDialogOpen(false);
+    
+    // Select the newly created content
+    setSelectedContentId(newContentId);
 
     toast({
       title: "Success",
@@ -377,6 +381,50 @@ const ContentLibrarySection = () => {
     setIsDeleteDialogOpen(false);
   };
   
+  // Open edit dialog for a content reference
+  const openEditContentDialog = (contentId: number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const content = contentReferences.find(item => item.id === contentId);
+    if (content) {
+      setEditingContent(content);
+      setNewContentName(content.name);
+      setNewContentDescription(content.description);
+      setIsEditContentDialogOpen(true);
+    }
+  };
+  
+  // Update content reference
+  const handleUpdateContent = () => {
+    if (!editingContent) return;
+    
+    // Update with new values
+    const updatedReferences = contentReferences.map(content => 
+      content.id === editingContent.id 
+        ? {
+            ...content,
+            name: newContentName.trim() || content.name,
+            description: newContentDescription || content.description
+          }
+        : content
+    );
+    
+    setContentReferences(updatedReferences);
+    
+    // Reset state
+    setEditingContent(null);
+    setNewContentName("");
+    setNewContentDescription("");
+    setIsEditContentDialogOpen(false);
+    
+    toast({
+      title: "Content updated",
+      description: "Content reference has been updated successfully"
+    });
+  };
+  
   // Confirm deleting a document
   const confirmDeleteDocument = (documentId: string, event?: React.MouseEvent) => {
     if (event) {
@@ -549,6 +597,13 @@ const ContentLibrarySection = () => {
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={(e) => openEditContentDialog(content.id, e)}
+                        >
+                          <i className="ri-edit-line"></i>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                           onClick={(e) => confirmDeleteContent(content.id, e)}
                         >
@@ -679,6 +734,97 @@ const ContentLibrarySection = () => {
           </Dialog>
         </CardContent>
       </Card>
+      
+      {/* Edit Content Dialog */}
+      <Dialog open={isEditContentDialogOpen} onOpenChange={setIsEditContentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Content Reference</DialogTitle>
+            <DialogDescription>
+              Update this content reference's details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Content Name</Label>
+              <Input 
+                id="edit-name" 
+                value={newContentName} 
+                onChange={(e) => setNewContentName(e.target.value)} 
+                placeholder="e.g., Marketing Materials"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea 
+                id="edit-description" 
+                value={newContentDescription} 
+                onChange={(e) => setNewContentDescription(e.target.value)} 
+                placeholder="Describe the purpose of this content reference"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsEditContentDialogOpen(false);
+              setEditingContent(null);
+              setNewContentName("");
+              setNewContentDescription("");
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateContent}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Content Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this content reference? This will also delete all associated documents.
+              {contentToDelete && <p className="font-medium mt-2">{contentToDelete.name}</p>}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteContent}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Document Dialog */}
+      <Dialog open={isDocumentDeleteDialogOpen} onOpenChange={setIsDocumentDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Document Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this document?
+              {documentToDelete && <p className="font-medium mt-2">{documentToDelete.name}</p>}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDocumentDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteDocument}>
+              Delete Document
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

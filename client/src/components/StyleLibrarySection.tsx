@@ -31,6 +31,10 @@ const StyleLibrarySection = () => {
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [styleToDelete, setStyleToDelete] = useState<StyleReference | null>(null);
+  const [isEditStyleDialogOpen, setIsEditStyleDialogOpen] = useState(false);
+  const [editingStyle, setEditingStyle] = useState<StyleReference | null>(null);
+  const [documentToDelete, setDocumentToDelete] = useState<ReferenceDocument | null>(null);
+  const [isDocumentDeleteDialogOpen, setIsDocumentDeleteDialogOpen] = useState(false);
   const [newStyleName, setNewStyleName] = useState("");
   const [newStyleDescription, setNewStyleDescription] = useState("");
   const [selectedStyleId, setSelectedStyleId] = useState<number | null>(null);
@@ -54,12 +58,17 @@ const StyleLibrarySection = () => {
   };
 
   const addNewStyle = () => {
-    if (newStyleName.trim() === "") return;
+    // Generate a default name if empty
+    let styleName = newStyleName.trim();
+    if (!styleName) {
+      styleName = `Style ${styleReferences.length + 1}`;
+    }
     
+    const newStyleId = Date.now();
     const newStyle: StyleReference = {
-      id: Date.now(),
-      name: newStyleName,
-      description: newStyleDescription,
+      id: newStyleId,
+      name: styleName,
+      description: newStyleDescription || "Style reference",
       active: false,
       documentCount: 0,
     };
@@ -68,6 +77,58 @@ const StyleLibrarySection = () => {
     setNewStyleName("");
     setNewStyleDescription("");
     setIsAddDialogOpen(false);
+    
+    // Select the newly created style
+    setSelectedStyleId(newStyleId);
+    
+    toast({
+      title: "Style added",
+      description: "New style reference created successfully"
+    });
+  };
+  
+  // Open edit dialog for a style reference
+  const openEditStyleDialog = (styleId: number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const style = styleReferences.find(item => item.id === styleId);
+    if (style) {
+      setEditingStyle(style);
+      setNewStyleName(style.name);
+      setNewStyleDescription(style.description);
+      setIsEditStyleDialogOpen(true);
+    }
+  };
+  
+  // Update style reference
+  const handleUpdateStyle = () => {
+    if (!editingStyle) return;
+    
+    // Update with new values
+    const updatedReferences = styleReferences.map(style => 
+      style.id === editingStyle.id 
+        ? {
+            ...style,
+            name: newStyleName.trim() || style.name,
+            description: newStyleDescription || style.description
+          }
+        : style
+    );
+    
+    setStyleReferences(updatedReferences);
+    
+    // Reset state
+    setEditingStyle(null);
+    setNewStyleName("");
+    setNewStyleDescription("");
+    setIsEditStyleDialogOpen(false);
+    
+    toast({
+      title: "Style updated",
+      description: "Style reference has been updated successfully"
+    });
   };
 
   const openAddDocDialog = (styleId: number) => {
@@ -191,6 +252,44 @@ const StyleLibrarySection = () => {
     setStyleToDelete(null);
     setIsDeleteDialogOpen(false);
   };
+  
+  // Confirm deleting a document
+  const confirmDeleteDocument = (documentId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const document = referenceDocuments.find(doc => doc.id === documentId);
+    if (document) {
+      setDocumentToDelete(document);
+      setIsDocumentDeleteDialogOpen(true);
+    }
+  };
+  
+  // Delete a single document
+  const handleDeleteDocument = () => {
+    if (!documentToDelete || !selectedStyleId) return;
+    
+    // Remove the document
+    setReferenceDocuments(referenceDocuments.filter(doc => doc.id !== documentToDelete.id));
+    
+    // Update the document count for the style reference
+    setStyleReferences(
+      styleReferences.map(style => 
+        style.id === selectedStyleId
+          ? { ...style, documentCount: style.documentCount - 1 }
+          : style
+      )
+    );
+    
+    toast({
+      title: "Document deleted",
+      description: `Document "${documentToDelete.name}" has been removed`
+    });
+    
+    setDocumentToDelete(null);
+    setIsDocumentDeleteDialogOpen(false);
+  };
 
   return (
     <section className="mb-8">
@@ -278,14 +377,24 @@ const StyleLibrarySection = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium text-sm">{style.name}</h3>
-                    <span 
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        style.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 
-                        'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                      }`}
-                    >
-                      {style.active ? 'Active' : 'Inactive'}
-                    </span>
+                    <div className="flex space-x-1 items-center">
+                      <span 
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          style.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 
+                          'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                        }`}
+                      >
+                        {style.active ? 'Active' : 'Inactive'}
+                      </span>
+                      <Button 
+                        variant="ghost" 
+                        size="xs" 
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => openEditStyleDialog(style.id, e)}
+                      >
+                        <i className="ri-edit-line text-xs"></i>
+                      </Button>
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground mb-3">
                     Based on {style.documentCount} reference document{style.documentCount !== 1 ? 's' : ''}
