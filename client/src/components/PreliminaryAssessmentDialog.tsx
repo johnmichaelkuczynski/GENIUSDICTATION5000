@@ -39,7 +39,20 @@ export function PreliminaryAssessmentDialog({
   const [isAssessing, setIsAssessing] = useState(false);
   const [assessment, setAssessment] = useState('');
   const [assessmentScore, setAssessmentScore] = useState(0);
-  const [fullReport, setFullReport] = useState<any>(null);
+  const [fullReport, setFullReport] = useState<{
+    isAIGenerated?: boolean;
+    probability?: number;
+    burstiness?: number;
+    humanLikelihood?: string;
+    assessment?: string;
+    recommendations?: string;
+    errata?: Array<{quote: string; issue: string; correction: string}>;
+    intelligenceScore?: number;
+    surfaceAnalysis?: Record<string, string>;
+    deepAnalysis?: Record<string, string>;
+    psychologicalProfile?: string;
+    rawResponse?: any;
+  } | null>(null);
   const [selectedModel, setSelectedModel] = useState<AssessmentModel>('openai');
   const [expandedReport, setExpandedReport] = useState(false);
   const [availableModels, setAvailableModels] = useState({
@@ -142,7 +155,7 @@ export function PreliminaryAssessmentDialog({
     if (fullReport?.errata && fullReport.errata.length > 0) {
       reportContent += "ERRATA & CORRECTIONS\n";
       reportContent += "==================================\n";
-      fullReport.errata.forEach((item, index) => {
+      fullReport.errata.forEach((item: {quote: string; issue: string; correction: string}, index: number) => {
         reportContent += `${index + 1}. "${item.quote}"\n`;
         reportContent += `   Issue: ${item.issue}\n`;
         reportContent += `   Correction: ${item.correction}\n\n`;
@@ -373,6 +386,27 @@ export function PreliminaryAssessmentDialog({
                   <div className="p-3 border-b">
                     <h3 className="font-medium mb-2">Psychological Profile</h3>
                     <p className="text-xs">{fullReport.psychologicalProfile}</p>
+                  </div>
+                ) : null}
+                
+                {fullReport?.errata && fullReport.errata.length > 0 ? (
+                  <div className="p-3 border-b">
+                    <h3 className="font-medium mb-2">Errata & Corrections</h3>
+                    <div className="space-y-2">
+                      {fullReport.errata.map((item, index) => (
+                        <div key={index} className="text-xs p-2 bg-red-50 dark:bg-red-950/30 rounded border border-red-200 dark:border-red-900">
+                          <p className="font-medium italic mb-1">"{item.quote}"</p>
+                          <div className="grid grid-cols-12 gap-1">
+                            <span className="col-span-3 font-medium">Issue:</span>
+                            <span className="col-span-9">{item.issue}</span>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1">
+                            <span className="col-span-3 font-medium">Correction:</span>
+                            <span className="col-span-9">{item.correction}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
                 
