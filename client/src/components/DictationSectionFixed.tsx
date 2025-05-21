@@ -18,6 +18,7 @@ import { useTTS } from "@/hooks/useTTS";
 import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
 import { useAIDetection } from "@/hooks/useAIDetection";
 import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
+import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -113,10 +114,12 @@ const DictationSection = () => {
   const [selectedContentId, setSelectedContentId] = useState<number | null>(null);
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAssessmentDialogOpen, setIsAssessmentDialogOpen] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const [newContentDescription, setNewContentDescription] = useState("");
   const [newDocumentName, setNewDocumentName] = useState("");
   const [newDocumentContent, setNewDocumentContent] = useState("");
+  const [shouldAutoAssess, setShouldAutoAssess] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentFileInputRef = useRef<HTMLInputElement>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
@@ -164,7 +167,11 @@ const DictationSection = () => {
   // AI Detection handlers
   const handleDetectInputAI = useCallback(async () => {
     if (originalText.trim().length > 0) {
-      await detectAI(originalText);
+      const result = await detectAI(originalText);
+      // If auto-assessment is enabled and we have a result, show the assessment dialog
+      if (shouldAutoAssess && result) {
+        setIsAssessmentDialogOpen(true);
+      }
     } else {
       toast({
         title: "No text to analyze",
@@ -172,7 +179,30 @@ const DictationSection = () => {
         variant: "destructive"
       });
     }
-  }, [originalText, detectAI, toast]);
+  }, [originalText, detectAI, toast, shouldAutoAssess]);
+  
+  // Handler for submitting context and custom instructions
+  const handleSubmitContext = useCallback((context: string, instructions: string) => {
+    // Combine context and instructions into a more comprehensive prompt
+    let combinedInstructions = "";
+    
+    if (context) {
+      combinedInstructions += `Context: ${context}\n\n`;
+    }
+    
+    if (instructions) {
+      combinedInstructions += instructions;
+    } else {
+      // Provide default instructions if none specified
+      combinedInstructions += "Improve this text based on the given context while preserving the original meaning.";
+    }
+    
+    // Set the custom instructions in the app context
+    setCustomInstructions(combinedInstructions);
+    
+    // Automatically trigger the transformation
+    transformText();
+  }, [setCustomInstructions, transformText]);
   
   const handleDetectOutputAI = useCallback(async () => {
     if (processedText.trim().length > 0) {
@@ -232,6 +262,17 @@ const DictationSection = () => {
             title: "File uploaded successfully",
             description: `Text extracted from ${file.name}`,
           });
+          
+          // Automatically run AI detection if there's enough text
+          if (extractedText.trim().length >= 50 && shouldAutoAssess) {
+            setTimeout(() => {
+              detectAI(extractedText).then(result => {
+                if (result) {
+                  setIsAssessmentDialogOpen(true);
+                }
+              });
+            }, 500);
+          }
         } else if (isAudioFile) {
           // Process audio file using the dictation API
           const formData = new FormData();
