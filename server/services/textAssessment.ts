@@ -99,6 +99,7 @@ async function assessTextWithOpenAI(text: string): Promise<TextAssessmentResult>
     });
     
     const assessmentText = response.choices[0]?.message?.content || "Unable to generate assessment.";
+    console.log("Got OpenAI assessment text:", assessmentText);
     
     // Extract a probability estimate from the response if possible
     let probability = 0.5; // Default to 0.5 (uncertain)

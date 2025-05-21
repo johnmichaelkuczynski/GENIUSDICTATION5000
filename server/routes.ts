@@ -31,6 +31,7 @@ import {
 } from "./services/azureSpeech";
 import { detectAIContent } from "./services/gptzero";
 import { assessText } from "./services/textAssessment";
+import { directAssessText } from "./services/directAssessment";
 
 // Set up multer for file uploads
 const upload = multer({ 
@@ -391,7 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Detection endpoint using GPTZero with OpenAI fallback
+  // AI Detection and assessment endpoint
   app.post("/api/detect-ai", async (req, res) => {
     try {
       // Validate request
@@ -402,7 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { text } = result.data;
 
-      // Try GPTZero if available
+      // First, try using GPTZero if it's available
       if (process.env.GPTZERO_API_KEY) {
         try {
           // Detect if text is AI-generated using GPTZero
@@ -416,21 +417,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (gptzeroError) {
           console.error("GPTZero detection failed, using OpenAI fallback:", gptzeroError);
-          // Fall through to OpenAI
+          // Fall through to the OpenAI direct assessment
         }
       }
       
-      // If GPTZero isn't available or failed, use OpenAI assessment
-      try {
-        const assessmentResult = await assessText(text);
-        return res.json(assessmentResult);
-      } catch (openaiError) {
-        console.error("OpenAI assessment failed:", openaiError);
-        throw openaiError;
-      }
+      // Use direct OpenAI assessment since we know we have that API key
+      const assessmentResult = await directAssessText(text);
+      return res.json(assessmentResult);
     } catch (error) {
-      console.error("Error detecting AI content:", error);
-      let errorMessage = "Failed to detect AI content";
+      console.error("Error analyzing text:", error);
+      let errorMessage = "Failed to analyze text";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
