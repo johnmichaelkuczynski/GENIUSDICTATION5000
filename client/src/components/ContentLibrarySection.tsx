@@ -785,7 +785,7 @@ const ContentLibrarySection = () => {
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete this content reference? This will also delete all associated documents.
-              {contentToDelete && <p className="font-medium mt-2">{contentToDelete.name}</p>}
+              {contentToDelete && <span className="block font-medium mt-2">{contentToDelete.name}</span>}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -809,7 +809,7 @@ const ContentLibrarySection = () => {
             <DialogTitle>Confirm Document Deletion</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete this document?
-              {documentToDelete && <p className="font-medium mt-2">{documentToDelete.name}</p>}
+              {documentToDelete && <span className="block font-medium mt-2">{documentToDelete.name}</span>}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
