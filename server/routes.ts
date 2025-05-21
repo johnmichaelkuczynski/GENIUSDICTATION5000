@@ -30,6 +30,7 @@ import {
   getAvailableVoices
 } from "./services/azureSpeech";
 import { detectAIContent } from "./services/gptzero";
+import { assessText } from "./services/textAssessment";
 
 // Set up multer for file uploads
 const upload = multer({ 
