@@ -896,6 +896,8 @@ const DictationSection = () => {
                       result={aiDetectionResult}
                       isDetecting={isDetectingAI}
                       onRequestDetection={handleDetectInputAI}
+                      originalText={originalText}
+                      onApplyContext={handleSubmitContext}
                     />
                   </div>
                 )}

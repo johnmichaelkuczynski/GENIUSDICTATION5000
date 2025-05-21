@@ -7,6 +7,7 @@ export interface AIDetectionResult {
   probability: number;
   burstiness: number;
   humanLikelihood: string;
+  assessment?: string;
   rawResponse?: any;
 }
 

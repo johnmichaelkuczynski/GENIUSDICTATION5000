@@ -391,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Detection endpoint using GPTZero
+  // AI Detection endpoint using GPTZero with OpenAI fallback
   app.post("/api/detect-ai", async (req, res) => {
     try {
       // Validate request
@@ -402,15 +402,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { text } = result.data;
 
-      // Check if GPTZero API key is available
-      if (!process.env.GPTZERO_API_KEY) {
-        return res.status(400).json({ error: "GPTZero API key is not configured" });
+      // Try GPTZero if available
+      if (process.env.GPTZERO_API_KEY) {
+        try {
+          // Detect if text is AI-generated using GPTZero
+          const detectionResult = await detectAIContent(text);
+          
+          // Add assessment text to the response
+          const assessment = generateAssessment(detectionResult.probability);
+          return res.json({
+            ...detectionResult,
+            assessment
+          });
+        } catch (gptzeroError) {
+          console.error("GPTZero detection failed, using OpenAI fallback:", gptzeroError);
+          // Fall through to OpenAI
+        }
       }
-
-      // Detect if text is AI-generated
-      const detectionResult = await detectAIContent(text);
       
-      res.json(detectionResult);
+      // If GPTZero isn't available or failed, use OpenAI assessment
+      try {
+        const assessmentResult = await assessText(text);
+        return res.json(assessmentResult);
+      } catch (openaiError) {
+        console.error("OpenAI assessment failed:", openaiError);
+        throw openaiError;
+      }
     } catch (error) {
       console.error("Error detecting AI content:", error);
       let errorMessage = "Failed to detect AI content";
@@ -420,6 +437,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: errorMessage });
     }
   });
+  
+  // Helper function to generate assessment text based on AI generation probability
+  function generateAssessment(probability: number): string {
+    if (probability > 0.8) {
+      return "This text appears to be AI-generated with high confidence. It may lack the natural variance and personal style of human writing. Consider adding more personal voice, unique expressions, and varying your sentence structure to make it more authentic.";
+    } else if (probability > 0.6) {
+      return "This text likely contains AI-generated elements. While it's well-structured, it may benefit from more distinctive phrasing and personal perspectives. Try incorporating more of your unique voice and experiences.";
+    } else if (probability > 0.4) {
+      return "This text shows a balance of AI and human-like qualities. It has decent structure but could benefit from more specific details and personal insights to increase its authenticity and impact.";
+    } else if (probability > 0.2) {
+      return "This text appears mostly human-written. It has good natural variation, though some sections might be refined for stronger personal voice. Consider enhancing specific points with concrete examples or unique perspectives.";
+    } else {
+      return "This text demonstrates characteristics of authentic human writing, with natural variation in structure and expression. It has a good balance of complexity and clarity, with a distinctive personal voice.";
+    }
+  }
 
   app.post("/api/settings/api-keys", async (req, res) => {
     try {
