@@ -273,9 +273,13 @@ export function PreliminaryAssessmentDialog({
                   </div>
                 ) : null}
                 
+                <div className="p-3 border-b">
+                  <h3 className="font-medium mb-2">Analysis</h3>
+                  <p className="text-xs whitespace-pre-line">{fullReport?.assessment || assessment}</p>
+                </div>
                 <div className="p-3">
-                  <h3 className="font-medium mb-2">Analysis & Recommendations</h3>
-                  <p className="text-xs whitespace-pre-line">{assessment}</p>
+                  <h3 className="font-medium mb-2">Recommendations</h3>
+                  <p className="text-xs whitespace-pre-line">{fullReport?.recommendations || "No specific recommendations available."}</p>
                 </div>
               </div>
             </div>
