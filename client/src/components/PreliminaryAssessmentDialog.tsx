@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { AlertCircle, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { AssessmentModelSelector, AssessmentModel } from './AssessmentModelSelector';
 
 interface PreliminaryAssessmentDialogProps {
   isOpen: boolean;
@@ -27,10 +28,42 @@ export function PreliminaryAssessmentDialog({
   const [assessment, setAssessment] = useState('');
   const [assessmentScore, setAssessmentScore] = useState(0);
   const [fullReport, setFullReport] = useState<any>(null);
+  const [selectedModel, setSelectedModel] = useState<AssessmentModel>('openai');
+  const [availableModels, setAvailableModels] = useState({
+    openai: false,
+    anthropic: false,
+    perplexity: false
+  });
   const { toast } = useToast();
 
-  // Run assessment when dialog opens
+  // Check available models and run assessment when dialog opens
   useEffect(() => {
+    const checkApiStatus = async () => {
+      try {
+        const response = await fetch('/api/status');
+        const data = await response.json();
+        
+        setAvailableModels({
+          openai: data.services.openai,
+          anthropic: data.services.anthropic,
+          perplexity: data.services.perplexity
+        });
+        
+        // Set default model based on availability
+        if (data.services.openai) {
+          setSelectedModel('openai');
+        } else if (data.services.anthropic) {
+          setSelectedModel('anthropic');
+        } else if (data.services.perplexity) {
+          setSelectedModel('perplexity');
+        }
+      } catch (error) {
+        console.error('Error checking API status:', error);
+      }
+    };
+    
+    checkApiStatus();
+    
     if (isOpen && originalText.trim().length >= 50) {
       handleGetAssessment();
     }
@@ -60,7 +93,10 @@ export function PreliminaryAssessmentDialog({
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ text: originalText })
+        body: JSON.stringify({ 
+          text: originalText,
+          provider: selectedModel 
+        })
       });
       
       if (!response.ok) {
@@ -130,6 +166,13 @@ export function PreliminaryAssessmentDialog({
           <DialogDescription>
             Review your text assessment and provide additional context for a more tailored rewrite.
           </DialogDescription>
+          <div className="mt-4 flex items-center justify-end">
+            <AssessmentModelSelector
+              selectedModel={selectedModel}
+              onChange={setSelectedModel}
+              availableModels={availableModels}
+            />
+          </div>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">

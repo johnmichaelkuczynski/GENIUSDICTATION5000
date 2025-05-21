@@ -403,7 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { text } = result.data;
+      const { text, provider = 'openai' } = result.data;
 
       // First, try using GPTZero if it's available
       if (process.env.GPTZERO_API_KEY) {
@@ -418,13 +418,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
             assessment
           });
         } catch (gptzeroError) {
-          console.error("GPTZero detection failed, using OpenAI fallback:", gptzeroError);
-          // Fall through to the OpenAI direct assessment
+          console.error(`GPTZero detection failed, using ${provider} fallback:`, gptzeroError);
+          // Fall through to the selected provider assessment
         }
       }
       
-      // Use direct OpenAI assessment since we know we have that API key
-      const assessmentResult = await directAssessText(text);
+      // Use the selected provider for assessment
+      let assessmentResult;
+      try {
+        switch (provider) {
+          case 'anthropic':
+            if (!process.env.ANTHROPIC_API_KEY) {
+              throw new Error("Anthropic API key is not configured");
+            }
+            assessmentResult = await assessWithAnthropic(text);
+            break;
+          case 'perplexity':
+            if (!process.env.PERPLEXITY_API_KEY) {
+              throw new Error("Perplexity API key is not configured");
+            }
+            assessmentResult = await assessWithPerplexity(text);
+            break;
+          case 'openai':
+          default:
+            assessmentResult = await directAssessText(text);
+            break;
+        }
+      } catch (providerError) {
+        console.error(`Error with ${provider} assessment:`, providerError);
+        // If the selected provider fails, fall back to OpenAI
+        if (provider !== 'openai') {
+          console.log("Falling back to OpenAI for assessment");
+          assessmentResult = await directAssessText(text);
+        } else {
+          throw providerError;
+        }
+      }
       return res.json(assessmentResult);
     } catch (error) {
       console.error("Error analyzing text:", error);
