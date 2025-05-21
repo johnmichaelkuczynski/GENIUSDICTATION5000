@@ -35,7 +35,7 @@ export function PreliminaryAssessmentDialog({
   onSubmitContext
 }: PreliminaryAssessmentDialogProps) {
   const [context, setContext] = useState('');
-  const [customInstructions, setCustomInstructions] = useState('');
+  const [customInstructions, setCustomInstructions] = useState('Rewrite this text with improved readability while preserving the original message and meaning.');
   const [isAssessing, setIsAssessing] = useState(false);
   const [assessment, setAssessment] = useState('');
   const [assessmentScore, setAssessmentScore] = useState(0);
