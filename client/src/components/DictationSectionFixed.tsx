@@ -20,6 +20,7 @@ import { useAIDetection } from "@/hooks/useAIDetection";
 import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
 import { PreliminaryAssessmentDialog } from "@/components/PreliminaryAssessmentDialog";
+import { AssessmentModelSelector, AssessmentModel } from "@/components/AssessmentModelSelector";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -121,6 +122,12 @@ const DictationSection = () => {
   const [newDocumentName, setNewDocumentName] = useState("");
   const [newDocumentContent, setNewDocumentContent] = useState("");
   const [shouldAutoAssess, setShouldAutoAssess] = useState(true);
+  const [selectedAssessmentModel, setSelectedAssessmentModel] = useState<AssessmentModel>('openai');
+  const [availableModels, setAvailableModels] = useState({
+    openai: false,
+    anthropic: false,
+    perplexity: false
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentFileInputRef = useRef<HTMLInputElement>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
@@ -380,6 +387,35 @@ const DictationSection = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [toggleDictation]);
+  
+  // Check which AI models are available
+  useEffect(() => {
+    const checkApiStatus = async () => {
+      try {
+        const response = await fetch('/api/status');
+        const data = await response.json();
+        
+        setAvailableModels({
+          openai: data.services.openai,
+          anthropic: data.services.anthropic,
+          perplexity: data.services.perplexity
+        });
+        
+        // Set default model based on availability
+        if (data.services.openai) {
+          setSelectedAssessmentModel('openai');
+        } else if (data.services.anthropic) {
+          setSelectedAssessmentModel('anthropic');
+        } else if (data.services.perplexity) {
+          setSelectedAssessmentModel('perplexity');
+        }
+      } catch (error) {
+        console.error('Error checking API status:', error);
+      }
+    };
+    
+    checkApiStatus();
+  }, []);
   
   // Set up drag and drop event listeners for the text area
   useEffect(() => {
