@@ -293,6 +293,17 @@ const DictationSection = () => {
             title: "Audio transcribed successfully",
             description: `Speech transcribed from ${file.name}`,
           });
+          
+          // Automatically run AI detection if there's enough text from audio
+          if (data.text.trim().length >= 50 && shouldAutoAssess) {
+            setTimeout(() => {
+              detectAI(data.text).then(result => {
+                if (result) {
+                  setIsAssessmentDialogOpen(true);
+                }
+              });
+            }, 500);
+          }
         }
       } catch (error) {
         console.error("Error processing file:", error);
@@ -860,10 +871,21 @@ const DictationSection = () => {
                     variant="outline" 
                     onClick={handleDetectInputAI}
                     disabled={isDetectingAI || !originalText || originalText.length < 50}
-                    className="text-xs"
+                    className="text-xs mr-2"
                   >
                     <i className="ri-shield-check-line mr-1.5"></i>
                     {isDetectingAI ? "Analyzing..." : "Detect AI Content"}
+                  </Button>
+                  
+                  {/* Add Assessment Button */}
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsAssessmentDialogOpen(true)}
+                    disabled={!aiDetectionResult || !originalText}
+                    className="text-xs"
+                  >
+                    <i className="ri-file-list-line mr-1.5"></i>
+                    Add Context
                   </Button>
                 </div>
                 
@@ -1565,6 +1587,15 @@ const DictationSection = () => {
           </TabsContent>
         </Tabs>
       </Card>
+      
+      {/* Text Assessment Dialog */}
+      <TextAssessmentDialog
+        isOpen={isAssessmentDialogOpen}
+        onClose={() => setIsAssessmentDialogOpen(false)}
+        originalText={originalText}
+        aiResult={aiDetectionResult}
+        onSubmitContext={handleSubmitContext}
+      />
     </section>
   );
 };
