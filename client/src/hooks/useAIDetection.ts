@@ -16,7 +16,7 @@ export function useAIDetection() {
   const [detectionResult, setDetectionResult] = useState<AIDetectionResult | null>(null);
   const { toast } = useToast();
 
-  const detectAI = useCallback(async (text: string): Promise<AIDetectionResult | null> => {
+  const detectAI = useCallback(async (text: string, provider = 'openai'): Promise<AIDetectionResult | null> => {
     if (!text || text.trim().length < 50) {
       toast({
         title: "Not enough text",
@@ -35,7 +35,7 @@ export function useAIDetection() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text, provider })
       });
       
       if (!response.ok) {
