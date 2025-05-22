@@ -103,36 +103,32 @@ const DictationSection = () => {
   
   // Handler for submitting context and custom instructions
   const handleSubmitContext = useCallback((context: string, instructions: string) => {
-    console.log("DIALOG INSTRUCTIONS RECEIVED:", instructions);
+    console.log("DIALOG INSTRUCTIONS RECEIVED:", { context, instructions });
     
-    // DIRECTLY set custom instructions from dialog into app state
-    if (instructions && instructions.trim() !== "") {
-      // If we have specific instructions from the dialog, use those directly
-      const combinedInstructions = context ? `Context: ${context}\n\n${instructions}` : instructions;
-      
-      console.log("SETTING CUSTOM INSTRUCTIONS TO:", combinedInstructions);
-      
-      // Set the custom instructions in the app context
-      setCustomInstructions(combinedInstructions);
-      
-      // Automatically trigger the transformation with these exact instructions
-      setTimeout(() => transformText(), 50); // Short timeout to ensure state update
-    } else {
-      // Fallback only if no instructions provided
-      let combinedInstructions = "";
-      
-      if (context) {
-        combinedInstructions += `Context: ${context}\n\n`;
-      }
-      
-      combinedInstructions += "Improve this text based on the given context while preserving the original meaning.";
-      
-      // Set the custom instructions in the app context
-      setCustomInstructions(combinedInstructions);
-      
-      // Automatically trigger the transformation
-      setTimeout(() => transformText(), 50); // Short timeout to ensure state update
+    let combinedInstructions = "";
+    
+    // Add context if provided
+    if (context && context.trim() !== "") {
+      combinedInstructions += `Context: ${context}\n\n`;
     }
+    
+    // Add custom instructions if provided, otherwise use default
+    if (instructions && instructions.trim() !== "") {
+      combinedInstructions += instructions;
+    } else {
+      combinedInstructions += "Improve this text based on the given context while preserving the original meaning.";
+    }
+    
+    console.log("SETTING CUSTOM INSTRUCTIONS TO:", combinedInstructions);
+    
+    // Set the custom instructions in the app context
+    setCustomInstructions(combinedInstructions);
+    
+    // Force the transform function to run immediately after state update
+    setTimeout(() => {
+      console.log("EXECUTING TRANSFORM WITH INSTRUCTIONS:", combinedInstructions);
+      transformText();
+    }, 100);
   }, [setCustomInstructions, transformText]);
 
   const handleCopyOriginal = () => {
