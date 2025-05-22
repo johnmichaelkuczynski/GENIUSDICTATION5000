@@ -87,10 +87,24 @@ export async function transformText(options: TransformOptions): Promise<string> 
           options.onProgress(chunkNum, totalChunks);
         }
         
-        // Modify instructions for context when processing chunks
-        const chunkInstructions = `${instructions}\n\nThis is part ${chunkNum} of ${totalChunks} from a larger document. Maintain consistent style and formatting across all parts.`;
+        // For RAW PROMPT: Replace {{TEXT}} with chunk content
+        let chunkInstructions = "";
+        
+        if (instructions.includes("{{TEXT}}")) {
+          // Using raw prompt approach with placeholder
+          chunkInstructions = instructions.replace(/\{\{TEXT\}\}/g, chunk);
+          
+          // Add chunking information if processing multiple chunks
+          if (totalChunks > 1) {
+            chunkInstructions += `\n\nNote: This is part ${chunkNum} of ${totalChunks} from a larger document. Maintain consistent style and formatting across all parts.`;
+          }
+        } else {
+          // Legacy approach - add chunk context to instructions
+          chunkInstructions = `${instructions}\n\nThis is part ${chunkNum} of ${totalChunks} from a larger document. Maintain consistent style and formatting across all parts.`;
+        }
         
         console.log(`Processing chunk ${chunkNum} of ${totalChunks} (${chunk.length} chars)`);
+        console.log("USING RAW PROMPT:", instructions.includes("{{TEXT}}"));
         
         // Try multiple times in case of errors
         let retryCount = 0;
@@ -122,6 +136,20 @@ export async function transformText(options: TransformOptions): Promise<string> 
                 
                 for (let i = 0; i < subChunks.length; i++) {
                   const subChunk = subChunks[i];
+                  // For sub-chunks, also handle raw prompt replacement
+                  let subChunkInstructions = "";
+                  
+                  if (instructions.includes("{{TEXT}}")) {
+                    // Using raw prompt approach with placeholder
+                    subChunkInstructions = instructions.replace(/\{\{TEXT\}\}/g, subChunk);
+                    
+                    // Add chunking information for context
+                    subChunkInstructions += `\n\nNote: This is sub-part ${i+1} of ${subChunks.length} of chunk ${chunkNum} from a larger document.`;
+                  } else {
+                    // Legacy approach
+                    subChunkInstructions = `${chunkInstructions}\n\nThis is sub-part ${i+1} of ${subChunks.length} of chunk ${chunkNum}.`;
+                  }
+                  
                   const subChunkResponse = await fetch("/api/transform", {
                     method: "POST",
                     headers: {
@@ -130,7 +158,7 @@ export async function transformText(options: TransformOptions): Promise<string> 
                     body: JSON.stringify({
                       ...options,
                       text: subChunk,
-                      instructions: `${chunkInstructions}\n\nThis is sub-part ${i+1} of ${subChunks.length} of chunk ${chunkNum}.`,
+                      instructions: subChunkInstructions,
                     }),
                   });
                   
@@ -186,12 +214,24 @@ export async function transformText(options: TransformOptions): Promise<string> 
       return processedText;
     } else {
       // For smaller texts, process normally
+      
+      // Handle RAW PROMPT: Replace {{TEXT}} with content
+      let finalInstructions = instructions;
+      if (instructions.includes("{{TEXT}}")) {
+        // Using raw prompt approach with placeholder
+        finalInstructions = instructions.replace(/\{\{TEXT\}\}/g, text);
+        console.log("USING RAW PROMPT - Regular text:", true);
+      }
+      
       const response = await fetch("/api/transform", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(options),
+        body: JSON.stringify({
+          ...options,
+          instructions: finalInstructions
+        }),
       });
 
       if (!response.ok) {
