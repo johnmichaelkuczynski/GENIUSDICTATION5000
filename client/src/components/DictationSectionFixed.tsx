@@ -193,15 +193,23 @@ const DictationSection = () => {
   const handleSubmitContext = useCallback((context: string, instructions: string) => {
     console.log("DictationSection received instructions from popup:", instructions);
     
-    // First, update the instructions in the UI
-    if (instructions) {
-      setCustomInstructions(instructions);
-      
-      // Then, immediately call the transformText function 
-      // that's already working in the main app
-      transformText();
+    // Combine context and instructions into a more comprehensive prompt
+    let combinedInstructions = "";
+    
+    if (context) {
+      combinedInstructions += `Context: ${context}\n\n`;
     }
-  }, [setCustomInstructions, transformText]);
+    
+    if (instructions) {
+      combinedInstructions += instructions;
+    } else {
+      // Provide default instructions if none specified
+      combinedInstructions += "Improve this text based on the given context while preserving the original meaning.";
+    }
+    
+    // Set the custom instructions in the app context
+    setCustomInstructions(combinedInstructions);
+  }, [setCustomInstructions]);
   
   const handleDetectOutputAI = useCallback(async () => {
     if (processedText.trim().length > 0) {
