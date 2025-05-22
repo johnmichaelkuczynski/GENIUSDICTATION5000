@@ -8,11 +8,20 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { SpeechEngine, AIModel } from "@shared/schema";
 import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
 import { useDictation } from "@/hooks/useDictation";
 import { useTTS } from "@/hooks/useTTS";
+import { PreliminaryAssessmentDialog } from "@/components/PreliminaryAssessmentDialog";
 
 // Helper function to count words in a string
 const countWords = (text: string): number => {
@@ -43,6 +52,10 @@ const DictationSection = () => {
   // Component state
   const [currentTab, setCurrentTab] = useState("direct-dictation");
   const [showVoiceSelect, setShowVoiceSelect] = useState(false);
+  
+  // State for preliminary assessment dialog
+  const [prelimAssessmentDialogOpen, setPrelimAssessmentDialogOpen] = useState(false);
+  const [prelimAssessmentText, setPrelimAssessmentText] = useState<string>('');
   
   // Calculate word counts using memoization to avoid recalculating on every render
   const originalWordCount = useMemo(() => countWords(originalText), [originalText]);
@@ -88,11 +101,7 @@ const DictationSection = () => {
     await transformText();
   };
   
-  // Handle transforming the processed text (for recursive transformations)
-  const handleTransformProcessed = async () => {
-    if (!processedText) return;
-    await transformProcessedText(processedText);
-  };
+  // We're now handling the processed text transformation directly in the button click handler
 
   const handleClearOriginal = () => {
     setOriginalText("");
@@ -286,30 +295,35 @@ const DictationSection = () => {
                     >
                       <i className="ri-arrow-left-line mr-1"></i> Use as Input
                     </Button>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                            onClick={() => {
-                              // Apply the same transformation to the processed text
-                              if (processedText) {
-                                // Use the current instructions/settings to transform again
-                                transformProcessedText(processedText);
-                              }
-                            }}
-                            disabled={!processedText || isProcessing}
-                          >
-                            <i className="ri-magic-line mr-1"></i> Transform Again
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p className="text-xs">Apply current instructions to transform the output text again</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
+                      onClick={() => {
+                        if (processedText) {
+                          // Apply the current transformation again to the processed text
+                          transformProcessedText(processedText);
+                        }
+                      }}
+                      disabled={!processedText || isProcessing}
+                    >
+                      <i className="ri-magic-line mr-1"></i> Transform Again
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300"
+                      onClick={() => {
+                        if (processedText) {
+                          // Open the assessment dialog with the processed text
+                          setPrelimAssessmentText(processedText);
+                          setPrelimAssessmentDialogOpen(true);
+                        }
+                      }}
+                      disabled={!processedText || isProcessing}
+                    >
+                      <i className="ri-file-search-line mr-1"></i> Assess
+                    </Button>
                   </div>
                 </div>
                 <div className="flex-1">
