@@ -86,7 +86,13 @@ const DictationSection = () => {
 
   // Handlers
   const handleTransformText = async () => {
-    await transformText();
+    await transformText({
+      text: originalText,
+      instructions: customInstructions,
+      model: selectedAIModel,
+      preset: selectedPreset,
+      useStyleReference,
+    });
   };
 
   const handleClearOriginal = () => {
