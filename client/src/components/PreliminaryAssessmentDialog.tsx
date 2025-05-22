@@ -96,6 +96,8 @@ export function PreliminaryAssessmentDialog({
   }, [isOpen, originalText]);
 
   const handleSubmit = () => {
+    // VERY IMPORTANT: We need to make sure the custom instructions entered by the user are passed directly
+    // to the transformation process, without any modifications or default fallbacks
     onSubmitContext(context, customInstructions);
     onClose();
   };
