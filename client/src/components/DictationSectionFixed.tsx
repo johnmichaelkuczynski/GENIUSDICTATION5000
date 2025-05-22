@@ -193,14 +193,51 @@ const DictationSection = () => {
   const handleSubmitContext = useCallback((context: string, instructions: string) => {
     console.log("DictationSection received instructions from popup:", instructions);
     
-    // Set the custom instructions in the app context (this updates the instructions box in the main tab)
-    setCustomInstructions(instructions || "");
-    
-    // Immediately trigger the transform with these instructions
-    setTimeout(() => {
-      transformText();
-    }, 0);
-  }, [setCustomInstructions, transformText]);
+    // DIRECT METHOD: First set the instructions, then transform
+    if (instructions) {
+      // Set the instructions in the app context
+      setCustomInstructions(instructions);
+      
+      // Set processing state
+      const { setIsProcessing } = useAppContext();
+      
+      // Force a small delay to ensure state update completes
+      setTimeout(() => {
+        // Show processing state
+        setIsProcessing(true);
+        
+        // Call the API directly with the new instructions
+        fetch("/api/transform", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: originalText,
+            instructions: instructions,
+            model: selectedAIModel,
+            preset: selectedPreset
+          }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Transformation failed: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Set the processed text with the result
+          setProcessedText(data.text);
+          setIsProcessing(false);
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          setProcessedText("Error during transformation: " + error.message);
+          setIsProcessing(false);
+        });
+      }, 100);
+    }
+  }, [setCustomInstructions, setProcessedText, originalText, selectedAIModel, selectedPreset]);
   
   const handleDetectOutputAI = useCallback(async () => {
     if (processedText.trim().length > 0) {
