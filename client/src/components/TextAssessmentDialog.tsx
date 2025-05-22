@@ -40,16 +40,40 @@ export function TextAssessmentDialog({
   }, [isOpen]);
 
   const handleSubmit = () => {
-    // Direct execution of rewrite with custom instructions - with debug info
+    // Get the value directly from the DOM element to ensure we have the current value
+    const customInstructions = document.getElementById('fullPrompt')?.value || "";
+    
+    // Log for debugging
     const submitLog = `EXECUTING SUBMIT with:
-Context: "${context}"
-Instructions: "${customInstructions}"`;
+Direct instructions: "${customInstructions}"`;
     
     setDebugLog(submitLog);
     console.log(submitLog);
     
-    // Call the parent's submission handler with the EXACT values from state
-    onSubmitContext(context, customInstructions);
+    // Use fetch directly to send the raw prompt to the API
+    fetch("/api/transform", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: originalText,
+        instructions: customInstructions
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Transform request failed: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Update the app with the transformed text
+      console.log("Assessment popup transformation success:", data);
+      // Also call the parent's submission handler to maintain backward compatibility
+      onSubmitContext("", customInstructions);
+    })
+    .catch(error => {
+      console.error("Assessment popup transformation error:", error);
+    });
     
     // Close the dialog after submission
     onClose();
