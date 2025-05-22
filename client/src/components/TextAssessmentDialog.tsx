@@ -169,9 +169,9 @@ Instructions: "${customInstructions}"`;
 
 Make it clearer and more elegant while preserving the original meaning.`}
             />
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <span className="bg-yellow-100 text-yellow-800 px-1 rounded text-[10px] font-bold">{{TEXT}}</span>
-              <span>will be replaced with your original text. Everything else will be sent as-is to the AI model.</span>
+            <p className="text-xs text-muted-foreground">
+              <code className="bg-yellow-100 text-yellow-800 px-1 rounded text-[10px] font-bold inline-block mr-1">&#123;&#123;TEXT&#125;&#125;</code>
+              will be replaced with your original text. Everything else will be sent as-is to the AI model.
             </p>
           </div>
         </div>
