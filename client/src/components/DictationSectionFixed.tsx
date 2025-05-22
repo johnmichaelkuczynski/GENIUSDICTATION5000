@@ -1047,19 +1047,47 @@ const DictationSection = () => {
                           variant="ghost" 
                           size="sm" 
                           className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                          onClick={() => {
-                            if (processedText) {
-                              // This will apply the transformation process to the processed text
-                              const currentText = originalText;
-                              setOriginalText(processedText);
-                              handleTransformText();
-                              // After the transform is triggered, restore the original text
-                              setTimeout(() => {
-                                setOriginalText(currentText);
-                              }, 100);
+                          onClick={async () => {
+                            if (processedText && !isProcessing) {
+                              try {
+                                // Directly transform the processed text without changing the original
+                                const response = await fetch("/api/transform", {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({
+                                    text: processedText,
+                                    instructions: customInstructions,
+                                    model: selectedAIModel
+                                  }),
+                                });
+                                
+                                if (!response.ok) {
+                                  throw new Error("Failed to transform text");
+                                }
+                                
+                                const result = await response.json();
+                                // Set the new transformed text as the processed text
+                                setProcessedText(result.text);
+                                
+                                toast({
+                                  title: "Transformation Complete",
+                                  description: "The processed text has been transformed again.",
+                                  duration: 3000,
+                                });
+                              } catch (error) {
+                                console.error("Error transforming text:", error);
+                                toast({
+                                  title: "Transformation Failed",
+                                  description: "An error occurred while transforming the text.",
+                                  variant: "destructive",
+                                  duration: 3000,
+                                });
+                              }
                             }
                           }}
-                          disabled={isProcessing}
+                          disabled={isProcessing || !processedText}
                         >
                           <i className="ri-magic-line mr-1"></i> Transform Again
                         </Button>
