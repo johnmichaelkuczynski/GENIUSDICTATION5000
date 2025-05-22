@@ -41,10 +41,13 @@ export function TextAssessmentDialog({
 
   const handleSubmit = () => {
     const rawInstructions = customInstructions;
-    console.log("POPUP SENDING:", rawInstructions);
+    console.log("POPUP SENDING TO MAIN TAB:", rawInstructions);
     
-    // This is the minimal code change you requested
+    // Pass the instructions back to the parent component
+    // The parent will set these in the main tab's rewrite box
     onSubmitContext("", rawInstructions);
+    
+    // Close the dialog
     onClose();
   };
   

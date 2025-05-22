@@ -189,24 +189,17 @@ const DictationSection = () => {
     }
   }, [originalText, detectAI, toast, shouldAutoAssess]);
   
-  // Handler for submitting context and custom instructions
+  // Handler for submitting context and custom instructions from the assessment popup
   const handleSubmitContext = useCallback((context: string, instructions: string) => {
-    // Combine context and instructions into a more comprehensive prompt
-    let combinedInstructions = "";
+    console.log("DictationSection received instructions from popup:", instructions);
     
-    if (context) {
-      combinedInstructions += `Context: ${context}\n\n`;
-    }
+    // Set the custom instructions in the app context (this updates the instructions box in the main tab)
+    setCustomInstructions(instructions || "");
     
-    if (instructions) {
-      combinedInstructions += instructions;
-    } else {
-      // Provide default instructions if none specified
-      combinedInstructions += "Improve this text based on the given context while preserving the original meaning.";
-    }
-    
-    // Set the custom instructions in the app context
-    setCustomInstructions(combinedInstructions);
+    // Immediately trigger the transform with these instructions
+    setTimeout(() => {
+      transformText();
+    }, 0);
     
     // Automatically trigger the transformation
     transformText();
