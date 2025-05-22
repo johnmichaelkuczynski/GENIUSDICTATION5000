@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,6 @@ import { useAppContext } from "@/context/AppContext";
 import { useTransformation } from "@/hooks/useTransformation";
 import { useDictation } from "@/hooks/useDictation";
 import { useTTS } from "@/hooks/useTTS";
-import { useAIDetection } from "@/hooks/useAIDetection";
-import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 
 // Helper function to count words in a string
 const countWords = (text: string): number => {
@@ -45,10 +43,6 @@ const DictationSection = () => {
   // Component state
   const [currentTab, setCurrentTab] = useState("direct-dictation");
   const [showVoiceSelect, setShowVoiceSelect] = useState(false);
-  const [shouldAutoAssess, setShouldAutoAssess] = useState(true);
-  
-  // AI detection state
-  const { detectAI, isDetecting: isDetectingAI, detectionResult: aiDetectionResult } = useAIDetection();
   
   // Calculate word counts using memoization to avoid recalculating on every render
   const originalWordCount = useMemo(() => countWords(originalText), [originalText]);
@@ -86,56 +80,12 @@ const DictationSection = () => {
 
   // Handlers
   const handleTransformText = async () => {
-    await transformText({
-      text: originalText,
-      instructions: customInstructions,
-      model: selectedAIModel,
-      preset: selectedPreset,
-      useStyleReference,
-    });
+    await transformText();
   };
 
   const handleClearOriginal = () => {
     setOriginalText("");
   };
-  
-  // Function to detect AI in the input text
-  const handleDetectInputAI = useCallback(async () => {
-    if (!originalText || originalText.trim().length < 50) {
-      return;
-    }
-    await detectAI(originalText);
-  }, [originalText, detectAI]);
-  
-  // Handler for submitting context and custom instructions
-  const handleSubmitContext = useCallback((context: string, instructions: string) => {
-    console.log("DIALOG INSTRUCTIONS RECEIVED:", { context, instructions });
-    
-    let combinedInstructions = "";
-    
-    // Add context if provided
-    if (context && context.trim() !== "") {
-      combinedInstructions += `Context: ${context}\n\n`;
-    }
-    
-    // Add custom instructions if provided, otherwise use default
-    if (instructions && instructions.trim() !== "") {
-      combinedInstructions += instructions;
-    } else {
-      combinedInstructions += "Improve this text based on the given context while preserving the original meaning.";
-    }
-    
-    console.log("SETTING CUSTOM INSTRUCTIONS TO:", combinedInstructions);
-    
-    // Set the custom instructions in the app context
-    setCustomInstructions(combinedInstructions);
-    
-    // Force the transform function to run immediately after state update
-    setTimeout(() => {
-      console.log("EXECUTING TRANSFORM WITH INSTRUCTIONS:", combinedInstructions);
-      transformText();
-    }, 100);
-  }, [setCustomInstructions, transformText]);
 
   const handleCopyOriginal = () => {
     navigator.clipboard.writeText(originalText);
@@ -245,19 +195,6 @@ const DictationSection = () => {
                   </div>
                 </div>
                 <div className="flex-1 relative">
-                  {/* AI Detection Indicator */}
-                  {originalText && originalText.length >= 50 && (
-                    <div className="mb-2">
-                      <AIDetectionIndicator
-                        result={aiDetectionResult}
-                        isDetecting={isDetectingAI}
-                        onRequestDetection={handleDetectInputAI}
-                        originalText={originalText}
-                        onApplyContext={handleSubmitContext}
-                      />
-                    </div>
-                  )}
-                  
                   <Textarea
                     value={originalText}
                     onChange={(e) => setOriginalText(e.target.value)}

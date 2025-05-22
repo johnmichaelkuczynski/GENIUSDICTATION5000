@@ -28,10 +28,7 @@ export async function transformText({
           role: "user",
           content: `${instructions}
 
-IMPORTANT: 
-1. Your transformed text MUST be LONGER than the original text. The original text has approximately ${text.trim().split(/\s+/).length} words. Your response MUST be at least ${Math.ceil(text.trim().split(/\s+/).length * 1.125)} words. This is a non-negotiable requirement.
-2. Do NOT use Markdown formatting (like ** or *) in your response unless explicitly requested.
-3. If creating dialogue, use natural dialogue format with character names followed by colons (e.g., "Character: What they say") instead of Markdown formatting. Do not include asterisks or other markdown symbols.
+IMPORTANT: Your transformed text MUST be LONGER than the original text. The original text has approximately ${text.trim().split(/\s+/).length} words. Your response MUST be at least ${Math.ceil(text.trim().split(/\s+/).length * 1.125)} words. This is a non-negotiable requirement.
 
 Original text to transform:
 ${text}`

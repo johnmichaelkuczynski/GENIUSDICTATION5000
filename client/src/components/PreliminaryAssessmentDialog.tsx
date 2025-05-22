@@ -35,7 +35,7 @@ export function PreliminaryAssessmentDialog({
   onSubmitContext
 }: PreliminaryAssessmentDialogProps) {
   const [context, setContext] = useState('');
-  const [customInstructions, setCustomInstructions] = useState('Rewrite this text with improved readability while preserving the original message and meaning.');
+  const [customInstructions, setCustomInstructions] = useState('');
   const [isAssessing, setIsAssessing] = useState(false);
   const [assessment, setAssessment] = useState('');
   const [assessmentScore, setAssessmentScore] = useState(0);
@@ -96,8 +96,6 @@ export function PreliminaryAssessmentDialog({
   }, [isOpen, originalText]);
 
   const handleSubmit = () => {
-    // VERY IMPORTANT: We need to make sure the custom instructions entered by the user are passed directly
-    // to the transformation process, without any modifications or default fallbacks
     onSubmitContext(context, customInstructions);
     onClose();
   };

@@ -83,42 +83,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      // Log the raw request to debug
-      console.log("TRANSFORM REQUEST RECEIVED:", {
-        instructions: req.body.instructions,
-        preset: req.body.preset
-      });
-
       const { 
         text,
         instructions,
-        model = AIModel.GPT4O
+        model = AIModel.GPT4O,
+        preset,
+        useStyleReference,
+        styleReferences,
+        useContentReference,
+        contentReferences
       } = result.data;
-      
-      // RAW PROMPT IMPLEMENTATION:
-      // We now receive the raw prompt directly from the user
-      // The only processing we do is replace {{TEXT}} with the actual text
-      
-      // Log the raw instructions we're receiving
-      console.log("RAW TRANSFORM PROMPT RECEIVED:", instructions);
-      
-      // Replace {{TEXT}} placeholder with the actual text
-      // If no placeholder is found, we'll append the text at the end
-      let combinedInstructions = "";
-      
-      if (instructions && instructions.includes("{{TEXT}}")) {
-        // Replace the placeholder with the actual text
-        combinedInstructions = instructions.replace(/\{\{TEXT\}\}/g, text);
-      } else if (instructions) {
-        // If no placeholder but instructions exist, append the text with proper formatting
-        combinedInstructions = `${instructions}\n\nText: "${text}"`;
-      } else {
-        // Fallback if somehow no instructions are provided
-        combinedInstructions = `Please rewrite the following text in a clear, professional style:\n"${text}"`;
+
+      // Prepare style references if needed
+      let styleReferenceText = "";
+      if (useStyleReference && styleReferences && styleReferences.length > 0) {
+        const activeStyles = styleReferences.filter(style => style.active);
+        if (activeStyles.length > 0) {
+          styleReferenceText = `Use these style references: ${activeStyles.map(style => style.name).join(", ")}. `;
+        }
       }
       
-      // Log final prompt being sent to model
-      console.log("FINAL INSTRUCTIONS SENT TO MODEL:", combinedInstructions);
+      // Prepare content references if needed
+      let contentReferenceText = "";
+      if (useContentReference && contentReferences && contentReferences.length > 0) {
+        const activeContents = contentReferences.filter(content => content.active);
+        if (activeContents.length > 0) {
+          contentReferenceText = `Use these content references for information: ${activeContents.map(content => content.name).join(", ")}. `;
+        }
+      }
+
+      // Get preset instructions if applicable
+      let presetInstructions = "";
+      if (preset) {
+        switch (preset) {
+          case "Academic":
+            presetInstructions = "Rewrite in a formal academic style with proper citations, theoretical frameworks, and scholarly tone. Use precise terminology and maintain a third-person perspective.";
+            break;
+          case "Professional":
+            presetInstructions = "Transform into clear, concise professional writing suitable for business communication. Use direct language, remove unnecessary words, and organize with bullet points when appropriate.";
+            break;
+          case "Creative":
+            presetInstructions = "Rewrite with vivid imagery, varied sentence structure, and engaging narrative elements. Add metaphors and descriptive language to create a more immersive experience.";
+            break;
+          case "Concise":
+            presetInstructions = "Make the text as brief as possible while preserving all key information. Aim for at least 50% reduction in length without losing essential content.";
+            break;
+          case "Elaborate":
+            presetInstructions = "Expand on the ideas in the text, adding depth, examples, and explanations. Develop arguments more fully and explore implications of the statements.";
+            break;
+        }
+      }
+
+      // Combine instructions
+      const combinedInstructions = [
+        styleReferenceText,
+        contentReferenceText,
+        presetInstructions,
+        instructions
+      ].filter(Boolean).join(" ");
 
       // Determine which service to use based on the selected model
       let transformedText = "";
