@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AIDetectionResult } from '@/hooks/useAIDetection';
 
 interface TextAssessmentDialogProps {
@@ -21,83 +22,153 @@ export function TextAssessmentDialog({
   onSubmitContext
 }: TextAssessmentDialogProps) {
   const [context, setContext] = useState('');
-  const [customInstructions, setCustomInstructions] = useState('Rewrite this text with improvements based on the assessment.');
+  const [customInstructions, setCustomInstructions] = useState('Rewrite this text with improved readability while preserving the original message and meaning.');
+  const [selectedProvider, setSelectedProvider] = useState('openai');
 
   // Reset the form when dialog opens
   useEffect(() => {
     if (isOpen) {
       setContext('');
-      setCustomInstructions('Rewrite this text with improvements based on the assessment.');
+      setCustomInstructions('Rewrite this text with improved readability while preserving the original message and meaning.');
     }
   }, [isOpen]);
 
-  // Rewrite functionality completely removed
   const handleSubmit = () => {
-    console.log("Rewrite functionality is disabled");
+    // Direct execution of rewrite with custom instructions
+    console.log("SUBMITTING INSTRUCTIONS:", customInstructions);
+    onSubmitContext(context, customInstructions);
     onClose();
   };
 
-  // Generate human-readable assessment with suggestions
-  const getTextAssessment = () => {
-    if (!aiResult) return 'No assessment available yet.';
+  // Display full assessment report with recommendations
+  const displayAssessmentReport = () => {
+    if (!aiResult || !aiResult.assessment) return 'No assessment available yet.';
 
-    const { probability, humanLikelihood, assessment } = aiResult;
-
-    // If we have a full assessment from the server, use that
-    if (assessment) {
-      return assessment;
+    // Structure the report with headers
+    let report = '';
+    
+    // Add analysis section
+    if (aiResult.assessment) {
+      report += '<h3>INTELLIGENCE ASSESSMENT REPORT</h3>';
+      report += '<h4>Analysis</h4>';
+      report += `<p>${aiResult.assessment}</p>`;
     }
-
-    // Otherwise generate a simple assessment
-    let text = `Preliminary assessment: ${humanLikelihood}. `;
-
-    if (probability > 0.8) {
-      text += 'This text appears to be AI-generated with high confidence. Consider adding more personal style and voice to make it sound more authentic.';
-    } else if (probability > 0.6) {
-      text += 'This text likely contains AI-generated elements. You might want to revise for a more natural flow and unique expressions.';
-    } else if (probability > 0.4) {
-      text += 'This text shows a mix of AI and human-like elements. Adding more specific details and personal perspectives could improve it.';
-    } else if (probability > 0.2) {
-      text += 'This text appears mostly human-written. Minor refinements in style and structure could enhance it further.';
-    } else {
-      text += 'This text appears authentically human-written. It has good variation and natural language patterns.';
+    
+    // Add recommendations section
+    if (aiResult.recommendations) {
+      report += '<h4>Recommendations</h4>';
+      report += `<p>${aiResult.recommendations}</p>`;
     }
+    
+    // If we have errata, add them
+    if (aiResult.errata && aiResult.errata.length > 0) {
+      report += '<h4>Errata</h4>';
+      report += '<ul>';
+      aiResult.errata.forEach(err => {
+        report += `<li><strong>"${err.quote}"</strong> - ${err.issue}. Suggested correction: "${err.correction}"</li>`;
+      });
+      report += '</ul>';
+    }
+    
+    return report;
+  };
 
-    return text;
+  // Convert HTML to React-friendly content
+  const createMarkup = () => {
+    return { __html: displayAssessmentReport() };
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Text Assessment & Improvement</DialogTitle>
+          <div className="flex justify-between items-center">
+            <DialogTitle>Text Assessment & Improvement</DialogTitle>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Assessment Provider:</span>
+              <Select 
+                value={selectedProvider} 
+                onValueChange={setSelectedProvider}
+              >
+                <SelectTrigger className="w-[150px] h-8 text-xs">
+                  <SelectValue placeholder="Select provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">OpenAI (GPT-4o)</SelectItem>
+                  <SelectItem value="anthropic">Anthropic (Claude)</SelectItem>
+                  <SelectItem value="perplexity">Perplexity</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <DialogDescription>
-            Review the assessment of your text and provide rewrite instructions.
+            Review your text assessment and provide additional context for a more tailored rewrite.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          <div className="text-sm bg-secondary/30 p-3 rounded-md border overflow-auto max-h-[200px]">
-            {getTextAssessment()}
+          {aiResult && aiResult.humanLikelihood && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className={`font-semibold ${aiResult.isAIGenerated ? 'text-destructive' : 'text-green-600'}`}>
+                {!aiResult.isAIGenerated ? '✓ Likely Human-Written' : '✗ Likely AI-Generated'}
+              </span>
+            </div>
+          )}
+          
+          <div className={`text-sm bg-secondary/20 p-4 rounded-md border overflow-auto max-h-[250px] prose prose-sm`}>
+            <div dangerouslySetInnerHTML={createMarkup()} />
           </div>
 
           <div className="grid gap-2">
-            <div className="text-sm border-l-4 border-primary/50 pl-2 py-1 italic">
-              The text assessment feature has been disabled.
-              To transform your text, use the "Transform Text" button directly.
-            </div>
+            <Label htmlFor="context">Context Context</Label>
+            <Textarea
+              id="context"
+              placeholder="e.g., This is a haiku about whales..."
+              className="min-h-[80px]"
+              value={context}
+              onChange={(e) => setContext(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Provide context about what this text is meant to be
+            </p>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="instructions">Custom Rewrite Instructions</Label>
+            <Textarea
+              id="instructions"
+              placeholder="e.g., Rewrite as a Shakespearean sonnet about whales incorporating modern scientific information..."
+              className="min-h-[100px]"
+              value={customInstructions}
+              onChange={(e) => setCustomInstructions(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Add specific instructions for how you want the text to be rewritten
+            </p>
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button 
-            variant="outline" 
-            onClick={onClose} 
-            className="hover:bg-destructive/90 hover:text-destructive-foreground"
-          >
-            Close
-          </Button>
+        <DialogFooter className="flex justify-between">
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => {}} className="text-xs">
+              <span className="mr-1">📄</span> Word
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {}} className="text-xs">
+              <span className="mr-1">📑</span> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {}} className="text-xs">
+              <span className="mr-1">📝</span> Text
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button 
+              className="bg-primary"
+              onClick={handleSubmit}
+            >
+              Apply & Rewrite
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

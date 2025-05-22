@@ -82,8 +82,10 @@ export function AIDetectionIndicator({
   };
   
   const handleSubmitContext = (context: string, instructions: string) => {
-    // DISABLED: No longer applying context or instructions
-    console.log("REWRITE FUNCTIONALITY DISABLED");
+    console.log("AIDetectionIndicator - Submitting context and instructions:", context, instructions);
+    if (onApplyContext) {
+      onApplyContext(context, instructions);
+    }
     setIsAssessmentDialogOpen(false);
   };
   
@@ -110,7 +112,17 @@ export function AIDetectionIndicator({
           </TooltipProvider>
         </div>
         <div className="flex items-center gap-2">
-          {/* Rewrite button completely removed */}
+          {onApplyContext && (
+            <Button
+              variant="ghost" 
+              size="sm"
+              className="text-[10px] px-1.5 py-0 h-5 gap-1"
+              onClick={handleOpenAssessmentDialog}
+              disabled={!result}
+            >
+              <HelpCircle className="h-3 w-3" /> Add Context
+            </Button>
+          )}
           <Badge 
             variant={result?.isAIGenerated ? "destructive" : "outline"} 
             className="text-[10px] px-1.5 py-0 h-4"
