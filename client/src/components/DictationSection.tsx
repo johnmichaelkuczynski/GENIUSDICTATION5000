@@ -49,7 +49,12 @@ const DictationSection = () => {
   const processedWordCount = useMemo(() => countWords(processedText), [processedText]);
   
   // Custom hooks
-  const { transformText } = useTransformation();
+  const { 
+    transformText, 
+    transformProcessedText, 
+    useProcessedAsInput, 
+    clearAll
+  } = useTransformation();
   const { 
     dictationStatus,
     hasRecordedAudio, 
@@ -81,6 +86,12 @@ const DictationSection = () => {
   // Handlers
   const handleTransformText = async () => {
     await transformText();
+  };
+  
+  // Handle transforming the processed text (for recursive transformations)
+  const handleTransformProcessed = async () => {
+    if (!processedText) return;
+    await transformProcessedText(processedText);
   };
 
   const handleClearOriginal = () => {
@@ -266,6 +277,39 @@ const DictationSection = () => {
                     >
                       <i className="ri-download-line mr-1"></i> Download
                     </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                      onClick={useProcessedAsInput}
+                      disabled={!processedText}
+                    >
+                      <i className="ri-arrow-left-line mr-1"></i> Use as Input
+                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
+                            onClick={() => {
+                              // Apply the same transformation to the processed text
+                              if (processedText) {
+                                // Use the current instructions/settings to transform again
+                                transformProcessedText(processedText);
+                              }
+                            }}
+                            disabled={!processedText || isProcessing}
+                          >
+                            <i className="ri-magic-line mr-1"></i> Transform Again
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          <p className="text-xs">Apply current instructions to transform the output text again</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
                 <div className="flex-1">
