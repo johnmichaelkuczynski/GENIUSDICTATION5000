@@ -134,18 +134,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Combine instructions
-      // Only use preset instructions if custom instructions are empty and preset is not "Custom"
+      // CRITICAL BUG FIX: Custom instructions from popup are being ignored
+      // Prioritize user-provided instructions ALWAYS
       let finalInstructions = instructions;
       
-      // If custom instructions are provided, they take priority but can be combined with preset
-      if (finalInstructions && preset && preset !== "Custom") {
-        finalInstructions = `${presetInstructions}\n\nAdditionally: ${finalInstructions}`;
-      } 
-      // If no custom instructions, use preset instructions
-      else if (!finalInstructions && presetInstructions) {
-        finalInstructions = presetInstructions;
+      // Only use preset if no custom instructions exist
+      if (!finalInstructions || finalInstructions.trim() === "") {
+        finalInstructions = presetInstructions || "Improve this text while maintaining its meaning.";
       }
+      
+      // Log instructions to verify
+      console.log("CUSTOM INSTRUCTIONS RECEIVED:", instructions);
+      console.log("FINAL INSTRUCTIONS SENT TO MODEL:", finalInstructions);
       
       const combinedInstructions = [
         styleReferenceText,
