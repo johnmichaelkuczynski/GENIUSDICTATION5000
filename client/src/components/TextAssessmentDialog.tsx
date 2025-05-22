@@ -155,30 +155,23 @@ Instructions: "${customInstructions}"`;
           )}
 
           <div className="grid gap-2">
-            <Label htmlFor="context">Content Context</Label>
+            <Label htmlFor="fullPrompt" className="flex items-center">
+              <span className="font-semibold">Full Rewrite Prompt</span>
+              <span className="ml-2 text-xs text-muted-foreground">(direct input to the model)</span>
+            </Label>
             <Textarea
-              id="context"
-              placeholder="e.g., This is a haiku about whales..."
-              className="min-h-[80px]"
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Provide context about what this text is meant to be
-            </p>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="instructions">Custom Rewrite Instructions</Label>
-            <Textarea
-              id="instructions"
-              placeholder="e.g., Rewrite as a Shakespearean sonnet about whales incorporating modern scientific information..."
-              className="min-h-[100px]"
+              id="fullPrompt"
+              className="min-h-[200px] font-mono text-sm"
               value={customInstructions}
               onChange={(e) => setCustomInstructions(e.target.value)}
+              placeholder={`Please rewrite the following text in a more academic style:
+"{{TEXT}}"
+
+Make it clearer and more elegant while preserving the original meaning.`}
             />
-            <p className="text-xs text-muted-foreground">
-              Add specific instructions for how you want the text to be rewritten
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <span className="bg-yellow-100 text-yellow-800 px-1 rounded text-[10px] font-bold">{{TEXT}}</span>
+              <span>will be replaced with your original text. Everything else will be sent as-is to the AI model.</span>
             </p>
           </div>
         </div>
