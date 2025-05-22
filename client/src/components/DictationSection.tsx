@@ -103,25 +103,36 @@ const DictationSection = () => {
   
   // Handler for submitting context and custom instructions
   const handleSubmitContext = useCallback((context: string, instructions: string) => {
-    // Combine context and instructions into a more comprehensive prompt
-    let combinedInstructions = "";
+    console.log("DIALOG INSTRUCTIONS RECEIVED:", instructions);
     
-    if (context) {
-      combinedInstructions += `Context: ${context}\n\n`;
-    }
-    
-    if (instructions) {
-      combinedInstructions += instructions;
+    // DIRECTLY set custom instructions from dialog into app state
+    if (instructions && instructions.trim() !== "") {
+      // If we have specific instructions from the dialog, use those directly
+      const combinedInstructions = context ? `Context: ${context}\n\n${instructions}` : instructions;
+      
+      console.log("SETTING CUSTOM INSTRUCTIONS TO:", combinedInstructions);
+      
+      // Set the custom instructions in the app context
+      setCustomInstructions(combinedInstructions);
+      
+      // Automatically trigger the transformation with these exact instructions
+      setTimeout(() => transformText(), 50); // Short timeout to ensure state update
     } else {
-      // Provide default instructions if none specified
+      // Fallback only if no instructions provided
+      let combinedInstructions = "";
+      
+      if (context) {
+        combinedInstructions += `Context: ${context}\n\n`;
+      }
+      
       combinedInstructions += "Improve this text based on the given context while preserving the original meaning.";
+      
+      // Set the custom instructions in the app context
+      setCustomInstructions(combinedInstructions);
+      
+      // Automatically trigger the transformation
+      setTimeout(() => transformText(), 50); // Short timeout to ensure state update
     }
-    
-    // Set the custom instructions in the app context
-    setCustomInstructions(combinedInstructions);
-    
-    // Automatically trigger the transformation
-    transformText();
   }, [setCustomInstructions, transformText]);
 
   const handleCopyOriginal = () => {

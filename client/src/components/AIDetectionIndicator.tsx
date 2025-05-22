@@ -82,6 +82,7 @@ export function AIDetectionIndicator({
   };
   
   const handleSubmitContext = (context: string, instructions: string) => {
+    console.log("AIDetectionIndicator submitting context and instructions:", context, instructions);
     if (onApplyContext) {
       onApplyContext(context, instructions);
     }
