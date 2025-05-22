@@ -86,13 +86,8 @@ const DictationSection = () => {
 
   // Handlers
   const handleTransformText = async () => {
-    await transformText({
-      text: originalText,
-      instructions: customInstructions,
-      model: selectedAIModel,
-      preset: selectedPreset,
-      useStyleReference,
-    });
+    // Just call the transform function - it will use the app context values
+    await transformText();
   };
 
   const handleClearOriginal = () => {

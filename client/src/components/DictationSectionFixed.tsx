@@ -200,9 +200,6 @@ const DictationSection = () => {
     setTimeout(() => {
       transformText();
     }, 0);
-    
-    // Automatically trigger the transformation
-    transformText();
   }, [setCustomInstructions, transformText]);
   
   const handleDetectOutputAI = useCallback(async () => {
