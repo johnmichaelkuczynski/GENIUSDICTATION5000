@@ -269,7 +269,7 @@ const DictationSection = () => {
                       {processedWordCount} {processedWordCount === 1 ? 'word' : 'words'}
                     </Badge>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 flex-wrap gap-1">
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -286,44 +286,32 @@ const DictationSection = () => {
                     >
                       <i className="ri-download-line mr-1"></i> Download
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                      onClick={useProcessedAsInput}
-                      disabled={!processedText}
-                    >
-                      <i className="ri-arrow-left-line mr-1"></i> Use as Input
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                      onClick={() => {
-                        if (processedText) {
-                          // Apply the current transformation again to the processed text
-                          transformProcessedText(processedText);
-                        }
-                      }}
-                      disabled={!processedText || isProcessing}
-                    >
-                      <i className="ri-magic-line mr-1"></i> Transform Again
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs flex items-center bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300"
-                      onClick={() => {
-                        if (processedText) {
-                          // Open the assessment dialog with the processed text
-                          setPrelimAssessmentText(processedText);
-                          setPrelimAssessmentDialogOpen(true);
-                        }
-                      }}
-                      disabled={!processedText || isProcessing}
-                    >
-                      <i className="ri-file-search-line mr-1"></i> Assess
-                    </Button>
+                    {processedText && (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                          onClick={useProcessedAsInput}
+                        >
+                          <i className="ri-arrow-left-line mr-1"></i> Use as Input
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
+                          onClick={() => {
+                            if (processedText) {
+                              // Apply the current transformation again to the processed text
+                              transformProcessedText(processedText);
+                            }
+                          }}
+                          disabled={isProcessing}
+                        >
+                          <i className="ri-magic-line mr-1"></i> Transform Again
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="flex-1">
@@ -544,11 +532,14 @@ const DictationSection = () => {
       </Card>
       
       {/* Preliminary assessment dialog for processed text */}
-      <PreliminaryAssessmentDialog
-        open={prelimAssessmentDialogOpen}
-        onOpenChange={setPrelimAssessmentDialogOpen}
-        text={prelimAssessmentText}
-      />
+      {prelimAssessmentDialogOpen && (
+        <PreliminaryAssessmentDialog
+          isOpen={prelimAssessmentDialogOpen}
+          onClose={() => setPrelimAssessmentDialogOpen(false)}
+          originalText={prelimAssessmentText}
+          onSubmitContext={() => {}}
+        />
+      )}
     </section>
   );
 };
