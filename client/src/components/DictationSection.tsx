@@ -542,6 +542,13 @@ const DictationSection = () => {
           </TabsContent>
         </Tabs>
       </Card>
+      
+      {/* Preliminary assessment dialog for processed text */}
+      <PreliminaryAssessmentDialog
+        open={prelimAssessmentDialogOpen}
+        onOpenChange={setPrelimAssessmentDialogOpen}
+        text={prelimAssessmentText}
+      />
     </section>
   );
 };
