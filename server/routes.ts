@@ -83,6 +83,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
+      // Log the raw request to debug
+      console.log("TRANSFORM REQUEST RECEIVED:", {
+        instructions: req.body.instructions,
+        preset: req.body.preset
+      });
+
       const { 
         text,
         instructions,
@@ -93,6 +99,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         useContentReference,
         contentReferences
       } = result.data;
+      
+      // CRITICAL FIX: Use the user's custom instructions directly as received
+      // Treat them as a direct command with no fallbacks if present
+      const rewriteInstructions = instructions?.trim() || "Improve this text while preserving the original meaning.";
+      
+      // Log exactly what we're using for instructions
+      console.log("USING REWRITE INSTRUCTIONS:", rewriteInstructions);
 
       // Prepare style references if needed
       let styleReferenceText = "";
@@ -134,24 +147,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // CRITICAL BUG FIX: Custom instructions from popup are being ignored
-      // Prioritize user-provided instructions ALWAYS
-      let finalInstructions = instructions;
-      
-      // Only use preset if no custom instructions exist
-      if (!finalInstructions || finalInstructions.trim() === "") {
-        finalInstructions = presetInstructions || "Improve this text while maintaining its meaning.";
-      }
-      
-      // Log instructions to verify
-      console.log("CUSTOM INSTRUCTIONS RECEIVED:", instructions);
-      console.log("FINAL INSTRUCTIONS SENT TO MODEL:", finalInstructions);
-      
+      // CRITICAL FIX: Use rewriteInstructions as-is with no fallbacks
+      // ONLY add style/content references as supplementary information
       const combinedInstructions = [
         styleReferenceText,
         contentReferenceText,
-        finalInstructions
+        rewriteInstructions
       ].filter(Boolean).join(" ");
+      
+      // Log final prompt being sent to model
+      console.log("FINAL INSTRUCTIONS SENT TO MODEL:", combinedInstructions);
 
       // Determine which service to use based on the selected model
       let transformedText = "";

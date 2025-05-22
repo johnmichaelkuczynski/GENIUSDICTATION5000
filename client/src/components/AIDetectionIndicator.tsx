@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { AlertCircle, AlertTriangle, CheckCircle, Info, HelpCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { TextAssessmentDialogNew } from './TextAssessmentDialogNew';
+import { TextAssessmentDialog } from './TextAssessmentDialog';
 
 interface AIDetectionIndicatorProps {
   result: AIDetectionResult | null;
@@ -142,7 +142,7 @@ export function AIDetectionIndicator({
       
       {/* Text Assessment Dialog */}
       {originalText && (
-        <TextAssessmentDialogNew
+        <TextAssessmentDialog
           isOpen={isAssessmentDialogOpen}
           onClose={() => setIsAssessmentDialogOpen(false)}
           originalText={originalText}
