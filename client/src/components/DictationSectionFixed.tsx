@@ -193,51 +193,15 @@ const DictationSection = () => {
   const handleSubmitContext = useCallback((context: string, instructions: string) => {
     console.log("DictationSection received instructions from popup:", instructions);
     
-    // DIRECT METHOD: First set the instructions, then transform
+    // First, update the instructions in the UI
     if (instructions) {
-      // Set the instructions in the app context
       setCustomInstructions(instructions);
       
-      // Set processing state
-      const { setIsProcessing } = useAppContext();
-      
-      // Force a small delay to ensure state update completes
-      setTimeout(() => {
-        // Show processing state
-        setIsProcessing(true);
-        
-        // Call the API directly with the new instructions
-        fetch("/api/transform", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: originalText,
-            instructions: instructions,
-            model: selectedAIModel,
-            preset: selectedPreset
-          }),
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Transformation failed: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          // Set the processed text with the result
-          setProcessedText(data.text);
-          setIsProcessing(false);
-        })
-        .catch(error => {
-          console.error("Error:", error);
-          setProcessedText("Error during transformation: " + error.message);
-          setIsProcessing(false);
-        });
-      }, 100);
+      // Then, immediately call the transformText function 
+      // that's already working in the main app
+      transformText();
     }
-  }, [setCustomInstructions, setProcessedText, originalText, selectedAIModel, selectedPreset]);
+  }, [setCustomInstructions, transformText]);
   
   const handleDetectOutputAI = useCallback(async () => {
     if (processedText.trim().length > 0) {
