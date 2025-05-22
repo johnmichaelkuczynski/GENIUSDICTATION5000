@@ -110,17 +110,7 @@ export function AIDetectionIndicator({
           </TooltipProvider>
         </div>
         <div className="flex items-center gap-2">
-          {onApplyContext && (
-            <Button
-              variant="ghost" 
-              size="sm"
-              className="text-[10px] px-1.5 py-0 h-5 gap-1"
-              onClick={handleOpenAssessmentDialog}
-              disabled={!result}
-            >
-              <HelpCircle className="h-3 w-3" /> Add Context
-            </Button>
-          )}
+          {/* Rewrite button completely removed */}
           <Badge 
             variant={result?.isAIGenerated ? "destructive" : "outline"} 
             className="text-[10px] px-1.5 py-0 h-4"

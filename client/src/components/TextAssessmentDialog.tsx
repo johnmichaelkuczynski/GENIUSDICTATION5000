@@ -31,14 +31,9 @@ export function TextAssessmentDialog({
     }
   }, [isOpen]);
 
+  // Rewrite functionality completely removed
   const handleSubmit = () => {
-    // Direct execution of rewrite with custom instructions
-    console.log("TextAssessmentDialog - Submitting with instructions:", customInstructions);
-    
-    // Call the parent component's handler
-    onSubmitContext(context, customInstructions);
-    
-    // Close the dialog
+    console.log("Rewrite functionality is disabled");
     onClose();
   };
 
@@ -87,31 +82,10 @@ export function TextAssessmentDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="context">Content Context</Label>
-            <Textarea
-              id="context"
-              placeholder="e.g., This is a haiku about whales..."
-              className="min-h-[80px]"
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              What is this text about? Provide background information.
-            </p>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="instructions">Custom Rewrite Instructions</Label>
-            <Textarea
-              id="instructions"
-              placeholder="e.g., Rewrite as a Shakespearean sonnet about whales incorporating modern scientific information..."
-              className="min-h-[120px]"
-              value={customInstructions}
-              onChange={(e) => setCustomInstructions(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Add specific instructions for how you want the text to be rewritten
-            </p>
+            <div className="text-sm border-l-4 border-primary/50 pl-2 py-1 italic">
+              The text assessment feature has been disabled.
+              To transform your text, use the "Transform Text" button directly.
+            </div>
           </div>
         </div>
 
