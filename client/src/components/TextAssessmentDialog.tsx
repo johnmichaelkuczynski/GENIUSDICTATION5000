@@ -117,7 +117,13 @@ export function TextAssessmentDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} className="bg-primary">Apply & Rewrite</Button>
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            className="hover:bg-destructive/90 hover:text-destructive-foreground"
+          >
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
