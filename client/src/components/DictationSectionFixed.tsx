@@ -998,7 +998,7 @@ const DictationSection = () => {
                       <span className="text-xs text-muted-foreground">{processingProgress}%</span>
                     </div>
                   )}
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 flex-wrap gap-1">
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -1023,6 +1023,48 @@ const DictationSection = () => {
                     >
                       <i className="ri-download-line mr-1"></i> Download
                     </Button>
+                    {processedText && (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                          onClick={() => {
+                            if (processedText) {
+                              setOriginalText(processedText);
+                              setProcessedText('');
+                              toast({
+                                title: "Text Moved",
+                                description: "The processed text has been moved to the input area for further editing.",
+                                duration: 3000,
+                              });
+                            }
+                          }}
+                        >
+                          <i className="ri-arrow-left-line mr-1"></i> Use as Input
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
+                          onClick={() => {
+                            if (processedText) {
+                              // This will apply the transformation process to the processed text
+                              const currentText = originalText;
+                              setOriginalText(processedText);
+                              handleTransformText();
+                              // After the transform is triggered, restore the original text
+                              setTimeout(() => {
+                                setOriginalText(currentText);
+                              }, 100);
+                            }
+                          }}
+                          disabled={isProcessing}
+                        >
+                          <i className="ri-magic-line mr-1"></i> Transform Again
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
                 {/* AI Detection Button for Processed Text */}
