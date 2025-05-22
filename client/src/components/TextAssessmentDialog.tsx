@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AIDetectionResult } from '@/hooks/useAIDetection';
+import { AlertTriangle } from 'lucide-react';
 
 interface TextAssessmentDialogProps {
   isOpen: boolean;
@@ -24,58 +25,81 @@ export function TextAssessmentDialog({
   const [context, setContext] = useState('');
   const [customInstructions, setCustomInstructions] = useState('Rewrite this text with improved readability while preserving the original message and meaning.');
   const [selectedProvider, setSelectedProvider] = useState('openai');
+  
+  // ⚠️ Ensure we're directly logging what's being submitted
+  const [debugLog, setDebugLog] = useState('');
 
   // Reset the form when dialog opens
   useEffect(() => {
     if (isOpen) {
       setContext('');
       setCustomInstructions('Rewrite this text with improved readability while preserving the original message and meaning.');
+      // Clear debug log when reopening
+      setDebugLog('');
     }
   }, [isOpen]);
 
   const handleSubmit = () => {
-    // Direct execution of rewrite with custom instructions
-    console.log("SUBMITTING INSTRUCTIONS:", customInstructions);
+    // Direct execution of rewrite with custom instructions - with debug info
+    const submitLog = `EXECUTING SUBMIT with:
+Context: "${context}"
+Instructions: "${customInstructions}"`;
+    
+    setDebugLog(submitLog);
+    console.log(submitLog);
+    
+    // Call the parent's submission handler with the EXACT values from state
     onSubmitContext(context, customInstructions);
+    
+    // Close the dialog after submission
     onClose();
   };
-
-  // Display full assessment report with recommendations
-  const displayAssessmentReport = () => {
-    if (!aiResult || !aiResult.assessment) return 'No assessment available yet.';
-
-    // Structure the report with headers
-    let report = '';
+  
+  // Generate assessment data for display
+  const renderAssessment = () => {
+    if (!aiResult) return 'No assessment available';
     
-    // Add analysis section
+    let sections = [];
+    
+    // Add the main assessment
     if (aiResult.assessment) {
-      report += '<h3>INTELLIGENCE ASSESSMENT REPORT</h3>';
-      report += '<h4>Analysis</h4>';
-      report += `<p>${aiResult.assessment}</p>`;
+      sections.push(
+        <div key="assessment" className="mb-4">
+          <h3 className="text-base font-bold uppercase mb-2">Intelligence Assessment Report</h3>
+          <h4 className="text-sm font-semibold mb-1">Analysis</h4>
+          <p className="text-sm">{aiResult.assessment}</p>
+        </div>
+      );
     }
     
-    // Add recommendations section
+    // Add recommendations if available
     if (aiResult.recommendations) {
-      report += '<h4>Recommendations</h4>';
-      report += `<p>${aiResult.recommendations}</p>`;
+      sections.push(
+        <div key="recommendations" className="mb-4">
+          <h4 className="text-sm font-semibold mb-1">Recommendations</h4>
+          <p className="text-sm">{aiResult.recommendations}</p>
+        </div>
+      );
     }
     
-    // If we have errata, add them
+    // Add errata if available
     if (aiResult.errata && aiResult.errata.length > 0) {
-      report += '<h4>Errata</h4>';
-      report += '<ul>';
-      aiResult.errata.forEach(err => {
-        report += `<li><strong>"${err.quote}"</strong> - ${err.issue}. Suggested correction: "${err.correction}"</li>`;
-      });
-      report += '</ul>';
+      sections.push(
+        <div key="errata" className="mb-4">
+          <h4 className="text-sm font-semibold mb-1">Errata</h4>
+          <ul className="text-sm list-disc pl-5 space-y-1">
+            {aiResult.errata.map((err, index) => (
+              <li key={index}>
+                <strong>"{err.quote}"</strong> - {err.issue}. 
+                Suggested correction: "{err.correction}"
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
     }
     
-    return report;
-  };
-
-  // Convert HTML to React-friendly content
-  const createMarkup = () => {
-    return { __html: displayAssessmentReport() };
+    return sections.length > 0 ? sections : 'No detailed assessment available';
   };
 
   return (
@@ -115,12 +139,23 @@ export function TextAssessmentDialog({
             </div>
           )}
           
-          <div className={`text-sm bg-secondary/20 p-4 rounded-md border overflow-auto max-h-[250px] prose prose-sm`}>
-            <div dangerouslySetInnerHTML={createMarkup()} />
+          <div className="text-sm bg-secondary/20 p-4 rounded-md border overflow-auto max-h-[250px]">
+            {renderAssessment()}
           </div>
 
+          {/* Debug log display - will show exactly what's being submitted */}
+          {debugLog && (
+            <div className="text-xs p-2 border border-yellow-500 bg-yellow-50 rounded">
+              <div className="flex items-center gap-1 text-yellow-700 mb-1">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span className="font-semibold">Debug information:</span>
+              </div>
+              <pre className="whitespace-pre-wrap text-xs">{debugLog}</pre>
+            </div>
+          )}
+
           <div className="grid gap-2">
-            <Label htmlFor="context">Context Context</Label>
+            <Label htmlFor="context">Content Context</Label>
             <Textarea
               id="context"
               placeholder="e.g., This is a haiku about whales..."
