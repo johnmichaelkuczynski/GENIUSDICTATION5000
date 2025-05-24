@@ -1049,25 +1049,42 @@ const DictationSection = () => {
                           className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
                           onClick={async () => {
                             if (processedText && !isProcessing) {
+                              // Set processing state
+                              setIsProcessing(true);
+                              
                               try {
-                                // Directly transform the processed text without changing the original
+                                console.log("Starting recursive transformation of:", processedText.substring(0, 50) + "...");
+                                
+                                // Include all the necessary parameters
+                                const payload = {
+                                  text: processedText,
+                                  instructions: customInstructions,
+                                  model: selectedAIModel,
+                                  preset: selectedPreset,
+                                  useStyleReference: useStyleReference,
+                                  useContentReference: useContentReference
+                                };
+                                
+                                console.log("Sending transformation request with payload:", payload);
+                                
+                                // Directly transform the processed text
                                 const response = await fetch("/api/transform", {
                                   method: "POST",
                                   headers: {
                                     "Content-Type": "application/json",
                                   },
-                                  body: JSON.stringify({
-                                    text: processedText,
-                                    instructions: customInstructions,
-                                    model: selectedAIModel
-                                  }),
+                                  body: JSON.stringify(payload),
                                 });
                                 
                                 if (!response.ok) {
-                                  throw new Error("Failed to transform text");
+                                  const errorText = await response.text();
+                                  console.error("Transform API error:", errorText);
+                                  throw new Error(`Failed to transform text: ${response.status} ${response.statusText}`);
                                 }
                                 
                                 const result = await response.json();
+                                console.log("Transformation successful, received:", result.text.substring(0, 50) + "...");
+                                
                                 // Set the new transformed text as the processed text
                                 setProcessedText(result.text);
                                 
@@ -1080,10 +1097,13 @@ const DictationSection = () => {
                                 console.error("Error transforming text:", error);
                                 toast({
                                   title: "Transformation Failed",
-                                  description: "An error occurred while transforming the text.",
+                                  description: "An error occurred while transforming the text. " + error.message,
                                   variant: "destructive",
-                                  duration: 3000,
+                                  duration: 5000,
                                 });
+                              } finally {
+                                // Reset processing state
+                                setIsProcessing(false);
                               }
                             }
                           }}
