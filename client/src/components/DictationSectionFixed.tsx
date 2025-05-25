@@ -178,10 +178,8 @@ const DictationSection = () => {
   const handleDetectInputAI = useCallback(async () => {
     if (originalText.trim().length > 0) {
       const result = await detectAI(originalText, selectedAssessmentModel);
-      // If auto-assessment is enabled and we have a result, show the assessment dialog
-      if (shouldAutoAssess && result) {
-        setIsAssessmentDialogOpen(true);
-      }
+      // We no longer automatically show the assessment dialog
+      // The user must explicitly click the "Get Assessment" button
     } else {
       toast({
         title: "No text to analyze",
