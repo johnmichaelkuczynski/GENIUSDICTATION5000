@@ -304,14 +304,11 @@ const DictationSection = () => {
             description: `Speech transcribed from ${file.name}`,
           });
           
-          // Automatically run AI detection if there's enough text from audio
+          // We can still run AI detection in the background but won't show the dialog automatically
           if (data.text.trim().length >= 50 && shouldAutoAssess) {
             setTimeout(() => {
-              detectAI(data.text).then(result => {
-                if (result) {
-                  setIsAssessmentDialogOpen(true);
-                }
-              });
+              detectAI(data.text);
+              // Removed the automatic dialog opening
             }, 500);
           }
         }
