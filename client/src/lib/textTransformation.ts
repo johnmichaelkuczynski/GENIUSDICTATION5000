@@ -168,6 +168,7 @@ export async function transformText(options: TransformOptions): Promise<string> 
           }
         }
         
+        // Add the processed chunk to the accumulated text
         processedText += chunkData.text;
         
         // Add a separator between chunks if not at the end
@@ -175,12 +176,18 @@ export async function transformText(options: TransformOptions): Promise<string> 
           processedText += "\n\n";
         }
         
+        // Call progress callback with current progress AND the processed text so far
+        // This allows the UI to update with each processed chunk
+        if (options.onProgress) {
+          options.onProgress(chunkNum, totalChunks, processedText);
+        }
+        
         chunkNum++;
       }
       
       // Call progress callback for completion if provided
       if (options.onProgress) {
-        options.onProgress(totalChunks, totalChunks);
+        options.onProgress(totalChunks, totalChunks, processedText);
       }
       
       return processedText;
