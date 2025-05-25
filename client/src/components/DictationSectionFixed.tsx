@@ -999,6 +999,7 @@ const DictationSection = () => {
                       {isDetectingOutputAI ? "Analyzing..." : "Detect AI Content"}
                     </Button>
                     
+                    {/* Always show Transform Again button when there's processed text */}
                     {processedText && (
                       <Button 
                         variant="ghost" 
