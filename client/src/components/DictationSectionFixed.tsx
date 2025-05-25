@@ -1430,7 +1430,67 @@ const DictationSection = () => {
                     {/* Transform Button */}
                     <Button 
                       className="flex items-center" 
-                      onClick={handleTransformText}
+                      onClick={async () => {
+                        try {
+                          if (!originalText) {
+                            toast({
+                              title: "No text to transform",
+                              description: "Please enter some text first",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+                          
+                          // Set processing indicator
+                          setIsProcessing(true);
+                          
+                          // Show toast to indicate process is starting
+                          toast({
+                            title: "Starting transformation",
+                            description: "Processing your text...",
+                            duration: 2000,
+                          });
+                          
+                          // Make direct API call
+                          const response = await fetch("/api/transform", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              text: originalText,
+                              instructions: customInstructions || "Improve this text",
+                              model: selectedAIModel,
+                              preset: selectedPreset,
+                              useStyleReference,
+                              useContentReference
+                            })
+                          });
+                          
+                          if (!response.ok) {
+                            throw new Error(`Transformation failed: ${response.statusText}`);
+                          }
+                          
+                          const result = await response.json();
+                          
+                          // Update processed text
+                          setProcessedText(result.text);
+                          
+                          // Show success message
+                          toast({
+                            title: "Transformation complete",
+                            description: "Your text has been transformed successfully!",
+                            duration: 3000,
+                          });
+                        } catch (error) {
+                          console.error("Error transforming text:", error);
+                          toast({
+                            title: "Transformation failed",
+                            description: error instanceof Error ? error.message : "An unknown error occurred",
+                            variant: "destructive"
+                          });
+                        } finally {
+                          setIsProcessing(false);
+                        }
+                      }}
                       disabled={isProcessing || !originalText}
                     >
                       {isProcessing ? (

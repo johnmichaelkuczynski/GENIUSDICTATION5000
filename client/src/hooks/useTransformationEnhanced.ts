@@ -76,13 +76,18 @@ export function useTransformation() {
     
     // Reset progress
     setProcessingProgress(0);
-    setProcessedText("");
-
+    
     // Create a new AbortController
     const controller = new AbortController();
     setAbortController(controller);
 
     try {
+      console.log("Starting text transformation with:", { 
+        textLength: originalText.length,
+        model: selectedAIModel,
+        instructions: customInstructions ? customInstructions.substring(0, 50) + "..." : "none"
+      });
+      
       setIsProcessing(true);
       
       // Check if we've selected a model that requires specific API keys
