@@ -62,7 +62,7 @@ export function PreliminaryAssessmentDialog({
   });
   const { toast } = useToast();
 
-  // Check available models and run assessment when dialog opens
+  // Check available models when dialog opens, but NEVER automatically run assessment
   useEffect(() => {
     const checkApiStatus = async () => {
       try {
@@ -88,10 +88,14 @@ export function PreliminaryAssessmentDialog({
       }
     };
     
-    checkApiStatus();
+    // Only check API status when the dialog is opened
+    if (isOpen) {
+      checkApiStatus();
+    }
     
-    // Removed automatic assessment trigger - will only assess when user clicks "Get Assessment" button
-  }, [isOpen, originalText]);
+    // IMPORTANT: We NEVER automatically run assessment anymore
+    // Assessment only happens when user explicitly clicks "Get Assessment" button
+  }, [isOpen]);
 
   const handleSubmit = () => {
     onSubmitContext(context, customInstructions);
