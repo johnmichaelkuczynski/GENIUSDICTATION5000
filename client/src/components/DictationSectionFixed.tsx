@@ -1111,21 +1111,23 @@ const DictationSection = () => {
                         >
                           <i className="ri-magic-line mr-1"></i> Transform Again
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={handleDetectOutputAI}
-                          disabled={isDetectingOutputAI || !processedText || processedText.length < 50}
-                          className="text-xs"
-                        >
-                          <i className="ri-shield-check-line mr-1.5"></i>
-                          {isDetectingOutputAI ? "Analyzing..." : "Detect AI Content"}
-                        </Button>
                       </>
                     )}
                   </div>
                 </div>
-                {/* Moved AI Detection button next to Transform Again */}
+                {/* AI Detection Button for Processed Text */}
+                <div className="flex items-center justify-end">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handleDetectOutputAI}
+                    disabled={isDetectingOutputAI || !processedText || processedText.length < 50}
+                    className="text-xs"
+                  >
+                    <i className="ri-shield-check-line mr-1.5"></i>
+                    {isDetectingOutputAI ? "Analyzing..." : "Detect AI Content"}
+                  </Button>
+                </div>
                 
                 {/* AI Detection Indicator for Processed Text */}
                 {(isDetectingOutputAI || outputAiDetectionResult) && (
