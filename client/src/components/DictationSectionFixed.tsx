@@ -143,7 +143,35 @@ const DictationSection = () => {
   const handleTransformText = async () => {
     try {
       console.log("Transforming text with:", { originalText, customInstructions });
+      
+      // First check if we have text to transform
+      if (!originalText || originalText.trim().length === 0) {
+        toast({
+          title: "No Text to Transform",
+          description: "Please enter or dictate some text first",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Show a toast notification to indicate transformation is starting
+      toast({
+        title: "Starting Transformation",
+        description: "Your text is being processed...",
+        duration: 3000,
+      });
+      
+      // Call the transformation function
       await transformText();
+      
+      // Show success toast if transformation completed
+      if (processedText && processedText.trim().length > 0) {
+        toast({
+          title: "Transformation Complete",
+          description: "Your text has been transformed successfully.",
+          duration: 3000,
+        });
+      }
     } catch (error) {
       console.error("Error transforming text:", error);
       toast({
