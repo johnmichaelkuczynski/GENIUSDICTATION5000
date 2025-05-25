@@ -4,6 +4,7 @@ import { AIModel } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { transformText as transformTextApi } from "@/lib/textTransformationEnhanced";
 import { useToast } from "@/hooks/use-toast";
+import { removeMarkdownFormatting } from "@/lib/textCleaner";
 
 export function useTransformation() {
   const {
