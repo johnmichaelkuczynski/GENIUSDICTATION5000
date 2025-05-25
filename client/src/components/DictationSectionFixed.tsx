@@ -1049,9 +1049,6 @@ const DictationSection = () => {
                           className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
                           onClick={async () => {
                             if (processedText && !isProcessing) {
-                              // Set processing state
-                              setIsProcessing(true);
-                              
                               try {
                                 console.log("Starting recursive transformation of:", processedText.substring(0, 50) + "...");
                                 
@@ -1085,25 +1082,32 @@ const DictationSection = () => {
                                 const result = await response.json();
                                 console.log("Transformation successful, received:", result.text.substring(0, 50) + "...");
                                 
-                                // Set the new transformed text as the processed text
-                                setProcessedText(result.text);
+                                // Remove markdown formatting from the transformed text
+                                let cleanedText = result.text;
+                                // Remove bold/italic markdown
+                                cleanedText = cleanedText.replace(/\*\*/g, '');
+                                cleanedText = cleanedText.replace(/\*/g, '');
+                                // Remove other common markdown elements if needed
+                                cleanedText = cleanedText.replace(/#{1,6}\s/g, ''); // Remove headings
+                                cleanedText = cleanedText.replace(/`{1,3}/g, '');   // Remove code blocks
+                                
+                                // Set the cleaned text as the processed text
+                                setProcessedText(cleanedText);
                                 
                                 toast({
                                   title: "Transformation Complete",
                                   description: "The processed text has been transformed again.",
                                   duration: 3000,
                                 });
-                              } catch (error) {
+                              } catch (err) {
+                                const error = err as Error;
                                 console.error("Error transforming text:", error);
                                 toast({
                                   title: "Transformation Failed",
-                                  description: "An error occurred while transforming the text. " + error.message,
+                                  description: "An error occurred while transforming the text.",
                                   variant: "destructive",
                                   duration: 5000,
                                 });
-                              } finally {
-                                // Reset processing state
-                                setIsProcessing(false);
                               }
                             }
                           }}
