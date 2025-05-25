@@ -827,8 +827,8 @@ const DictationSection = () => {
           </TabsList>
           
           <TabsContent value="direct-dictation" className="p-6">
-            {/* Split Editor */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Split Editor - With aligned text boxes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               {/* Original Text Panel */}
               <div className="flex flex-col space-y-3">
                 <div className="flex items-center justify-between">
@@ -976,8 +976,8 @@ const DictationSection = () => {
                 </div>
               </div>
               
-              {/* Processed Text Panel */}
-              <div className="flex flex-col space-y-3">
+              {/* Processed Text Panel - aligned with original text */}
+              <div className="flex flex-col space-y-3 mt-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">Processed Output</h3>
@@ -1049,9 +1049,6 @@ const DictationSection = () => {
                           className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
                           onClick={async () => {
                             if (processedText && !isProcessing) {
-                              // Set processing state
-                              setIsProcessing(true);
-                              
                               try {
                                 console.log("Starting recursive transformation of:", processedText.substring(0, 50) + "...");
                                 
@@ -1093,7 +1090,7 @@ const DictationSection = () => {
                                   description: "The processed text has been transformed again.",
                                   duration: 3000,
                                 });
-                              } catch (error) {
+                              } catch (error: any) {
                                 console.error("Error transforming text:", error);
                                 toast({
                                   title: "Transformation Failed",
@@ -1101,9 +1098,6 @@ const DictationSection = () => {
                                   variant: "destructive",
                                   duration: 5000,
                                 });
-                              } finally {
-                                // Reset processing state
-                                setIsProcessing(false);
                               }
                             }
                           }}
