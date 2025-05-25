@@ -59,7 +59,7 @@ export function ManualAssessmentDialog({
   });
   const { toast } = useToast();
 
-  // Only check API status when dialog opens - NEVER automatically run assessment
+  // Check API status and automatically run assessment when dialog opens
   useEffect(() => {
     if (isOpen) {
       const checkApiStatus = async () => {
@@ -81,6 +81,11 @@ export function ManualAssessmentDialog({
           } else if (data.services.perplexity) {
             setSelectedModel('perplexity');
           }
+          
+          // Automatically run assessment when dialog opens
+          if (originalText && originalText.trim().length >= 50) {
+            handleGetAssessment();
+          }
         } catch (error) {
           console.error('Error checking API status:', error);
         }
@@ -88,10 +93,26 @@ export function ManualAssessmentDialog({
       
       checkApiStatus();
     }
-  }, [isOpen]);
+  }, [isOpen, originalText]);
 
   const handleSubmit = () => {
-    onSubmitContext(context, customInstructions);
+    // Make sure we're passing non-empty values
+    const finalContext = context.trim();
+    const finalInstructions = customInstructions.trim();
+    
+    if (finalContext || finalInstructions) {
+      // Call the parent function with context and instructions
+      onSubmitContext(finalContext, finalInstructions);
+      
+      // Show confirmation toast
+      toast({
+        title: "Instructions Applied",
+        description: "Your context and instructions will be used for text transformation.",
+        duration: 3000,
+      });
+    }
+    
+    // Close the dialog
     onClose();
   };
   

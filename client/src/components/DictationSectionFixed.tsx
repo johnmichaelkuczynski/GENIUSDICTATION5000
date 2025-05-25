@@ -244,7 +244,7 @@ const DictationSection = () => {
   }, [originalText, detectAI, toast, shouldAutoAssess]);
   
   // Handler for submitting context and custom instructions
-  const handleSubmitContext = useCallback((context: string, instructions: string) => {
+  const handleSubmitContext = useCallback(async (context: string, instructions: string) => {
     // Combine context and instructions into a more comprehensive prompt
     let combinedInstructions = "";
     
@@ -262,9 +262,49 @@ const DictationSection = () => {
     // Set the custom instructions in the app context
     setCustomInstructions(combinedInstructions);
     
-    // Automatically trigger the transformation
-    transformText();
-  }, [setCustomInstructions, transformText]);
+    // Show toast notification that transformation is starting
+    toast({
+      title: "Applying Instructions",
+      description: "Transforming text with your context and instructions...",
+      duration: 3000,
+    });
+    
+    try {
+      // Direct API call to transform the text
+      const response = await fetch("/api/transform", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: originalText,
+          instructions: combinedInstructions,
+          model: selectedAIModel,
+          preset: selectedPreset,
+          useStyleReference,
+          useContentReference
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Transformation failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      setProcessedText(result.text);
+      
+      toast({
+        title: "Transformation Complete",
+        description: "Your text has been transformed with the provided context and instructions.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error applying context and instructions:", error);
+      toast({
+        title: "Transformation Failed",
+        description: error instanceof Error ? error.message : "Failed to apply instructions",
+        variant: "destructive"
+      });
+    }
+  }, [setCustomInstructions, originalText, selectedAIModel, selectedPreset, useStyleReference, useContentReference, toast, setProcessedText]);
   
   const handleDetectOutputAI = useCallback(async () => {
     if (processedText.trim().length > 0) {
