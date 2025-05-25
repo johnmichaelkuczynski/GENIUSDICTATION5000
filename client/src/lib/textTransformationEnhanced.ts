@@ -10,6 +10,7 @@ interface TransformOptions {
   useContentReference?: boolean;
   contentReferences?: any[];
   onProgress?: (current: number, total: number, partialText?: string) => void;
+  signal?: AbortSignal;
 }
 
 // Size of chunks in characters for large document processing
@@ -53,8 +54,11 @@ function splitIntoChunks(text: string, chunkSize: number = CHUNK_SIZE): string[]
       }
     }
     
-    // Add the chunk
-    chunks.push(text.substring(currentPosition, endPosition));
+    // Extract the chunk and add to the array
+    const chunk = text.substring(currentPosition, endPosition);
+    chunks.push(chunk);
+    
+    // Move to the next position
     currentPosition = endPosition;
   }
   
@@ -68,35 +72,28 @@ function splitIntoChunks(text: string, chunkSize: number = CHUNK_SIZE): string[]
  */
 export async function transformText(options: TransformOptions): Promise<string> {
   try {
-    const { text, instructions, model, preset } = options;
-    
-    // For large texts, split into chunks
-    if (text.length > CHUNK_SIZE) {
-      console.log(`Text is large (${text.length} chars), splitting into chunks...`);
-      const chunks = splitIntoChunks(text);
-      console.log(`Split into ${chunks.length} chunks`);
-      
-      // Process each chunk with context
-      let processedText = "";
-      let chunkNum = 1;
+    // Check if the text is large enough to warrant chunking
+    if (options.text.length > CHUNK_SIZE) {
+      // Split the text into chunks
+      const chunks = splitIntoChunks(options.text);
       const totalChunks = chunks.length;
       
+      console.log(`Processing text in ${totalChunks} chunks`);
+      
+      // Track processed text as we go
+      let processedText = "";
+      let chunkNum = 1;
+      
+      // Process each chunk
       for (const chunk of chunks) {
-        // Call progress callback if provided
-        if (options.onProgress) {
-          options.onProgress(chunkNum, totalChunks);
-        }
+        // Build chunk-specific instructions
+        const chunkInstructions = `${options.instructions}\n\n[Note: This is chunk ${chunkNum} of ${totalChunks}. Process this chunk only, maintaining consistency with previous chunks if applicable.]`;
         
-        // Modify instructions for context when processing chunks
-        const chunkInstructions = `${instructions}\n\nThis is part ${chunkNum} of ${totalChunks} from a larger document. Maintain consistent style and formatting across all parts.`;
-        
-        console.log(`Processing chunk ${chunkNum} of ${totalChunks} (${chunk.length} chars)`);
-        
-        // Try multiple times in case of errors
+        // Variables for retry logic
+        let success = false;
         let retryCount = 0;
         const maxRetries = 2;
-        let success = false;
-        let chunkData;
+        let chunkData: { text: string } = { text: "" };
         
         while (!success && retryCount <= maxRetries) {
           try {
