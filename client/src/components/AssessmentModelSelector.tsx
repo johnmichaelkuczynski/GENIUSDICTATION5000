@@ -24,24 +24,24 @@ export function AssessmentModelSelector({
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <Label htmlFor="assessment-model" className="text-xs whitespace-nowrap">Assessment Provider:</Label>
+    <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/40 px-3 py-1.5 rounded-md border border-blue-200 dark:border-blue-800">
+      <Label htmlFor="assessment-model" className="text-sm font-semibold text-blue-800 dark:text-blue-200 whitespace-nowrap">Assessment Provider:</Label>
       <Select
         value={selectedModel}
         onValueChange={handleModelChange}
       >
-        <SelectTrigger id="assessment-model" className="h-8 w-[160px]">
-          <SelectValue placeholder="Select provider" />
+        <SelectTrigger id="assessment-model" className="h-8 w-[160px] bg-white dark:bg-gray-800 border-blue-300 dark:border-blue-700 font-medium">
+          <SelectValue placeholder="Select provider" className="text-blue-700 dark:text-blue-300" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value="openai" disabled={!availableModels.openai}>
+            <SelectItem value="openai" disabled={!availableModels.openai} className="font-medium">
               OpenAI (GPT-4o)
             </SelectItem>
-            <SelectItem value="anthropic" disabled={!availableModels.anthropic}>
+            <SelectItem value="anthropic" disabled={!availableModels.anthropic} className="font-medium">
               Anthropic (Claude 3)
             </SelectItem>
-            <SelectItem value="perplexity" disabled={!availableModels.perplexity}>
+            <SelectItem value="perplexity" disabled={!availableModels.perplexity} className="font-medium">
               Perplexity (Llama)
             </SelectItem>
           </SelectGroup>
