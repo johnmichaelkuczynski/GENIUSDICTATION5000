@@ -123,7 +123,7 @@ const DictationSection = () => {
   const [newContentDescription, setNewContentDescription] = useState("");
   const [newDocumentName, setNewDocumentName] = useState("");
   const [newDocumentContent, setNewDocumentContent] = useState("");
-  const [shouldAutoAssess, setShouldAutoAssess] = useState(true);
+  const [shouldAutoAssess, setShouldAutoAssess] = useState(false);
   const [selectedAssessmentModel, setSelectedAssessmentModel] = useState<AssessmentModel>('openai');
   const [availableModels, setAvailableModels] = useState({
     openai: false,
