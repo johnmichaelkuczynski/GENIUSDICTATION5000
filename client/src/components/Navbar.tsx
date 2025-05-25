@@ -15,7 +15,7 @@ const Navbar = () => {
               {/* Logo */}
               <div className="flex items-center space-x-2">
                 <i className="ri-voiceprint-fill text-primary text-2xl"></i>
-                <span className="font-semibold text-lg">VoiceForge</span>
+                <span className="font-semibold text-lg">Genius Dictation</span>
               </div>
             </div>
             
