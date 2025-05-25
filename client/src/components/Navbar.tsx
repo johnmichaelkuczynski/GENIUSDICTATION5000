@@ -14,8 +14,8 @@ const Navbar = () => {
             <div className="flex-shrink-0">
               {/* Logo */}
               <div className="flex items-center space-x-2">
-                <i className="ri-voiceprint-fill text-primary text-2xl"></i>
-                <span className="font-semibold text-lg">VoiceForge</span>
+                <i className="ri-brain-line text-primary text-2xl"></i>
+                <span className="font-semibold text-lg">Genius Dictation</span>
               </div>
             </div>
             
