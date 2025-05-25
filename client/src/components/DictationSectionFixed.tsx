@@ -21,7 +21,7 @@ import { CleanTextDisplay } from "@/components/CleanTextDisplay";
 import { removeMarkdownFormatting } from "@/lib/textCleaner";
 import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
-import { PreliminaryAssessmentDialog } from "@/components/PreliminaryAssessmentDialog";
+import { ManualAssessmentDialog } from "@/components/ManualAssessmentDialog";
 import { AssessmentModelSelector, AssessmentModel } from "@/components/AssessmentModelSelector";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -1723,8 +1723,8 @@ const DictationSection = () => {
         </Tabs>
       </Card>
       
-      {/* Text Assessment Dialogs */}
-      <PreliminaryAssessmentDialog
+      {/* Text Assessment Dialogs - Using ManualAssessmentDialog instead */}
+      <ManualAssessmentDialog
         isOpen={isAssessmentDialogOpen}
         onClose={() => setIsAssessmentDialogOpen(false)}
         originalText={originalText}
