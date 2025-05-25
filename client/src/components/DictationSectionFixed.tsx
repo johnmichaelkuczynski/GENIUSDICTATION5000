@@ -976,94 +976,14 @@ const DictationSection = () => {
                 </div>
               </div>
               
-              {/* Processed Text Panel - aligned with original text */}
-              <div className="flex flex-col space-y-3 pt-0 mt-0">
+              {/* Processed Text Panel */}
+              <div className="flex flex-col space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">Processed Output</h3>
                     <Badge variant="outline" className="text-xs font-normal">
                       {processedWordCount} {processedWordCount === 1 ? 'word' : 'words'}
                     </Badge>
-                  </div>
-                  
-                  {/* Buttons above processed text box */}
-                  <div className="flex items-center space-x-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={handleDetectOutputAI}
-                      disabled={isDetectingOutputAI || !processedText || processedText.length < 50}
-                      className="text-xs"
-                    >
-                      <i className="ri-shield-check-line mr-1.5"></i>
-                      {isDetectingOutputAI ? "Analyzing..." : "Detect AI Content"}
-                    </Button>
-                    
-                    {/* Always show Transform Again button when there's processed text */}
-                    {processedText && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                        onClick={async () => {
-                          if (processedText && !isProcessing) {
-                            try {
-                              console.log("Starting recursive transformation of:", processedText.substring(0, 50) + "...");
-                              
-                              // Include all the necessary parameters
-                              const payload = {
-                                text: processedText,
-                                instructions: customInstructions,
-                                model: selectedAIModel,
-                                preset: selectedPreset,
-                                useStyleReference: useStyleReference,
-                                useContentReference: useContentReference
-                              };
-                              
-                              console.log("Sending transformation request with payload:", payload);
-                              
-                              // Directly transform the processed text
-                              const response = await fetch("/api/transform", {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify(payload),
-                              });
-                              
-                              if (!response.ok) {
-                                const errorText = await response.text();
-                                console.error("Transform API error:", errorText);
-                                throw new Error(`Failed to transform text: ${response.status} ${response.statusText}`);
-                              }
-                              
-                              const result = await response.json();
-                              console.log("Transformation successful, received:", result.text.substring(0, 50) + "...");
-                              
-                              // Set the new transformed text as the processed text
-                              setProcessedText(result.text);
-                              
-                              toast({
-                                title: "Transformation Complete",
-                                description: "The processed text has been transformed again.",
-                                duration: 3000,
-                              });
-                            } catch (error: any) {
-                              console.error("Error transforming text:", error);
-                              toast({
-                                title: "Transformation Failed",
-                                description: "An error occurred while transforming the text. " + error.message,
-                                variant: "destructive",
-                                duration: 5000,
-                              });
-                            }
-                          }
-                        }}
-                        disabled={isProcessing || !processedText}
-                      >
-                        <i className="ri-magic-line mr-1"></i> Transform Again
-                      </Button>
-                    )}
                   </div>
                   
                   {/* Show progress indicator during chunked processing */}
@@ -1129,6 +1049,9 @@ const DictationSection = () => {
                           className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
                           onClick={async () => {
                             if (processedText && !isProcessing) {
+                              // Set processing state
+                              setIsProcessing(true);
+                              
                               try {
                                 console.log("Starting recursive transformation of:", processedText.substring(0, 50) + "...");
                                 
@@ -1170,7 +1093,7 @@ const DictationSection = () => {
                                   description: "The processed text has been transformed again.",
                                   duration: 3000,
                                 });
-                              } catch (error: any) {
+                              } catch (error) {
                                 console.error("Error transforming text:", error);
                                 toast({
                                   title: "Transformation Failed",
@@ -1178,6 +1101,9 @@ const DictationSection = () => {
                                   variant: "destructive",
                                   duration: 5000,
                                 });
+                              } finally {
+                                // Reset processing state
+                                setIsProcessing(false);
                               }
                             }
                           }}
@@ -1185,10 +1111,21 @@ const DictationSection = () => {
                         >
                           <i className="ri-magic-line mr-1"></i> Transform Again
                         </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={handleDetectOutputAI}
+                          disabled={isDetectingOutputAI || !processedText || processedText.length < 50}
+                          className="text-xs"
+                        >
+                          <i className="ri-shield-check-line mr-1.5"></i>
+                          {isDetectingOutputAI ? "Analyzing..." : "Detect AI Content"}
+                        </Button>
                       </>
                     )}
                   </div>
                 </div>
+                {/* Moved AI Detection button next to Transform Again */}
                 
                 {/* AI Detection Indicator for Processed Text */}
                 {(isDetectingOutputAI || outputAiDetectionResult) && (
