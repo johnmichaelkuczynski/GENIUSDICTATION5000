@@ -90,9 +90,7 @@ export function PreliminaryAssessmentDialog({
     
     checkApiStatus();
     
-    if (isOpen && originalText.trim().length >= 50) {
-      handleGetAssessment();
-    }
+    // Removed automatic assessment trigger - will only assess when user clicks "Get Assessment" button
   }, [isOpen, originalText]);
 
   const handleSubmit = () => {
