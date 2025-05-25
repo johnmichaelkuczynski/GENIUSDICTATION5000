@@ -272,13 +272,11 @@ const DictationSection = () => {
           });
           
           // Automatically run AI detection if there's enough text
+          // We still run detection in the background but NEVER auto-open the dialog
           if (extractedText.trim().length >= 50 && shouldAutoAssess) {
             setTimeout(() => {
-              detectAI(extractedText).then(result => {
-                if (result) {
-                  setIsAssessmentDialogOpen(true);
-                }
-              });
+              detectAI(extractedText);
+              // Removed automatic dialog opening
             }, 500);
           }
         } else if (isAudioFile) {
