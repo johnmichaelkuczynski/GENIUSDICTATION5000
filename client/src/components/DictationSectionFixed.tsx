@@ -141,7 +141,17 @@ const DictationSection = () => {
 
   // Handlers
   const handleTransformText = async () => {
-    await transformText();
+    try {
+      console.log("Transforming text with:", { originalText, customInstructions });
+      await transformText();
+    } catch (error) {
+      console.error("Error transforming text:", error);
+      toast({
+        title: "Transformation Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCancelTransformation = () => {
