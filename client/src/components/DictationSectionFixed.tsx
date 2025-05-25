@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { SpeechEngine, AIModel } from "@shared/schema";
 import { useAppContext } from "@/context/AppContext";
-import { useTransformation } from "@/hooks/useTransformation";
+import { useTransformation } from "@/hooks/useTransformationEnhanced";
 import { useDictationSimple } from "@/hooks/useDictationSimple";
 import { useTTS } from "@/hooks/useTTS";
 import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
