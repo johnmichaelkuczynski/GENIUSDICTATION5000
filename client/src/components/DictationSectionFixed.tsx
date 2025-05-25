@@ -17,6 +17,7 @@ import { useDictationSimple } from "@/hooks/useDictationSimple";
 import { useTTS } from "@/hooks/useTTS";
 import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
 import { useAIDetection } from "@/hooks/useAIDetection";
+import { CleanTextDisplay } from "@/components/CleanTextDisplay";
 import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
 import { PreliminaryAssessmentDialog } from "@/components/PreliminaryAssessmentDialog";
@@ -1152,6 +1153,10 @@ const DictationSection = () => {
                     placeholder="Processed text will appear here..."
                     style={{ maxHeight: "256px" }}
                   />
+                  {/* Hidden display with cleaned text (used for reference) */}
+                  <div className="sr-only">
+                    <CleanTextDisplay text={processedText} />
+                  </div>
                 </div>
 
                 {/* TTS Controls - Only show when there's processed text */}
