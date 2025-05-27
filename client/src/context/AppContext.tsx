@@ -83,7 +83,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     deepgram: false,
     elevenLabs: false,
     anthropic: false,
-    perplexity: false
+    perplexity: false,
+    mathpix: false
   });
 
   const checkApiStatus = async () => {

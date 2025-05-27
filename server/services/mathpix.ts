@@ -36,9 +36,15 @@ export async function extractTextFromImage(imageBuffer: Buffer): Promise<string>
     formData.append('options_json', JSON.stringify({
       math_inline_delimiters: ['\\(', '\\)'],
       math_display_delimiters: ['$$', '$$'],
-      rm_spaces: true,
+      rm_spaces: false,
       rm_fonts: false,
-      formats: ['text', 'latex_styled']
+      formats: ['text', 'latex_styled'],
+      math_data: true,
+      include_line_data: false,
+      include_word_data: false,
+      include_geometry_data: false,
+      auto_rotate: true,
+      enable_tables_fallback: false
     }));
 
     const response = await axios.post(
@@ -60,8 +66,11 @@ export async function extractTextFromImage(imageBuffer: Buffer): Promise<string>
       throw new Error('No text extracted from image');
     }
 
+    // Use latex_styled if available for better math formatting, otherwise use text
+    const extractedContent = result.latex_styled || result.text;
+    
     // Return the extracted text with proper LaTeX formatting
-    return result.text;
+    return extractedContent;
 
   } catch (error: any) {
     console.error('Mathpix OCR error:', error.response?.data || error.message);
