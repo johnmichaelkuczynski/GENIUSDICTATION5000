@@ -21,7 +21,7 @@ export function MathDisplay({ text, className = '' }: MathDisplayProps) {
     .trim();
 
   return (
-    <div className={`whitespace-pre-wrap text-black bg-white leading-relaxed ${className}`} style={{ color: '#000', backgroundColor: '#fff' }}>
+    <div className={`whitespace-pre-wrap leading-relaxed ${className}`}>
       <MathJax>{cleanText}</MathJax>
     </div>
   );

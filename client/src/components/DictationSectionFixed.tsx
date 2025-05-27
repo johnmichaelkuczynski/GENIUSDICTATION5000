@@ -1208,15 +1208,15 @@ const DictationSection = () => {
                   ) : (
                     <div className="relative">
                       <div 
-                        className={`h-[256px] w-full p-3 border rounded-md bg-white overflow-y-auto ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
-                        style={{ maxHeight: "256px", color: "#000" }}
+                        className={`h-[256px] w-full p-3 border rounded-md bg-background overflow-y-auto ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
+                        style={{ maxHeight: "256px" }}
                       >
                         {originalText ? (
-                          <div className="text-sm leading-relaxed text-black">
-                            <MathDisplay text={originalText} className="text-black" />
+                          <div className="text-sm leading-relaxed">
+                            <MathDisplay text={originalText} />
                           </div>
                         ) : (
-                          <div className="text-gray-500 text-sm">Math preview will appear here...</div>
+                          <div className="text-muted-foreground text-sm">Math preview will appear here...</div>
                         )}
                       </div>
                       {/* Invisible textarea to maintain functionality */}
@@ -1326,17 +1326,12 @@ const DictationSection = () => {
                             if (response.ok) {
                               const blob = await response.blob();
                               const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'mathematical-document.pdf';
-                              document.body.appendChild(a);
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                              document.body.removeChild(a);
+                              // Open directly in new tab for print/save as PDF
+                              window.open(url, '_blank');
                               
                               toast({
-                                title: "PDF Download Complete",
-                                description: "Mathematical document exported with perfect notation"
+                                title: "PDF Ready",
+                                description: "Click 'Print / Save as PDF' button in the opened page for perfect math notation"
                               });
                             } else {
                               throw new Error('PDF generation failed');
@@ -1647,7 +1642,7 @@ const DictationSection = () => {
                     value={customInstructions}
                     onChange={(e) => setCustomInstructions(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                      if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         if (originalText.trim() && !isProcessing) {
                           handleTransformText();
