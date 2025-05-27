@@ -999,6 +999,12 @@ const DictationSection = () => {
                     <Badge variant="outline" className="text-xs font-normal">
                       {originalWordCount} {originalWordCount === 1 ? 'word' : 'words'}
                     </Badge>
+                    {isLargeText && (
+                      <Badge variant="default" className="text-xs">
+                        <i className="ri-scissors-cut-line mr-1"></i>
+                        Chunk Processing Available
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex space-x-2">
                     {/* Dictation Button */}
@@ -1562,7 +1568,7 @@ const DictationSection = () => {
                       onClick={handleTransformText}
                       disabled={isProcessing || !originalText}
                     >
-                      {isProcessing ? (
+                      {isProcessing || isProcessingChunks ? (
                         <>
                           <span className="animate-spin h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
                           {isChunkedProcessing 
@@ -1572,7 +1578,12 @@ const DictationSection = () => {
                       ) : (
                         <>
                           <i className="ri-magic-line mr-2"></i>
-                          Transform Text
+                          {isLargeText ? "Transform Text (Chunked)" : "Transform Text"}
+                          {isLargeText && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              Large Text
+                            </Badge>
+                          )}
                         </>
                       )}
                     </Button>
@@ -1896,6 +1907,14 @@ const DictationSection = () => {
         onClose={() => setIsAssessmentDialogOpen(false)}
         originalText={originalText}
         onSubmitContext={handleSubmitContext}
+      />
+      
+      {/* Chunk Manager for Large Texts */}
+      <TextChunkManager
+        text={originalText}
+        isVisible={isChunkManagerOpen}
+        onChunksSelected={handleChunksSelected}
+        onClose={() => setIsChunkManagerOpen(false)}
       />
     </section>
   );
