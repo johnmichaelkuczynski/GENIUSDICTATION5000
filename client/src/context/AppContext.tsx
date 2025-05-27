@@ -24,6 +24,7 @@ interface ApiServices {
   elevenLabs: boolean;
   anthropic: boolean;
   perplexity: boolean;
+  mathpix: boolean;
 }
 
 type AppContextType = {
