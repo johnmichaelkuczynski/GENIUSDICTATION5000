@@ -1361,11 +1361,11 @@ const DictationSection = () => {
                 <div className="flex-1">
                   {processedText ? (
                     <div className="min-h-[256px] max-h-[256px] overflow-y-auto border rounded-md p-3 bg-background">
-                      <MathDisplay text={processedText} className="text-sm" />
+                      <CleanTextDisplay text={processedText} className="text-sm" />
                     </div>
                   ) : (
                     <div className="min-h-[256px] border rounded-md p-3 bg-muted/10 flex items-center justify-center text-muted-foreground text-sm">
-                      Processed text with mathematical notation will appear here...
+                      Processed text will appear here...
                     </div>
                   )}
                 </div>
