@@ -65,7 +65,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       azureSpeech: !!(azureSpeechKey && azureSpeechEndpoint),
       anthropic: !!anthropicKey,
       perplexity: !!perplexityKey,
-      gptzero: !!gptzeroKey
+      gptzero: !!gptzeroKey,
+      mathpix: mathpixConfigured
     };
     
     // At least one service must be available
@@ -315,6 +316,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error extracting text from document:", error);
       res.status(500).json({ error: "Failed to extract text from document" });
+    }
+  });
+
+  // OCR text extraction from images (screenshots, photos)
+  app.post("/api/ocr-extract", upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      // Check if Mathpix is configured
+      if (!isMathpixConfigured()) {
+        return res.status(503).json({ 
+          error: "OCR service not configured. Please provide Mathpix API credentials (MATHPIX_APP_ID and MATHPIX_APP_KEY)." 
+        });
+      }
+
+      const { buffer, mimetype } = req.file;
+      
+      // Validate that it's an image file
+      if (!mimetype.startsWith('image/')) {
+        return res.status(400).json({ error: "File must be an image (PNG, JPG, etc.)" });
+      }
+
+      const extractedText = await extractTextFromImage(buffer);
+      
+      res.json({ text: extractedText });
+    } catch (error: any) {
+      console.error("OCR extraction error:", error);
+      res.status(500).json({ error: error.message });
     }
   });
 

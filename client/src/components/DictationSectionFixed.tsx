@@ -417,11 +417,18 @@ const DictationSection = () => {
         fileType === 'audio/x-wav' ||
         fileType === 'audio/webm' ||
         fileType === 'audio/ogg';
+
+      const isImageFile = 
+        fileType === 'image/png' ||
+        fileType === 'image/jpeg' ||
+        fileType === 'image/jpg' ||
+        fileType === 'image/gif' ||
+        fileType === 'image/bmp';
         
-      if (!isDocumentFile && !isAudioFile) {
+      if (!isDocumentFile && !isAudioFile && !isImageFile) {
         toast({
           title: "Unsupported file format",
-          description: "Please upload a PDF, DOCX, TXT, or audio file (MP3, WAV, etc.).",
+          description: "Please upload a PDF, DOCX, TXT, audio file (MP3, WAV, etc.), or image/screenshot (PNG, JPG, etc.).",
           variant: "destructive"
         });
         return;
@@ -475,15 +482,47 @@ const DictationSection = () => {
               // Removed the automatic dialog opening
             }, 500);
           }
+        } else if (isImageFile) {
+          // Process image file with OCR
+          const formData = new FormData();
+          formData.append("image", file);
+          
+          const response = await fetch("/api/ocr-extract", {
+            method: "POST",
+            body: formData,
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to extract text from image: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          setOriginalText(data.text);
+          toast({
+            title: "Screenshot processed successfully",
+            description: `Text and math extracted from ${file.name}`,
+          });
+          
+          // Run AI detection in the background for OCR text
+          if (data.text.trim().length >= 50 && shouldAutoAssess) {
+            setTimeout(() => {
+              detectAI(data.text);
+            }, 500);
+          }
         }
       } catch (error) {
         console.error("Error processing file:", error);
-        const errorMessage = isAudioFile 
-          ? "Could not transcribe the audio file."
-          : "Could not extract text from the document.";
+        let errorMessage = "Could not process the file.";
+        if (isAudioFile) {
+          errorMessage = "Could not transcribe the audio file.";
+        } else if (isImageFile) {
+          errorMessage = "Could not extract text from the image. Please ensure Mathpix API is configured.";
+        } else {
+          errorMessage = "Could not extract text from the document.";
+        }
           
         toast({
-          title: `Error processing ${isAudioFile ? 'audio' : 'document'}`,
+          title: `Error processing ${isAudioFile ? 'audio' : isImageFile ? 'image' : 'document'}`,
           description: errorMessage,
           variant: "destructive"
         });
@@ -616,11 +655,18 @@ const DictationSection = () => {
           fileType === 'audio/x-wav' ||
           fileType === 'audio/webm' ||
           fileType === 'audio/ogg';
+
+        const isImageFile = 
+          fileType === 'image/png' ||
+          fileType === 'image/jpeg' ||
+          fileType === 'image/jpg' ||
+          fileType === 'image/gif' ||
+          fileType === 'image/bmp';
           
-        if (!isDocumentFile && !isAudioFile) {
+        if (!isDocumentFile && !isAudioFile && !isImageFile) {
           toast({
             title: "Unsupported file format",
-            description: "Please upload a PDF, DOCX, TXT, or audio file (MP3, WAV, etc.).",
+            description: "Please upload a PDF, DOCX, TXT, audio file (MP3, WAV, etc.), or image/screenshot (PNG, JPG, etc.).",
             variant: "destructive"
           });
           return;
@@ -1132,7 +1178,7 @@ const DictationSection = () => {
                     ref={fileInputRef}
                     type="file" 
                     className="hidden" 
-                    accept=".pdf,.docx,.txt,.mp3,.wav,.ogg,.webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,audio/mpeg,audio/wav,audio/x-wav,audio/webm,audio/ogg,audio/mp4" 
+                    accept=".pdf,.docx,.txt,.mp3,.wav,.ogg,.webm,.png,.jpg,.jpeg,.gif,.bmp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,audio/mpeg,audio/wav,audio/x-wav,audio/webm,audio/ogg,audio/mp4,image/png,image/jpeg,image/jpg,image/gif,image/bmp" 
                     onChange={handleFileChange}
                   />
                   {/* Dictation Status Indicator */}
