@@ -1169,7 +1169,15 @@ const DictationSection = () => {
                       setOriginalText(e.target.value);
                       clearDetectionResult(); // Clear detection when text changes
                     }}
-                    placeholder="Start dictating or type here..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        if (originalText.trim() && !isProcessing) {
+                          handleTransformText();
+                        }
+                      }
+                    }}
+                    placeholder="Start dictating or type here... (Ctrl+Enter to transform)"
                     className={`h-[256px] resize-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
                     style={{ maxHeight: "256px" }}
                   />
@@ -1533,7 +1541,15 @@ const DictationSection = () => {
                     id="custom-instructions"
                     value={customInstructions}
                     onChange={(e) => setCustomInstructions(e.target.value)}
-                    placeholder="E.g., Rewrite in academic style, focusing on epistemology concepts. Include examples of foundationalism and coherentism."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        if (originalText.trim() && !isProcessing) {
+                          handleTransform();
+                        }
+                      }
+                    }}
+                    placeholder="E.g., Rewrite in academic style, focusing on epistemology concepts. Include examples of foundationalism and coherentism. (Ctrl+Enter to transform)"
                     className="text-sm resize-none"
                     rows={2}
                   />
