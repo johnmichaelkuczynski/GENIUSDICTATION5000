@@ -1233,7 +1233,7 @@ const DictationSection = () => {
                             }
                           }
                         }}
-                        className="absolute inset-0 opacity-0 resize-none"
+                        className="absolute inset-0 opacity-0 resize-none pointer-events-none"
                         style={{ maxHeight: "256px" }}
                         placeholder=""
                       />
