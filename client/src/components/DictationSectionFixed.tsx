@@ -131,6 +131,11 @@ const DictationSection = () => {
     anthropic: false,
     perplexity: false
   });
+  
+  // Chunk management state
+  const [isChunkManagerOpen, setIsChunkManagerOpen] = useState(false);
+  const [isProcessingChunks, setIsProcessingChunks] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentFileInputRef = useRef<HTMLInputElement>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
@@ -139,6 +144,67 @@ const DictationSection = () => {
   // Calculate word counts using memoization to avoid recalculating on every render
   const originalWordCount = useMemo(() => countWords(originalText), [originalText]);
   const processedWordCount = useMemo(() => countWords(processedText), [processedText]);
+
+  // Check if text is large enough to benefit from chunking (threshold: 1000 words)
+  const isLargeText = useMemo(() => originalWordCount > 1000, [originalWordCount]);
+  
+  // Handle chunk processing
+  const handleChunksSelected = useCallback(async (selectedChunks: any[], fullText: string) => {
+    setIsChunkManagerOpen(false);
+    setIsProcessingChunks(true);
+    
+    try {
+      let processedChunks = [];
+      
+      for (const chunk of selectedChunks) {
+        toast({
+          title: "Processing Chunk",
+          description: `Processing chunk ${selectedChunks.indexOf(chunk) + 1} of ${selectedChunks.length}...`,
+          duration: 2000,
+        });
+        
+        const response = await fetch("/api/transform", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: chunk.content,
+            instructions: customInstructions || "Improve this text",
+            model: selectedAIModel,
+            preset: selectedPreset,
+            useStyleReference,
+            useContentReference
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to process chunk: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        processedChunks.push(result.text);
+      }
+      
+      // Combine all processed chunks
+      const combinedResult = processedChunks.join('\n\n');
+      setProcessedText(combinedResult);
+      
+      toast({
+        title: "Chunks Processed Successfully",
+        description: `Successfully processed ${selectedChunks.length} chunks`,
+        duration: 3000,
+      });
+      
+    } catch (error) {
+      console.error("Error processing chunks:", error);
+      toast({
+        title: "Chunk Processing Failed",
+        description: error instanceof Error ? error.message : "Failed to process selected chunks",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessingChunks(false);
+    }
+  }, [customInstructions, selectedAIModel, selectedPreset, useStyleReference, useContentReference, toast, setProcessedText]);
 
   // Handlers
   const handleTransformText = async () => {
@@ -152,6 +218,12 @@ const DictationSection = () => {
           description: "Please enter or dictate some text first",
           variant: "destructive"
         });
+        return;
+      }
+      
+      // If text is large, offer chunk processing
+      if (isLargeText) {
+        setIsChunkManagerOpen(true);
         return;
       }
       
