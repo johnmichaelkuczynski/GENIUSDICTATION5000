@@ -160,105 +160,95 @@ async function generateDOCX(text: string, fileName: string): Promise<Buffer> {
  */
 async function generatePDF(text: string, fileName: string): Promise<Buffer> {
   try {
-    const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+    const puppeteer = await import('puppeteer');
     
-    // Create a new PDF document
-    const pdfDoc = await PDFDocument.create();
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     
-    // Add a page
-    let page = pdfDoc.addPage();
-    const { width, height } = page.getSize();
+    const page = await browser.newPage();
     
-    // Set up fonts and styling
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const fontSize = 12;
-    const lineHeight = 16;
-    const margin = 50;
-    
-    let currentY = height - margin;
-    
-    // Process text line by line
-    const lines = text.split('\n');
-    
-    for (const line of lines) {
-      // Check if we need a new page
-      if (currentY < margin + lineHeight) {
-        page = pdfDoc.addPage();
-        currentY = height - margin;
-      }
-      
-      let processedLine = line.trim();
-      
-      // Convert LaTeX math notation to readable format
-      processedLine = convertLaTeXForPDF(processedLine);
-      
-      // Handle different text styles
-      if (processedLine.startsWith('Part ') || processedLine.startsWith('Section ') || processedLine.includes(':') && processedLine.length < 50) {
-        // Headers
-        page.drawText(processedLine, {
-          x: margin,
-          y: currentY,
-          size: fontSize + 2,
-          font: boldFont,
-          color: rgb(0, 0, 0),
-        });
-        currentY -= lineHeight + 4;
-      } else if (processedLine.length > 0) {
-        // Regular text
-        const words = processedLine.split(' ');
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          const textWidth = font.widthOfTextAtSize(testLine, fontSize);
-          
-          if (textWidth > width - 2 * margin && currentLine) {
-            // Draw current line and start new one
-            page.drawText(currentLine, {
-              x: margin,
-              y: currentY,
-              size: fontSize,
-              font: font,
-              color: rgb(0, 0, 0),
-            });
-            currentY -= lineHeight;
-            currentLine = word;
-            
-            // Check if we need a new page
-            if (currentY < margin + lineHeight) {
-              page = pdfDoc.addPage();
-              currentY = height - margin;
-            }
-          } else {
-            currentLine = testLine;
+    // Create HTML content with KaTeX for math rendering
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${fileName}</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+        <style>
+          body {
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            margin: 1in;
+            color: #333;
+            max-width: none;
           }
-        }
+          h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+          }
+          p {
+            margin-bottom: 1em;
+            text-align: justify;
+          }
+          .katex {
+            font-size: 1em;
+          }
+          .katex-display {
+            margin: 1em 0;
+          }
+        </style>
+      </head>
+      <body>
+        ${text.split('\n').map(line => 
+          line.trim() ? `<p>${line.trim()}</p>` : ''
+        ).join('')}
         
-        // Draw remaining text
-        if (currentLine) {
-          page.drawText(currentLine, {
-            x: margin,
-            y: currentY,
-            size: fontSize,
-            font: font,
-            color: rgb(0, 0, 0),
+        <script>
+          document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+              delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\\\[", right: "\\\\]", display: true},
+                {left: "\\\\(", right: "\\\\)", display: false}
+              ],
+              throwOnError: false
+            });
           });
-          currentY -= lineHeight;
-        }
-      } else {
-        // Empty line
-        currentY -= lineHeight / 2;
-      }
-    }
+        </script>
+      </body>
+      </html>
+    `;
     
-    // Serialize the PDF document to bytes
-    const pdfBytes = await pdfDoc.save();
-    return Buffer.from(pdfBytes);
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
+    // Wait for KaTeX to render all math
+    await page.waitForTimeout(2000);
+    
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      margin: {
+        top: '1in',
+        bottom: '1in',
+        left: '1in',
+        right: '1in'
+      },
+      printBackground: true
+    });
+    
+    await browser.close();
+    
+    return Buffer.from(pdfBuffer);
   } catch (error) {
     console.error('Error generating PDF:', error);
-    throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error('Failed to generate PDF document');
   }
 }
 
