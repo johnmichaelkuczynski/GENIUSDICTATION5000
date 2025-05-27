@@ -78,10 +78,10 @@ export async function extractMathWithTexify(imageBuffer: Buffer): Promise<string
 export async function isTexifyAvailable(): Promise<boolean> {
   try {
     // Just check if the API endpoint is reachable
-    const response = await axios.get('https://api.texify.ai/v1/health', { timeout: 5000 });
+    const response = await axios.get('https://api.texify.ai/v1/health', { timeout: 3000 });
     return response.status === 200;
   } catch (error) {
-    console.log('Texify availability check failed:', error);
+    // Texify API is currently unreachable, fall back to other OCR methods
     return false;
   }
 }
