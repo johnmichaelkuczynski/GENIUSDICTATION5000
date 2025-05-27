@@ -1545,7 +1545,7 @@ const DictationSection = () => {
                       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                         e.preventDefault();
                         if (originalText.trim() && !isProcessing) {
-                          handleTransform();
+                          handleTransformText();
                         }
                       }
                     }}
