@@ -28,7 +28,8 @@ const DocumentDropzone = () => {
       const fileType = file.type;
       return fileType === 'application/pdf' || 
              fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-             fileType === 'text/plain';
+             fileType === 'text/plain' ||
+             fileType.startsWith('image/');
     });
     
     if (files.length > 0) {
@@ -70,10 +71,32 @@ const DocumentDropzone = () => {
   // Process a file
   const handleProcessFile = async (file: UploadedFile) => {
     try {
-      const text = await processDocument(file.file);
+      let text = '';
+      
+      if (file.type.startsWith('image/')) {
+        // Handle image files with OCR
+        const formData = new FormData();
+        formData.append('image', file.file);
+        
+        const response = await fetch('/api/ocr-extract', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error(`OCR extraction failed: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        text = data.text;
+      } else {
+        // Handle document files
+        text = await processDocument(file.file);
+      }
+      
       setOriginalText(text);
     } catch (error) {
-      console.error("Error processing document:", error);
+      console.error("Error processing file:", error);
     }
   };
 
@@ -121,12 +144,12 @@ const DocumentDropzone = () => {
           >
             <i className="ri-upload-cloud-2-line text-4xl text-muted-foreground mb-2"></i>
             <p className="text-sm text-muted-foreground mb-1">Drag and drop files here, or click to browse</p>
-            <p className="text-xs text-muted-foreground">Supports PDF, DOCX, and TXT files</p>
+            <p className="text-xs text-muted-foreground">Supports PDF, DOCX, TXT files and screenshots (PNG, JPG, etc.)</p>
             <input 
               id="file-upload" 
               type="file" 
               className="hidden" 
-              accept=".pdf,.docx,.txt" 
+              accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.gif,.bmp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/png,image/jpeg,image/jpg,image/gif,image/bmp" 
               multiple 
               onChange={handleFileSelect}
             />
@@ -141,7 +164,9 @@ const DocumentDropzone = () => {
                   <li key={file.id} className="py-3 flex justify-between items-center">
                     <div className="flex items-center">
                       <i className={`ri-file-${
-                        file.type.includes('pdf') ? 'pdf' : file.type.includes('word') ? 'word' : 'text'
+                        file.type.includes('pdf') ? 'pdf' : 
+                        file.type.includes('word') ? 'word' : 
+                        file.type.startsWith('image/') ? 'image' : 'text'
                       }-line text-primary mr-2`}></i>
                       <span className="text-sm">{file.name}</span>
                     </div>
