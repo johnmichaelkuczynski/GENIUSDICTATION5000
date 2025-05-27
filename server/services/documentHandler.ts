@@ -230,7 +230,7 @@ async function generatePDF(text: string, fileName: string): Promise<Buffer> {
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
     // Wait for KaTeX to render all math
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     const pdfBuffer = await page.pdf({
       format: 'A4',

@@ -1208,15 +1208,15 @@ const DictationSection = () => {
                   ) : (
                     <div className="relative">
                       <div 
-                        className={`h-[256px] w-full p-3 border rounded-md bg-background overflow-y-auto prose prose-sm max-w-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
-                        style={{ maxHeight: "256px" }}
+                        className={`h-[256px] w-full p-3 border rounded-md bg-white overflow-y-auto ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
+                        style={{ maxHeight: "256px", color: "#000" }}
                       >
                         {originalText ? (
-                          <div className="text-sm leading-relaxed">
-                            <MathDisplay text={originalText} />
+                          <div className="text-sm leading-relaxed text-black">
+                            <MathDisplay text={originalText} className="text-black" />
                           </div>
                         ) : (
-                          <div className="text-muted-foreground text-sm">Math preview will appear here...</div>
+                          <div className="text-gray-500 text-sm">Math preview will appear here...</div>
                         )}
                       </div>
                       {/* Invisible textarea to maintain functionality */}
