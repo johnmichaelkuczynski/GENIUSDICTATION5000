@@ -173,28 +173,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           model
         });
       } else {
-        // Check if text contains math and Azure OpenAI is available for math-aware processing
-        const containsMath = /\$.*?\$|\\\(.*?\\\)|\\\[.*?\\\]|\\begin\{.*?\}.*?\\end\{.*?\}/.test(text);
-        
-        if (containsMath && process.env.AZURE_OPENAI_KEY && process.env.AZURE_OPENAI_ENDPOINT) {
-          // Use Azure OpenAI for math-aware processing
-          transformedText = await transformMathText({
-            text,
-            instructions: combinedInstructions || "Improve this text while preserving mathematical notation",
-            includeMath: true,
-            outputFormat: 'mixed'
-          });
-        } else {
-          // Default to OpenAI for GPT models
-          if (!process.env.OPENAI_API_KEY) {
-            return res.status(400).json({ error: "OpenAI API key is not configured" });
-          }
-          transformedText = await openaiTransform({
-            text,
-            instructions: combinedInstructions || "Improve this text",
-            model
-          });
+        // Default to OpenAI for GPT models
+        if (!process.env.OPENAI_API_KEY) {
+          return res.status(400).json({ error: "OpenAI API key is not configured" });
         }
+        transformedText = await openaiTransform({
+          text,
+          instructions: combinedInstructions || "Improve this text",
+          model
+        });
       }
       
       // Verify that the transformed text is longer than the original

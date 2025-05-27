@@ -23,7 +23,7 @@ import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
 import { ManualAssessmentDialog } from "@/components/ManualAssessmentDialog";
 import { AssessmentModelSelector, AssessmentModel } from "@/components/AssessmentModelSelector";
-import { ScreenshotUpload } from "@/components/ScreenshotUpload";
+
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -319,23 +319,7 @@ const DictationSection = () => {
     }
   }, [processedText, detectOutputAI, toast, clearOutputDetectionResult]);
   
-  // Screenshot OCR handler
-  const handleScreenshotTextExtracted = useCallback((extractedText: string, hasMath: boolean) => {
-    if (extractedText.trim()) {
-      // Add the extracted text to the original text area
-      const currentText = originalText;
-      const newText = currentText ? `${currentText}\n\n${extractedText}` : extractedText;
-      setOriginalText(newText);
-      
-      toast({
-        title: "Text Extracted from Screenshot",
-        description: hasMath 
-          ? "Text with mathematical notation has been extracted and added to your content"
-          : "Text has been extracted and added to your content",
-        duration: 4000,
-      });
-    }
-  }, [originalText, setOriginalText, toast]);
+
   
   // File upload handlers
   const handleFileUploadClick = () => {
@@ -928,9 +912,8 @@ const DictationSection = () => {
       <Card>
         {/* Tab Navigation */}
         <Tabs defaultValue="direct-dictation" className="w-full" onValueChange={setCurrentTab} value={currentTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="direct-dictation">Direct Dictation</TabsTrigger>
-            <TabsTrigger value="screenshot-ocr">Screenshot OCR</TabsTrigger>
             <TabsTrigger value="style-emulation">Style Emulation</TabsTrigger>
             <TabsTrigger value="content-reference">Content Reference</TabsTrigger>
           </TabsList>
@@ -1551,50 +1534,7 @@ const DictationSection = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="screenshot-ocr" className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Screenshot Upload Panel */}
-              <div className="space-y-4">
-                <ScreenshotUpload 
-                  onTextExtracted={handleScreenshotTextExtracted}
-                  className="h-full"
-                />
-              </div>
-              
-              {/* Instructions Panel */}
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h3 className="text-sm font-semibold text-blue-800 mb-2">📸 Screenshot OCR</h3>
-                  <div className="text-sm text-blue-700 space-y-2">
-                    <p>Upload screenshots to extract text and mathematical expressions using advanced OCR technology.</p>
-                    <div className="space-y-1">
-                      <p><strong>✨ Features:</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-xs">
-                        <li>Extract regular text from images</li>
-                        <li>Recognize mathematical notation and formulas</li>
-                        <li>Convert math expressions to LaTeX format</li>
-                        <li>Support for handwritten and printed text</li>
-                        <li>Automatic confidence scoring</li>
-                      </ul>
-                    </div>
-                    <div className="space-y-1">
-                      <p><strong>📝 Supported formats:</strong></p>
-                      <p className="text-xs">PNG, JPG, JPEG, GIF, BMP, WebP</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {originalText && (
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="text-sm font-semibold text-green-800 mb-2">📄 Current Content</h4>
-                    <div className="text-xs text-green-700 max-h-32 overflow-y-auto">
-                      <CleanTextDisplay text={originalText.substring(0, 200) + (originalText.length > 200 ? '...' : '')} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
+
           
           <TabsContent value="style-emulation">
             <CardContent className="p-6">
