@@ -110,7 +110,8 @@ export async function generateDocument(
         return generateDOCX(text, fileName);
       
       case 'pdf':
-        return generatePDF(text, fileName);
+        // For PDF, we'll return HTML content that can be printed by the browser
+        return generatePrintableHTML(text, fileName);
       
       default:
         throw new Error(`Unsupported format: ${format}`);
@@ -158,17 +159,14 @@ async function generateDOCX(text: string, fileName: string): Promise<Buffer> {
  * @param fileName The output file name
  * @returns Buffer containing the PDF document
  */
-async function generatePDF(text: string, fileName: string): Promise<Buffer> {
+/**
+ * Generate printable HTML content for browser's native PDF functionality
+ * @param text The text content with LaTeX notation
+ * @param fileName The output file name
+ * @returns Buffer containing the HTML content
+ */
+async function generatePrintableHTML(text: string, fileName: string): Promise<Buffer> {
   try {
-    const puppeteer = await import('puppeteer');
-    
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    
-    const page = await browser.newPage();
-    
     // Create HTML content with KaTeX for math rendering
     const htmlContent = `
       <!DOCTYPE html>
@@ -180,32 +178,59 @@ async function generatePDF(text: string, fileName: string): Promise<Buffer> {
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
         <style>
+          @media print {
+            body { margin: 0.5in; }
+            .no-print { display: none; }
+          }
           body {
             font-family: 'Times New Roman', serif;
             font-size: 12pt;
             line-height: 1.6;
             margin: 1in;
-            color: #333;
+            color: #000;
             max-width: none;
+            background: white;
           }
           h1, h2, h3 {
-            color: #2c3e50;
+            color: #000;
             margin-top: 1.5em;
             margin-bottom: 0.5em;
+            page-break-after: avoid;
           }
           p {
             margin-bottom: 1em;
             text-align: justify;
+            orphans: 3;
+            widows: 3;
           }
           .katex {
             font-size: 1em;
+            color: #000;
           }
           .katex-display {
             margin: 1em 0;
+            page-break-inside: avoid;
+          }
+          .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 1000;
+          }
+          .print-button:hover {
+            background: #0056b3;
           }
         </style>
       </head>
       <body>
+        <button class="print-button no-print" onclick="window.print()">Print / Save as PDF</button>
         ${text.split('\n').map(line => 
           line.trim() ? `<p>${line.trim()}</p>` : ''
         ).join('')}
@@ -227,28 +252,10 @@ async function generatePDF(text: string, fileName: string): Promise<Buffer> {
       </html>
     `;
     
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    
-    // Wait for KaTeX to render all math
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      margin: {
-        top: '1in',
-        bottom: '1in',
-        left: '1in',
-        right: '1in'
-      },
-      printBackground: true
-    });
-    
-    await browser.close();
-    
-    return Buffer.from(pdfBuffer);
+    return Buffer.from(htmlContent, 'utf-8');
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw new Error('Failed to generate PDF document');
+    console.error('Error generating printable HTML:', error);
+    throw new Error('Failed to generate printable HTML document');
   }
 }
 

@@ -381,17 +381,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set appropriate content type
       let contentType = "text/plain";
+      let fileExtension = format;
       switch (format) {
         case "docx":
           contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
           break;
         case "pdf":
-          contentType = "application/pdf";
+          contentType = "text/html";
+          fileExtension = "html";
           break;
       }
       
       res.setHeader("Content-Type", contentType);
-      res.setHeader("Content-Disposition", `attachment; filename=${fileName}.${format}`);
+      res.setHeader("Content-Disposition", `attachment; filename=${fileName}.${fileExtension}`);
       res.send(documentBuffer);
     } catch (error) {
       console.error("Error generating document:", error);
