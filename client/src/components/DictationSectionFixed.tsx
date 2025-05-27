@@ -116,6 +116,7 @@ const DictationSection = () => {
   const [showVoiceSelect, setShowVoiceSelect] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showMathPreview, setShowMathPreview] = useState(false);
   const [contentDocuments, setContentDocuments] = useState<{ id: string; name: string; content: string; contentId: number }[]>([]);
   const [selectedContentId, setSelectedContentId] = useState<number | null>(null);
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
@@ -1162,25 +1163,82 @@ const DictationSection = () => {
                 )}
                 
                 <div className="flex-1 relative">
-                  <Textarea
-                    ref={textareaRef}
-                    value={originalText}
-                    onChange={(e) => {
-                      setOriginalText(e.target.value);
-                      clearDetectionResult(); // Clear detection when text changes
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                        e.preventDefault();
-                        if (originalText.trim() && !isProcessing) {
-                          handleTransformText();
+                  {/* Toggle between raw text and math preview */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <Button
+                      variant={showMathPreview ? "outline" : "secondary"}
+                      size="sm"
+                      onClick={() => setShowMathPreview(false)}
+                      className="text-xs"
+                    >
+                      <i className="ri-edit-box-line mr-1"></i>
+                      Raw Text
+                    </Button>
+                    <Button
+                      variant={showMathPreview ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={() => setShowMathPreview(true)}
+                      className="text-xs"
+                    >
+                      <i className="ri-formula mr-1"></i>
+                      Math Preview
+                    </Button>
+                  </div>
+
+                  {!showMathPreview ? (
+                    <Textarea
+                      ref={textareaRef}
+                      value={originalText}
+                      onChange={(e) => {
+                        setOriginalText(e.target.value);
+                        clearDetectionResult(); // Clear detection when text changes
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                          e.preventDefault();
+                          if (originalText.trim() && !isProcessing) {
+                            handleTransformText();
+                          }
                         }
-                      }
-                    }}
-                    placeholder="Start dictating or type here... (Ctrl+Enter to transform)"
-                    className={`h-[256px] resize-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
-                    style={{ maxHeight: "256px" }}
-                  />
+                      }}
+                      placeholder="Start dictating or type here... (Ctrl+Enter to transform)"
+                      className={`h-[256px] resize-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
+                      style={{ maxHeight: "256px" }}
+                    />
+                  ) : (
+                    <div className="relative">
+                      <div 
+                        className={`h-[256px] w-full p-3 border rounded-md bg-background overflow-y-auto ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
+                        style={{ maxHeight: "256px" }}
+                      >
+                        {originalText ? (
+                          <MathDisplay text={originalText} />
+                        ) : (
+                          <div className="text-muted-foreground text-sm">Math preview will appear here...</div>
+                        )}
+                      </div>
+                      {/* Invisible textarea to maintain functionality */}
+                      <Textarea
+                        ref={textareaRef}
+                        value={originalText}
+                        onChange={(e) => {
+                          setOriginalText(e.target.value);
+                          clearDetectionResult();
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                            e.preventDefault();
+                            if (originalText.trim() && !isProcessing) {
+                              handleTransformText();
+                            }
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 resize-none"
+                        style={{ maxHeight: "256px" }}
+                        placeholder=""
+                      />
+                    </div>
+                  )}
                   {/* Hidden File Input */}
                   <input 
                     ref={fileInputRef}
