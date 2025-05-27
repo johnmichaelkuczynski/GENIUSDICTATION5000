@@ -41,11 +41,9 @@ FORMATTING RULES:
 - DO NOT use markdown bold (**text**) or italic (*text*)
 - DO NOT use markdown code blocks or inline code
 - USE ONLY plain text with proper paragraph breaks
-- For mathematical expressions, use proper LaTeX notation:
-  * Use \\(expression\\) for inline math (e.g., \\(x^2 + y^2 = z^2\\))
-  * Use $$expression$$ for display math (e.g., $$E = mc^2$$)
+- Preserve all math using LaTeX syntax. Use $$...$$ for block equations and \\(...\\) for inline. Do not convert, escape, or simplify math.
+- Examples: \\(f(x) = x^2\\) for inline, $$\\frac{d}{dx} x^n = nx^{n-1}$$ for display
 - Do NOT escape backslashes or convert math to plain text
-- Preserve all mathematical symbols and formatting exactly
 
 Instructions: ${instructions}
 

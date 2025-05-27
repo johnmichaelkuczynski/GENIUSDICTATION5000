@@ -1,0 +1,75 @@
+INSTRUCTION FOR FIXING MATH NOTATION IN THIS APP (URGENT)
+This app does not display or generate math notation properly. I have another rewrite app where math works correctly. Please apply the following fixes to this app only:
+
+✅ 1. FRONTEND: Enable LaTeX Rendering with MathJax
+If this app uses a plain HTML frontend:
+Add the following line to the <head> section of the HTML:
+
+html
+Copy
+Edit
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+Then, render math using:
+
+Inline math: \( ... \)
+
+Block math: $$ ... $$
+
+Example:
+
+html
+Copy
+Edit
+<p>Derivative rule: $$\frac{d}{dx} x^n = nx^{n-1}$$</p>
+If this app uses React:
+Install MathJax for React:
+
+bash
+Copy
+Edit
+npm install better-react-mathjax
+Then modify the math-rendering component like this:
+
+jsx
+Copy
+Edit
+import { MathJaxContext, MathJax } from 'better-react-mathjax';
+
+const config = { loader: { load: ["input/tex", "output/chtml"] } };
+
+<MathJaxContext version={3} config={config}>
+  <MathJax>{"\\(f(x) = x^2\\)"}</MathJax>
+</MathJaxContext>
+✅ 2. BACKEND: Force AI Output to Use Raw LaTeX
+Wherever the prompt is sent to the model, add this instruction:
+
+“Preserve all math using LaTeX syntax. Use $$...$$ for block equations and \(...\) for inline. Do not convert, escape, or simplify math.”
+
+The AI must return raw LaTeX syntax like:
+
+text
+Copy
+Edit
+$$\frac{d}{dx} x^n = nx^{n-1}$$
+✅ 3. SANITIZATION: Don’t Strip or Escape LaTeX
+Make sure the app does not:
+
+Escape backslashes
+
+Strip dollar signs
+
+Convert math to Markdown or plain text
+
+MathJax needs the raw LaTeX to render properly.
+
+✅ 4. (IF APPLICABLE) Check If This App Uses Azure OpenAI
+In the working version of this app family, I used Azure OpenAI by setting:
+
+env
+Copy
+Edit
+AZURE_OPENAI_KEY=...
+AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/
+If this app is still using the default OpenAI API, switch it to Azure OpenAI instead. This seems to have preserved LaTeX formatting more reliably.
+
+Apply these changes now to this app only. I will address the other apps separately.
