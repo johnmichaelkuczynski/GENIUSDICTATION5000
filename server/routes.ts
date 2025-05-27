@@ -171,15 +171,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           model
         });
       } else {
-        // Default to OpenAI for GPT models
-        if (!process.env.OPENAI_API_KEY) {
-          return res.status(400).json({ error: "OpenAI API key is not configured" });
+        // Check if text contains math and Azure OpenAI is available for math-aware processing
+        const containsMath = /\$.*?\$|\\\(.*?\\\)|\\\[.*?\\\]|\\begin\{.*?\}.*?\\end\{.*?\}/.test(text);
+        
+        if (containsMath && process.env.AZURE_OPENAI_KEY && process.env.AZURE_OPENAI_ENDPOINT) {
+          // Use Azure OpenAI for math-aware processing
+          transformedText = await transformMathText({
+            text,
+            instructions: combinedInstructions || "Improve this text while preserving mathematical notation",
+            includeMath: true,
+            outputFormat: 'mixed'
+          });
+        } else {
+          // Default to OpenAI for GPT models
+          if (!process.env.OPENAI_API_KEY) {
+            return res.status(400).json({ error: "OpenAI API key is not configured" });
+          }
+          transformedText = await openaiTransform({
+            text,
+            instructions: combinedInstructions || "Improve this text",
+            model
+          });
         }
-        transformedText = await openaiTransform({
-          text,
-          instructions: combinedInstructions || "Improve this text",
-          model
-        });
       }
       
       // Verify that the transformed text is longer than the original
@@ -496,6 +509,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         errorMessage = error.message;
       }
       res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // OCR endpoint for extracting text and math from screenshots
+  app.post("/api/ocr/extract", upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      // Check if Mathpix credentials are available
+      if (!process.env.MATHPIX_APP_ID || !process.env.MATHPIX_APP_KEY) {
+        return res.status(400).json({ error: "Mathpix API credentials are not configured" });
+      }
+
+      // Extract text and math from the image
+      const result = await extractTextFromImage(req.file.buffer);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error extracting text from image:", error);
+      res.status(500).json({ error: "Failed to extract text from image" });
+    }
+  });
+
+  // Math formatting endpoint
+  app.post("/api/math/format", async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: "Text is required" });
+      }
+
+      // Check if Azure OpenAI credentials are available
+      if (!process.env.AZURE_OPENAI_KEY || !process.env.AZURE_OPENAI_ENDPOINT) {
+        return res.status(400).json({ error: "Azure OpenAI credentials are not configured" });
+      }
+
+      // Format mathematical expressions in the text
+      const formattedText = await formatMathExpressions(text);
+      
+      res.json({ text: formattedText });
+    } catch (error) {
+      console.error("Error formatting math expressions:", error);
+      res.status(500).json({ error: "Failed to format math expressions" });
     }
   });
   
