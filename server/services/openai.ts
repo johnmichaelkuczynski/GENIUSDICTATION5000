@@ -31,15 +31,19 @@ export async function transformText({
     
     const prompt = `
 You are an expert text transformation assistant. Your task is to transform the user's text according to their instructions.
-You should return ONLY the transformed text without additional commentary, explanations, or formatting.
+You should return ONLY the transformed text in PLAIN TEXT format without any markdown formatting, headings, or special formatting.
 
 IMPORTANT: Your transformed text MUST be LONGER than the original text. The original text has approximately ${wordCount} words. 
 Your response MUST be at least ${minRequiredWords} words to be acceptable. This is a non-negotiable requirement.
 
-MATHEMATICAL NOTATION RULES:
-- For mathematical expressions, use proper LaTeX notation
-- Use \\(expression\\) for inline math (e.g., \\(x^2 + y^2 = z^2\\))
-- Use $$expression$$ for display math (e.g., $$E = mc^2$$)
+FORMATTING RULES:
+- DO NOT use markdown headers (no # symbols)
+- DO NOT use markdown bold (**text**) or italic (*text*)
+- DO NOT use markdown code blocks or inline code
+- USE ONLY plain text with proper paragraph breaks
+- For mathematical expressions, use proper LaTeX notation:
+  * Use \\(expression\\) for inline math (e.g., \\(x^2 + y^2 = z^2\\))
+  * Use $$expression$$ for display math (e.g., $$E = mc^2$$)
 - Do NOT escape backslashes or convert math to plain text
 - Preserve all mathematical symbols and formatting exactly
 
@@ -48,7 +52,7 @@ Instructions: ${instructions}
 Original Text:
 ${text}
 
-Transformed Text:
+Transformed Text (PLAIN TEXT FORMAT ONLY):
 `;
 
     const response = await openai.chat.completions.create({
