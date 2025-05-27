@@ -38,6 +38,7 @@ import { assessWithAnthropic } from "./services/anthropicAssessment";
 import { assessWithPerplexity } from "./services/perplexityAssessment";
 import { extractTextFromImage, isMathpixConfigured } from "./services/mathpix";
 import { extractTextWithTesseract, enhanceMathNotation, isTesseractAvailable } from "./services/tesseractOCR";
+import { extractMathWithTexify, isTexifyAvailable } from "./services/texifyOCR";
 
 // Set up multer for file uploads
 const upload = multer({ 
@@ -52,6 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const openaiKey = process.env.OPENAI_API_KEY;
     const mathpixConfigured = isMathpixConfigured();
     const tesseractAvailable = await isTesseractAvailable();
+    const texifyAvailable = await isTexifyAvailable();
     const deepgramKey = process.env.DEEPGRAM_API_KEY;
     const azureSpeechKey = process.env.AZURE_SPEECH_KEY;
     const azureSpeechEndpoint = process.env.AZURE_SPEECH_ENDPOINT;
@@ -69,7 +71,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       perplexity: !!perplexityKey,
       gptzero: !!gptzeroKey,
       mathpix: mathpixConfigured,
-      tesseract: tesseractAvailable
+      tesseract: tesseractAvailable,
+      texify: texifyAvailable
     };
     
     // At least one service must be available
@@ -338,27 +341,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let extractedText = '';
       
-      // Try Tesseract first (more reliable)
-      if (await isTesseractAvailable()) {
+      // Try Texify first (best for math)
+      if (await isTexifyAvailable()) {
+        try {
+          extractedText = await extractMathWithTexify(buffer);
+        } catch (texifyError) {
+          console.log("Texify failed, trying Tesseract fallback:", texifyError);
+          
+          // Fallback to Tesseract
+          if (await isTesseractAvailable()) {
+            extractedText = await extractTextWithTesseract(buffer);
+            extractedText = enhanceMathNotation(extractedText);
+          } else if (isMathpixConfigured()) {
+            extractedText = await extractTextFromImage(buffer);
+          } else {
+            throw new Error("Math OCR extraction failed. No OCR service is available.");
+          }
+        }
+      } else if (await isTesseractAvailable()) {
+        // Use Tesseract if Texify isn't available
         try {
           extractedText = await extractTextWithTesseract(buffer);
           extractedText = enhanceMathNotation(extractedText);
         } catch (tesseractError) {
-          console.log("Tesseract failed, trying Mathpix fallback:", tesseractError);
-          
-          // Fallback to Mathpix if configured
           if (isMathpixConfigured()) {
             extractedText = await extractTextFromImage(buffer);
           } else {
-            throw new Error("OCR extraction failed. No OCR service is available.");
+            throw tesseractError;
           }
         }
       } else if (isMathpixConfigured()) {
-        // Use Mathpix if Tesseract isn't available
+        // Use Mathpix as last resort
         extractedText = await extractTextFromImage(buffer);
       } else {
         return res.status(503).json({ 
-          error: "No OCR service configured. Please ensure Tesseract is installed or provide Mathpix API credentials." 
+          error: "No OCR service available. Texify API is currently the best option for math OCR." 
         });
       }
       
