@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { MathJax } from 'better-react-mathjax';
 
 interface MathDisplayProps {
   text: string;
@@ -6,11 +6,9 @@ interface MathDisplayProps {
 }
 
 export function MathDisplay({ text, className = '' }: MathDisplayProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
   return (
     <div className={`whitespace-pre-wrap ${className}`}>
-      {text}
+      <MathJax>{text}</MathJax>
     </div>
   );
 }

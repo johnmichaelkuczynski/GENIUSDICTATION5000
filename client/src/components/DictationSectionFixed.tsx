@@ -241,7 +241,7 @@ const DictationSection = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: originalText,
-          instructions: customInstructions || "Improve this text. For mathematical content, use proper LaTeX notation with $ for inline math and $$ for display math.",
+          instructions: customInstructions || "Improve this text. IMPORTANT: For any mathematical expressions, use proper LaTeX notation: \\(expression\\) for inline math and $$expression$$ for display math. Do not escape backslashes or convert math to plain text.",
           model: selectedAIModel,
           preset: selectedPreset,
           useStyleReference,
@@ -1361,11 +1361,11 @@ const DictationSection = () => {
                 <div className="flex-1">
                   {processedText ? (
                     <div className="min-h-[256px] max-h-[256px] overflow-y-auto border rounded-md p-3 bg-background">
-                      <CleanTextDisplay text={processedText} className="text-sm" />
+                      <MathDisplay text={processedText} className="text-sm" />
                     </div>
                   ) : (
                     <div className="min-h-[256px] border rounded-md p-3 bg-muted/10 flex items-center justify-center text-muted-foreground text-sm">
-                      Processed text will appear here...
+                      Processed text with mathematical notation will appear here...
                     </div>
                   )}
                 </div>
