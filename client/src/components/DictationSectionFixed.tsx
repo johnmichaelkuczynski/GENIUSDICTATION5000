@@ -23,6 +23,7 @@ import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
 import { ManualAssessmentDialog } from "@/components/ManualAssessmentDialog";
 import { AssessmentModelSelector, AssessmentModel } from "@/components/AssessmentModelSelector";
+import { ScreenshotUpload } from "@/components/ScreenshotUpload";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 

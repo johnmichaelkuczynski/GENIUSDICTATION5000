@@ -64,7 +64,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       azureSpeech: !!(azureSpeechKey && azureSpeechEndpoint),
       anthropic: !!anthropicKey,
       perplexity: !!perplexityKey,
-      gptzero: !!gptzeroKey
+      gptzero: !!gptzeroKey,
+      azureOpenAI: !!(process.env.AZURE_OPENAI_KEY && process.env.AZURE_OPENAI_ENDPOINT),
+      mathpix: !!(process.env.MATHPIX_APP_ID && process.env.MATHPIX_APP_KEY)
     };
     
     // At least one service must be available
