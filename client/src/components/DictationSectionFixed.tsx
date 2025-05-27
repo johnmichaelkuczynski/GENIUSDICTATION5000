@@ -241,7 +241,7 @@ const DictationSection = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: originalText,
-          instructions: customInstructions || "Improve this text",
+          instructions: customInstructions || "Improve this text. For mathematical content, use proper LaTeX notation with $ for inline math and $$ for display math.",
           model: selectedAIModel,
           preset: selectedPreset,
           useStyleReference,
@@ -1184,14 +1184,59 @@ const DictationSection = () => {
                     >
                       <i className="ri-file-copy-line mr-1"></i> Copy
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs flex items-center"
-                      onClick={handleDownloadProcessed}
-                    >
-                      <i className="ri-download-line mr-1"></i> Download
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs flex items-center"
+                        onClick={handleDownloadProcessed}
+                      >
+                        <i className="ri-download-line mr-1"></i> Download
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs flex items-center"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch("/api/export/latex", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                text: processedText,
+                                title: "Mathematical Document",
+                                author: "Genius Dictation"
+                              })
+                            });
+                            
+                            if (response.ok) {
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = 'document.tex';
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                              
+                              toast({
+                                title: "LaTeX Download Complete",
+                                description: "Mathematical document exported as LaTeX file"
+                              });
+                            }
+                          } catch (error) {
+                            toast({
+                              title: "Export Failed",
+                              description: "Could not export LaTeX file",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <i className="ri-file-text-line mr-1"></i> LaTeX
+                      </Button>
+                    </div>
                     {processedText && (
                       <>
                         <Button 
@@ -1314,13 +1359,15 @@ const DictationSection = () => {
                 )}
                 
                 <div className="flex-1">
-                  <Textarea 
-                    className="min-h-[256px] resize-none"
-                    value={removeMarkdownFormatting(processedText)}
-                    onChange={(e) => setProcessedText(e.target.value)}
-                    placeholder="Processed text will appear here..."
-                    style={{ maxHeight: "256px" }}
-                  />
+                  {processedText ? (
+                    <div className="min-h-[256px] max-h-[256px] overflow-y-auto border rounded-md p-3 bg-background">
+                      <MathDisplay text={processedText} className="text-sm" />
+                    </div>
+                  ) : (
+                    <div className="min-h-[256px] border rounded-md p-3 bg-muted/10 flex items-center justify-center text-muted-foreground text-sm">
+                      Processed text with mathematical notation will appear here...
+                    </div>
+                  )}
                 </div>
 
                 {/* TTS Controls - Only show when there's processed text */}
