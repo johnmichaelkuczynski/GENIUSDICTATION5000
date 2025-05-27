@@ -110,7 +110,7 @@ export async function generateDocument(
         return generateDOCX(text, fileName);
       
       case 'pdf':
-        return generateFormattedPDF(text, fileName);
+        return generatePDF(text, fileName);
       
       default:
         throw new Error(`Unsupported format: ${format}`);
@@ -153,11 +153,191 @@ async function generateDOCX(text: string, fileName: string): Promise<Buffer> {
 }
 
 /**
- * Generate a PDF document
- * @param text The text content
+ * Generate a PDF document with proper LaTeX math rendering
+ * @param text The text content with LaTeX notation
  * @param fileName The output file name
  * @returns Buffer containing the PDF document
  */
+async function generatePDF(text: string, fileName: string): Promise<Buffer> {
+  try {
+    const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+    
+    // Create a new PDF document
+    const pdfDoc = await PDFDocument.create();
+    
+    // Add a page
+    let page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+    
+    // Set up fonts and styling
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontSize = 12;
+    const lineHeight = 16;
+    const margin = 50;
+    
+    let currentY = height - margin;
+    
+    // Process text line by line
+    const lines = text.split('\n');
+    
+    for (const line of lines) {
+      // Check if we need a new page
+      if (currentY < margin + lineHeight) {
+        page = pdfDoc.addPage();
+        currentY = height - margin;
+      }
+      
+      let processedLine = line.trim();
+      
+      // Convert LaTeX math notation to readable format
+      processedLine = convertLaTeXForPDF(processedLine);
+      
+      // Handle different text styles
+      if (processedLine.startsWith('Part ') || processedLine.startsWith('Section ') || processedLine.includes(':') && processedLine.length < 50) {
+        // Headers
+        page.drawText(processedLine, {
+          x: margin,
+          y: currentY,
+          size: fontSize + 2,
+          font: boldFont,
+          color: rgb(0, 0, 0),
+        });
+        currentY -= lineHeight + 4;
+      } else if (processedLine.length > 0) {
+        // Regular text
+        const words = processedLine.split(' ');
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const textWidth = font.widthOfTextAtSize(testLine, fontSize);
+          
+          if (textWidth > width - 2 * margin && currentLine) {
+            // Draw current line and start new one
+            page.drawText(currentLine, {
+              x: margin,
+              y: currentY,
+              size: fontSize,
+              font: font,
+              color: rgb(0, 0, 0),
+            });
+            currentY -= lineHeight;
+            currentLine = word;
+            
+            // Check if we need a new page
+            if (currentY < margin + lineHeight) {
+              page = pdfDoc.addPage();
+              currentY = height - margin;
+            }
+          } else {
+            currentLine = testLine;
+          }
+        }
+        
+        // Draw remaining text
+        if (currentLine) {
+          page.drawText(currentLine, {
+            x: margin,
+            y: currentY,
+            size: fontSize,
+            font: font,
+            color: rgb(0, 0, 0),
+          });
+          currentY -= lineHeight;
+        }
+      } else {
+        // Empty line
+        currentY -= lineHeight / 2;
+      }
+    }
+    
+    // Serialize the PDF document to bytes
+    const pdfBytes = await pdfDoc.save();
+    return Buffer.from(pdfBytes);
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/**
+ * Convert LaTeX math notation to readable text for PDF
+ */
+function convertLaTeXForPDF(text: string): string {
+  let converted = text;
+  
+  // Convert common LaTeX math symbols to Unicode
+  const latexMappings: Record<string, string> = {
+    '\\lim': 'lim',
+    '\\to': '→',
+    '\\infty': '∞',
+    '\\frac': '',
+    '\\left': '',
+    '\\right': '',
+    '\\{': '{',
+    '\\}': '}',
+    '\\[': '',
+    '\\]': '',
+    '\\(': '',
+    '\\)': '',
+    '\\cdot': '·',
+    '\\times': '×',
+    '\\div': '÷',
+    '\\pm': '±',
+    '\\mp': '∓',
+    '\\leq': '≤',
+    '\\geq': '≥',
+    '\\neq': '≠',
+    '\\approx': '≈',
+    '\\equiv': '≡',
+    '\\alpha': 'α',
+    '\\beta': 'β',
+    '\\gamma': 'γ',
+    '\\delta': 'δ',
+    '\\epsilon': 'ε',
+    '\\theta': 'θ',
+    '\\lambda': 'λ',
+    '\\mu': 'μ',
+    '\\pi': 'π',
+    '\\sigma': 'σ',
+    '\\tau': 'τ',
+    '\\phi': 'φ',
+    '\\omega': 'ω',
+    '\\partial': '∂',
+    '\\nabla': '∇',
+    '\\sum': '∑',
+    '\\prod': '∏',
+    '\\int': '∫',
+    '\\sqrt': '√',
+    '^2': '²',
+    '^3': '³',
+    '_1': '₁',
+    '_2': '₂',
+    '_3': '₃',
+    '_n': 'ₙ',
+    '_x': 'ₓ',
+    '_i': 'ᵢ',
+    '_j': 'ⱼ'
+  };
+  
+  // Apply mappings
+  for (const [latex, unicode] of Object.entries(latexMappings)) {
+    converted = converted.replace(new RegExp(latex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), unicode);
+  }
+  
+  // Handle fractions - convert \frac{a}{b} to a/b
+  converted = converted.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)');
+  
+  // Clean up remaining LaTeX artifacts
+  converted = converted.replace(/\$+/g, ''); // Remove dollar signs
+  converted = converted.replace(/\\[a-zA-Z]+/g, ''); // Remove remaining LaTeX commands
+  converted = converted.replace(/[{}]/g, ''); // Remove remaining braces
+  converted = converted.replace(/\s+/g, ' ').trim(); // Clean up whitespace
+  
+  return converted;
+}
 /**
  * Generate a formatted assessment report document
  * @param text The report content

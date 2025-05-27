@@ -1245,7 +1245,52 @@ const DictationSection = () => {
                         className="text-xs flex items-center"
                         onClick={handleDownloadProcessed}
                       >
-                        <i className="ri-download-line mr-1"></i> Download
+                        <i className="ri-download-line mr-1"></i> Download TXT
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch("/api/generate-document", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                text: processedText,
+                                format: "pdf",
+                                fileName: "mathematical-document"
+                              })
+                            });
+                            
+                            if (response.ok) {
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = 'mathematical-document.pdf';
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                              
+                              toast({
+                                title: "PDF Download Complete",
+                                description: "Mathematical document exported with perfect notation"
+                              });
+                            } else {
+                              throw new Error('PDF generation failed');
+                            }
+                          } catch (error) {
+                            toast({
+                              title: "PDF Export Failed",
+                              description: "Could not generate PDF with math notation",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <i className="ri-file-pdf-line mr-1"></i> Download PDF
                       </Button>
                       <Button 
                         variant="ghost" 
