@@ -18,6 +18,7 @@ import { useTTS } from "@/hooks/useTTS";
 import { useDocumentProcessor } from "@/hooks/useDocumentProcessor";
 import { useAIDetection } from "@/hooks/useAIDetection";
 import { CleanTextDisplay } from "@/components/CleanTextDisplay";
+import { MathDisplay } from "@/components/MathDisplay";
 import { removeMarkdownFormatting } from "@/lib/textCleaner";
 import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";

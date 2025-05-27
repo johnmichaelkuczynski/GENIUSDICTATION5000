@@ -26,6 +26,7 @@ import {
   generateDocument,
   generateAssessmentReport
 } from "./services/documentHandler";
+import { generateLaTeXFile, LaTeXExportOptions } from "./services/latexExport";
 import {
   generateSpeech,
   getAvailableVoices
