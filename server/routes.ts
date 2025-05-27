@@ -18,8 +18,6 @@ import {
 import { transformText as openaiTransform } from "./services/openai";
 import { transformText as anthropicTransform } from "./services/anthropic";
 import { transformText as perplexityTransform } from "./services/perplexity";
-import { transformMathText, formatMathExpressions } from "./services/azureOpenAI";
-import { extractTextFromImage, checkMathpixStatus } from "./services/mathpix";
 import { transcribeAudio as gladiaTranscribe } from "./services/gladia";
 import { transcribeAudio as deepgramTranscribe } from "./services/deepgram";
 import { transcribeAudio as whisperTranscribe } from "./services/openai";
@@ -64,9 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       azureSpeech: !!(azureSpeechKey && azureSpeechEndpoint),
       anthropic: !!anthropicKey,
       perplexity: !!perplexityKey,
-      gptzero: !!gptzeroKey,
-      azureOpenAI: !!(process.env.AZURE_OPENAI_KEY && process.env.AZURE_OPENAI_ENDPOINT),
-      mathpix: !!(process.env.MATHPIX_APP_ID && process.env.MATHPIX_APP_KEY)
+      gptzero: !!gptzeroKey
     };
     
     // At least one service must be available
@@ -498,52 +494,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         errorMessage = error.message;
       }
       res.status(500).json({ error: errorMessage });
-    }
-  });
-
-  // OCR endpoint for extracting text and math from screenshots
-  app.post("/api/ocr/extract", upload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No image file provided" });
-      }
-
-      // Check if Mathpix credentials are available
-      if (!process.env.MATHPIX_APP_ID || !process.env.MATHPIX_APP_KEY) {
-        return res.status(400).json({ error: "Mathpix API credentials are not configured" });
-      }
-
-      // Extract text and math from the image
-      const result = await extractTextFromImage(req.file.buffer);
-      
-      res.json(result);
-    } catch (error) {
-      console.error("Error extracting text from image:", error);
-      res.status(500).json({ error: "Failed to extract text from image" });
-    }
-  });
-
-  // Math formatting endpoint
-  app.post("/api/math/format", async (req, res) => {
-    try {
-      const { text } = req.body;
-      
-      if (!text || typeof text !== 'string') {
-        return res.status(400).json({ error: "Text is required" });
-      }
-
-      // Check if Azure OpenAI credentials are available
-      if (!process.env.AZURE_OPENAI_KEY || !process.env.AZURE_OPENAI_ENDPOINT) {
-        return res.status(400).json({ error: "Azure OpenAI credentials are not configured" });
-      }
-
-      // Format mathematical expressions in the text
-      const formattedText = await formatMathExpressions(text);
-      
-      res.json({ text: formattedText });
-    } catch (error) {
-      console.error("Error formatting math expressions:", error);
-      res.status(500).json({ error: "Failed to format math expressions" });
     }
   });
   

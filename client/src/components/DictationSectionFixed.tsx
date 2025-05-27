@@ -23,7 +23,6 @@ import { AIDetectionIndicator } from "@/components/AIDetectionIndicator";
 import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
 import { ManualAssessmentDialog } from "@/components/ManualAssessmentDialog";
 import { AssessmentModelSelector, AssessmentModel } from "@/components/AssessmentModelSelector";
-
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -318,8 +317,6 @@ const DictationSection = () => {
       });
     }
   }, [processedText, detectOutputAI, toast, clearOutputDetectionResult]);
-  
-
   
   // File upload handlers
   const handleFileUploadClick = () => {
@@ -1533,8 +1530,6 @@ const DictationSection = () => {
               </div>
             </div>
           </TabsContent>
-
-
           
           <TabsContent value="style-emulation">
             <CardContent className="p-6">
