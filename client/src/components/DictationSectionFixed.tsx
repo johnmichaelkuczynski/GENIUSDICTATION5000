@@ -319,6 +319,24 @@ const DictationSection = () => {
     }
   }, [processedText, detectOutputAI, toast, clearOutputDetectionResult]);
   
+  // Screenshot OCR handler
+  const handleScreenshotTextExtracted = useCallback((extractedText: string, hasMath: boolean) => {
+    if (extractedText.trim()) {
+      // Add the extracted text to the original text area
+      const currentText = originalText;
+      const newText = currentText ? `${currentText}\n\n${extractedText}` : extractedText;
+      setOriginalText(newText);
+      
+      toast({
+        title: "Text Extracted from Screenshot",
+        description: hasMath 
+          ? "Text with mathematical notation has been extracted and added to your content"
+          : "Text has been extracted and added to your content",
+        duration: 4000,
+      });
+    }
+  }, [originalText, setOriginalText, toast]);
+  
   // File upload handlers
   const handleFileUploadClick = () => {
     if (fileInputRef.current) {
@@ -910,8 +928,9 @@ const DictationSection = () => {
       <Card>
         {/* Tab Navigation */}
         <Tabs defaultValue="direct-dictation" className="w-full" onValueChange={setCurrentTab} value={currentTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="direct-dictation">Direct Dictation</TabsTrigger>
+            <TabsTrigger value="screenshot-ocr">Screenshot OCR</TabsTrigger>
             <TabsTrigger value="style-emulation">Style Emulation</TabsTrigger>
             <TabsTrigger value="content-reference">Content Reference</TabsTrigger>
           </TabsList>
