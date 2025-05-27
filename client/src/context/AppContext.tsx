@@ -25,6 +25,7 @@ interface ApiServices {
   anthropic: boolean;
   perplexity: boolean;
   mathpix: boolean;
+  tesseract: boolean;
 }
 
 type AppContextType = {
@@ -84,7 +85,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     elevenLabs: false,
     anthropic: false,
     perplexity: false,
-    mathpix: false
+    mathpix: false,
+    tesseract: false
   });
 
   const checkApiStatus = async () => {

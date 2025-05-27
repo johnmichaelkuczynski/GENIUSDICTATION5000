@@ -37,6 +37,7 @@ import { directAssessText } from "./services/directAssessment";
 import { assessWithAnthropic } from "./services/anthropicAssessment";
 import { assessWithPerplexity } from "./services/perplexityAssessment";
 import { extractTextFromImage, isMathpixConfigured } from "./services/mathpix";
+import { extractTextWithTesseract, enhanceMathNotation, isTesseractAvailable } from "./services/tesseractOCR";
 
 // Set up multer for file uploads
 const upload = multer({ 
@@ -50,6 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const gladiaKey = process.env.GLADIA_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
     const mathpixConfigured = isMathpixConfigured();
+    const tesseractAvailable = await isTesseractAvailable();
     const deepgramKey = process.env.DEEPGRAM_API_KEY;
     const azureSpeechKey = process.env.AZURE_SPEECH_KEY;
     const azureSpeechEndpoint = process.env.AZURE_SPEECH_ENDPOINT;
@@ -66,7 +68,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       anthropic: !!anthropicKey,
       perplexity: !!perplexityKey,
       gptzero: !!gptzeroKey,
-      mathpix: mathpixConfigured
+      mathpix: mathpixConfigured,
+      tesseract: tesseractAvailable
     };
     
     // At least one service must be available
@@ -326,13 +329,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No image file provided" });
       }
 
-      // Check if Mathpix is configured
-      if (!isMathpixConfigured()) {
-        return res.status(503).json({ 
-          error: "OCR service not configured. Please provide Mathpix API credentials (MATHPIX_APP_ID and MATHPIX_APP_KEY)." 
-        });
-      }
-
       const { buffer, mimetype } = req.file;
       
       // Validate that it's an image file
@@ -340,7 +336,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "File must be an image (PNG, JPG, etc.)" });
       }
 
-      const extractedText = await extractTextFromImage(buffer);
+      let extractedText = '';
+      
+      // Try Tesseract first (more reliable)
+      if (await isTesseractAvailable()) {
+        try {
+          extractedText = await extractTextWithTesseract(buffer);
+          extractedText = enhanceMathNotation(extractedText);
+        } catch (tesseractError) {
+          console.log("Tesseract failed, trying Mathpix fallback:", tesseractError);
+          
+          // Fallback to Mathpix if configured
+          if (isMathpixConfigured()) {
+            extractedText = await extractTextFromImage(buffer);
+          } else {
+            throw new Error("OCR extraction failed. No OCR service is available.");
+          }
+        }
+      } else if (isMathpixConfigured()) {
+        // Use Mathpix if Tesseract isn't available
+        extractedText = await extractTextFromImage(buffer);
+      } else {
+        return res.status(503).json({ 
+          error: "No OCR service configured. Please ensure Tesseract is installed or provide Mathpix API credentials." 
+        });
+      }
       
       res.json({ text: extractedText });
     } catch (error: any) {
