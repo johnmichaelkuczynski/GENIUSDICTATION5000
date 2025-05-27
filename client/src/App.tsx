@@ -29,10 +29,17 @@ function Router() {
 const mathJaxConfig = {
   loader: { load: ["input/tex", "output/chtml"] },
   tex: {
-    inlineMath: [['\\(', '\\)']],
-    displayMath: [['$$', '$$']],
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
     processEscapes: true,
-    processEnvironments: true
+    processEnvironments: true,
+    processRefs: true,
+    packages: {'[+]': ['ams', 'newcommand', 'configmacros']}
+  },
+  chtml: {
+    scale: 1.0,
+    minScale: 0.5,
+    matchFontHeight: false
   }
 };
 
