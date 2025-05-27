@@ -18,6 +18,8 @@ import {
 import { transformText as openaiTransform } from "./services/openai";
 import { transformText as anthropicTransform } from "./services/anthropic";
 import { transformText as perplexityTransform } from "./services/perplexity";
+import { transformMathText, formatMathExpressions } from "./services/azureOpenAI";
+import { extractTextFromImage, checkMathpixStatus } from "./services/mathpix";
 import { transcribeAudio as gladiaTranscribe } from "./services/gladia";
 import { transcribeAudio as deepgramTranscribe } from "./services/deepgram";
 import { transcribeAudio as whisperTranscribe } from "./services/openai";
