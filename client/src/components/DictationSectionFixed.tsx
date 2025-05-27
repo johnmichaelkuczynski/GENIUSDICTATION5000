@@ -1550,6 +1550,51 @@ const DictationSection = () => {
               </div>
             </div>
           </TabsContent>
+
+          <TabsContent value="screenshot-ocr" className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Screenshot Upload Panel */}
+              <div className="space-y-4">
+                <ScreenshotUpload 
+                  onTextExtracted={handleScreenshotTextExtracted}
+                  className="h-full"
+                />
+              </div>
+              
+              {/* Instructions Panel */}
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="text-sm font-semibold text-blue-800 mb-2">📸 Screenshot OCR</h3>
+                  <div className="text-sm text-blue-700 space-y-2">
+                    <p>Upload screenshots to extract text and mathematical expressions using advanced OCR technology.</p>
+                    <div className="space-y-1">
+                      <p><strong>✨ Features:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-xs">
+                        <li>Extract regular text from images</li>
+                        <li>Recognize mathematical notation and formulas</li>
+                        <li>Convert math expressions to LaTeX format</li>
+                        <li>Support for handwritten and printed text</li>
+                        <li>Automatic confidence scoring</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-1">
+                      <p><strong>📝 Supported formats:</strong></p>
+                      <p className="text-xs">PNG, JPG, JPEG, GIF, BMP, WebP</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {originalText && (
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h4 className="text-sm font-semibold text-green-800 mb-2">📄 Current Content</h4>
+                    <div className="text-xs text-green-700 max-h-32 overflow-y-auto">
+                      <CleanTextDisplay text={originalText.substring(0, 200) + (originalText.length > 200 ? '...' : '')} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
           
           <TabsContent value="style-emulation">
             <CardContent className="p-6">
