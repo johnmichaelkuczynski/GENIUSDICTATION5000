@@ -150,4 +150,5 @@ function escapeLatex(text: string): string {
  */
 export function generateLaTeXFile(content: string, options: LaTeXExportOptions = {}): Buffer {
   const latexDocument = generateLaTeXDocument(content, options);
-  return Buffer.from(latexDocument, 'utf-8')
+  return Buffer.from(latexDocument, 'utf-8');
+}
