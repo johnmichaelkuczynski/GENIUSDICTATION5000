@@ -30,6 +30,17 @@ export async function transformText({
 
 IMPORTANT: Your transformed text MUST be LONGER than the original text. The original text has approximately ${text.trim().split(/\s+/).length} words. Your response MUST be at least ${Math.ceil(text.trim().split(/\s+/).length * 1.125)} words. This is a non-negotiable requirement.
 
+FORMATTING RULES:
+- DO NOT use markdown headers (no # symbols)
+- DO NOT use markdown bold (**text**) or italic (*text*)
+- DO NOT use markdown code blocks or inline code
+- USE ONLY plain text with proper paragraph breaks
+- For mathematical expressions, use proper LaTeX notation:
+  * Use \\(expression\\) for inline math (e.g., \\(x^2 + y^2 = z^2\\))
+  * Use $$expression$$ for display math (e.g., $$E = mc^2$$)
+- Do NOT escape backslashes or convert math to plain text
+- Preserve all mathematical symbols and formatting exactly
+
 Original text to transform:
 ${text}`
         }
