@@ -36,6 +36,7 @@ import { assessText } from "./services/textAssessment";
 import { directAssessText } from "./services/directAssessment";
 import { assessWithAnthropic } from "./services/anthropicAssessment";
 import { assessWithPerplexity } from "./services/perplexityAssessment";
+import { extractTextFromImage, isMathpixConfigured } from "./services/mathpix";
 
 // Set up multer for file uploads
 const upload = multer({ 
@@ -48,6 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/status", async (req, res) => {
     const gladiaKey = process.env.GLADIA_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
+    const mathpixConfigured = isMathpixConfigured();
     const deepgramKey = process.env.DEEPGRAM_API_KEY;
     const azureSpeechKey = process.env.AZURE_SPEECH_KEY;
     const azureSpeechEndpoint = process.env.AZURE_SPEECH_ENDPOINT;
