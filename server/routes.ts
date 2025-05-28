@@ -38,6 +38,7 @@ import { assessWithAnthropic } from "./services/anthropicAssessment";
 import { assessWithPerplexity } from "./services/perplexityAssessment";
 import { extractTextFromImage, isMathpixConfigured } from "./services/mathpix";
 import { extractTextWithTesseract, enhanceMathNotation, isTesseractAvailable } from "./services/tesseractOCR";
+import { sendProcessedText } from "./services/sendgrid";
 // Texify service removed - service no longer exists
 
 // Set up multer for file uploads
