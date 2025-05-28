@@ -82,9 +82,9 @@ export async function transformText(options: TransformOptions): Promise<string> 
       const totalChunks = chunks.length;
       
       for (const chunk of chunks) {
-        // Call progress callback if provided
+        // Call progress callback at start of chunk processing
         if (options.onProgress) {
-          options.onProgress(chunkNum, totalChunks);
+          options.onProgress(chunkNum, totalChunks, processedText);
         }
         
         // Modify instructions for context when processing chunks
@@ -176,8 +176,7 @@ export async function transformText(options: TransformOptions): Promise<string> 
           processedText += "\n\n";
         }
         
-        // Call progress callback with current progress AND the processed text so far
-        // This allows the UI to update with each processed chunk
+        // CRITICAL: Call progress callback with accumulated processed text for real-time streaming
         if (options.onProgress) {
           options.onProgress(chunkNum, totalChunks, processedText);
         }
