@@ -2,11 +2,10 @@ import { useCallback, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { AIModel } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { transformText as transformTextApi } from "@/lib/textTransformationEnhanced";
+import { transformText as transformTextApi } from "@/lib/textTransformation";
 import { useToast } from "@/hooks/use-toast";
-import { removeMarkdownFormatting } from "@/lib/textCleaner";
 
-export function useTransformation() {
+export function useTransformationEnhanced() {
   const {
     originalText,
     setOriginalText,
@@ -62,7 +61,7 @@ export function useTransformation() {
     setProcessedText("");
     setCustomInstructions("");
     setOriginalText("");
-    setSelectedPreset("Academic"); // Reset to default preset
+    setSelectedPreset("Academic");
     
     toast({
       title: "All Cleared",
@@ -70,29 +69,20 @@ export function useTransformation() {
     });
   }, [setProcessedText, setCustomInstructions, setOriginalText, setSelectedPreset, toast]);
 
-  // Transform text using AI, with support for chunking large documents
+  // Transform text using AI, with real-time chunk streaming
   const transformText = useCallback(async () => {
     if (!originalText) return;
     
     // Reset progress
     setProcessingProgress(0);
-    
+    setProcessedText("");
+
     // Create a new AbortController
     const controller = new AbortController();
     setAbortController(controller);
 
     try {
-      console.log("Starting text transformation with:", { 
-        textLength: originalText.length,
-        model: selectedAIModel,
-        instructions: customInstructions ? customInstructions.substring(0, 50) + "..." : "none"
-      });
-      
       setIsProcessing(true);
-      
-      // Check if we've selected a model that requires specific API keys
-      const isClaudeModel = selectedAIModel.includes('Claude');
-      const isPerplexityModel = selectedAIModel.includes('Perplexity');
       
       // Prepare transformation payload
       const options = {
@@ -113,7 +103,7 @@ export function useTransformation() {
         setIsChunkedProcessing(true);
         toast({
           title: "Processing Large Document",
-          description: "Your document is being split into chunks for processing. You'll see each chunk as it's completed.",
+          description: "Your document is being split into chunks for processing. Processed chunks will appear immediately.",
           duration: 5000,
         });
         
@@ -123,58 +113,34 @@ export function useTransformation() {
         setIsChunkedProcessing(false);
       }
       
-      // Use the enhanced chunking implementation with real-time display
-      try {
-        // Handle progress updates from the chunking process with real-time display
-        const progressCallback = (current: number, total: number, partialText?: string) => {
-          const percentage = Math.round((current / total) * 100);
-          setProcessingProgress(percentage);
-          
-          // If we have partial text, show it immediately
-          if (partialText) {
-            // Clean any markdown formatting from the text
-            let cleanedText = partialText;
-            cleanedText = cleanedText.replace(/\*\*/g, ''); // Remove bold
-            cleanedText = cleanedText.replace(/\*/g, '');    // Remove italic
-            cleanedText = cleanedText.replace(/#{1,6}\s/g, ''); // Remove headings
-            cleanedText = cleanedText.replace(/`{1,3}/g, '');   // Remove code blocks
-            
-            // Update the processed text with what we have so far
-            setProcessedText(cleanedText);
-          } else {
-            setProcessedText(`Processing document in chunks... (${percentage}% complete)`);
-          }
-        };
+      // Enhanced progress callback that streams processed chunks in real-time
+      const progressCallback = (current: number, total: number, processedSoFar?: string) => {
+        const percentage = Math.round((current / total) * 100);
+        setProcessingProgress(percentage);
         
-        // Call the API with progress tracking for large documents
-        const result = await transformTextApi({
-          ...options,
-          onProgress: progressCallback,
-        });
-        
-        // Final clean-up of any markdown formatting from the complete result
-        let cleanedResult = result;
-        cleanedResult = cleanedResult.replace(/\*\*/g, ''); // Remove bold
-        cleanedResult = cleanedResult.replace(/\*/g, '');    // Remove italic
-        cleanedResult = cleanedResult.replace(/#{1,6}\s/g, ''); // Remove headings
-        cleanedResult = cleanedResult.replace(/`{1,3}/g, '');   // Remove code blocks
-        
-        // Update with the final result only if we weren't aborted
-        if (abortController !== null) {
-          setProcessedText(cleanedResult);
+        // CRITICAL: Show processed chunks immediately as they complete
+        if (processedSoFar && processedSoFar.trim()) {
+          setProcessedText(processedSoFar);
+        } else {
+          setProcessedText(`Processing chunk ${current} of ${total}... (${percentage}% complete)`);
         }
-      } catch (error: any) {
-        // Check if this was an abort error
-        if (error && error.name === 'AbortError') {
-          console.log('Transformation was aborted');
-          return;
-        }
-        throw error;
+      };
+      
+      // Call the API with enhanced progress tracking
+      const result = await transformTextApi({
+        ...options,
+        onProgress: progressCallback,
+      });
+      
+      // Ensure final result is displayed
+      if (result && result.trim()) {
+        setProcessedText(result);
       }
+      
     } catch (error) {
       console.error("Error transforming text:", error);
       
-      // Provide more helpful error messages
+      // Provide helpful error messages
       let errorMessage = "Error transforming text: ";
       
       if (error instanceof Error) {
@@ -203,6 +169,7 @@ export function useTransformation() {
       setProcessingProgress(0);
       setIsChunkedProcessing(false);
       setIsProcessing(false);
+      setAbortController(null);
     }
   }, [
     originalText,
@@ -213,10 +180,12 @@ export function useTransformation() {
     useContentReference,
     contentReferences,
     selectedPreset,
-    toast
+    toast,
+    setIsProcessing,
+    setProcessedText
   ]);
 
-  // Function to transform already processed text (enabling recursive transformations)
+  // Transform already processed text with real-time streaming
   const transformProcessedText = useCallback(async (text: string) => {
     if (!text) return;
     
@@ -230,13 +199,9 @@ export function useTransformation() {
     try {
       setIsProcessing(true);
       
-      // Check if we've selected a model that requires specific API keys
-      const isClaudeModel = selectedAIModel.includes('Claude');
-      const isPerplexityModel = selectedAIModel.includes('Perplexity');
-      
       // Prepare transformation payload using the processed text as input
       const options = {
-        text: text, // Use the processed text as the input
+        text: text,
         instructions: customInstructions,
         model: selectedAIModel,
         preset: selectedPreset,
@@ -253,7 +218,7 @@ export function useTransformation() {
         setIsChunkedProcessing(true);
         toast({
           title: "Processing Large Document",
-          description: "Your document is being split into chunks for processing. You'll see each chunk as it's completed.",
+          description: "Your document is being split into chunks for processing. Processed chunks will appear immediately.",
           duration: 5000,
         });
         
@@ -263,58 +228,34 @@ export function useTransformation() {
         setIsChunkedProcessing(false);
       }
       
-      // Use the enhanced chunking implementation with real-time display
-      try {
-        // Handle progress updates from the chunking process with real-time display
-        const progressCallback = (current: number, total: number, partialText?: string) => {
-          const percentage = Math.round((current / total) * 100);
-          setProcessingProgress(percentage);
-          
-          // If we have partial text, show it immediately
-          if (partialText) {
-            // Clean any markdown formatting from the text
-            let cleanedText = partialText;
-            cleanedText = cleanedText.replace(/\*\*/g, ''); // Remove bold
-            cleanedText = cleanedText.replace(/\*/g, '');    // Remove italic
-            cleanedText = cleanedText.replace(/#{1,6}\s/g, ''); // Remove headings
-            cleanedText = cleanedText.replace(/`{1,3}/g, '');   // Remove code blocks
-            
-            // Update the processed text with what we have so far
-            setProcessedText(cleanedText);
-          } else {
-            setProcessedText(`Processing document in chunks... (${percentage}% complete)`);
-          }
-        };
+      // Enhanced progress callback that streams processed chunks in real-time
+      const progressCallback = (current: number, total: number, processedSoFar?: string) => {
+        const percentage = Math.round((current / total) * 100);
+        setProcessingProgress(percentage);
         
-        // Call the API with progress tracking for large documents
-        const result = await transformTextApi({
-          ...options,
-          onProgress: progressCallback,
-        });
-        
-        // Final clean-up of any markdown formatting from the complete result
-        let cleanedResult = result;
-        cleanedResult = cleanedResult.replace(/\*\*/g, ''); // Remove bold
-        cleanedResult = cleanedResult.replace(/\*/g, '');    // Remove italic
-        cleanedResult = cleanedResult.replace(/#{1,6}\s/g, ''); // Remove headings
-        cleanedResult = cleanedResult.replace(/`{1,3}/g, '');   // Remove code blocks
-        
-        // Update with the final result only if we weren't aborted
-        if (abortController !== null) {
-          setProcessedText(cleanedResult);
+        // CRITICAL: Show processed chunks immediately as they complete
+        if (processedSoFar && processedSoFar.trim()) {
+          setProcessedText(processedSoFar);
+        } else {
+          setProcessedText(`Processing chunk ${current} of ${total}... (${percentage}% complete)`);
         }
-      } catch (error: any) {
-        // Check if this was an abort error
-        if (error && error.name === 'AbortError') {
-          console.log('Transformation was aborted');
-          return;
-        }
-        throw error;
+      };
+      
+      // Call the API with enhanced progress tracking
+      const result = await transformTextApi({
+        ...options,
+        onProgress: progressCallback,
+      });
+      
+      // Ensure final result is displayed
+      if (result && result.trim()) {
+        setProcessedText(result);
       }
+      
     } catch (error) {
       console.error("Error transforming text:", error);
       
-      // Provide more helpful error messages
+      // Provide helpful error messages
       let errorMessage = "Error transforming text: ";
       
       if (error instanceof Error) {
@@ -343,6 +284,7 @@ export function useTransformation() {
       setProcessingProgress(0);
       setIsChunkedProcessing(false);
       setIsProcessing(false);
+      setAbortController(null);
     }
   }, [
     customInstructions,
@@ -352,7 +294,9 @@ export function useTransformation() {
     useContentReference,
     contentReferences,
     selectedPreset,
-    toast
+    toast,
+    setIsProcessing,
+    setProcessedText
   ]);
 
   // Use processed text as new input text
