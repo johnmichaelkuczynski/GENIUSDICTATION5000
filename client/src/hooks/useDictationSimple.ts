@@ -30,25 +30,75 @@ export function useDictationSimple() {
     try {
       setDictationStatus("Requesting microphone access...");
       
-      // Mobile-specific microphone request with constraints
+      // Detect device type
+      const isAndroid = /Android/i.test(navigator.userAgent);
       const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      const audioConstraints = isMobileDevice ? {
+      // Request user interaction first for Android
+      if (isAndroid) {
+        toast({
+          title: "Microphone Permission",
+          description: "Please allow microphone access when prompted. This is required for dictation on Android devices.",
+          duration: 4000
+        });
+      }
+      
+      // Simplified audio constraints for Android compatibility
+      const audioConstraints = isAndroid ? {
+        audio: {
+          echoCancellation: false, // Disable on Android to avoid issues
+          noiseSuppression: false, // Disable on Android to avoid issues
+          autoGainControl: false,  // Disable on Android to avoid issues
+          sampleRate: 44100,      // Standard sample rate
+          channelCount: 1         // Mono for better compatibility
+        }
+      } : isMobileDevice ? {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 16000, // Lower sample rate for mobile
-          channelCount: 1 // Mono for better mobile performance
+          sampleRate: 16000,
+          channelCount: 1
         }
       } : { audio: true };
       
-      const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+      } catch (constraintError) {
+        console.log("Detailed audio constraints failed, trying basic audio:", constraintError);
+        // Fallback to basic audio request if constraints fail
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
       
       setDictationStatus("Microphone connected - Starting recording...");
       
-      // Create a media recorder just for saving audio
-      const recorder = new MediaRecorder(stream);
+      // Create a media recorder with Android-optimized settings
+      let recorder;
+      try {
+        // Try WebM format first (best for most browsers)
+        recorder = new MediaRecorder(stream, { 
+          mimeType: 'audio/webm;codecs=opus' 
+        });
+      } catch (e) {
+        try {
+          // Fallback to basic WebM
+          recorder = new MediaRecorder(stream, { 
+            mimeType: 'audio/webm' 
+          });
+        } catch (e2) {
+          try {
+            // Android fallback - try MP4
+            recorder = new MediaRecorder(stream, { 
+              mimeType: 'audio/mp4' 
+            });
+          } catch (e3) {
+            // Final fallback - use default format
+            recorder = new MediaRecorder(stream);
+          }
+        }
+      }
+      
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
       
@@ -75,28 +125,36 @@ export function useDictationSimple() {
         audioUrlRef.current = audioUrl;
         audioRef.current = new Audio(audioUrl);
         
-        // If speech recognition isn't available (mobile fallback), transcribe server-side
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        // Process audio server-side for Android or when speech recognition isn't available
+        const shouldUseServerTranscription = isAndroid || (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window));
+        
+        if (shouldUseServerTranscription) {
           setDictationStatus("Transcribing audio...");
           
           try {
             const transcribedText = await processAudioServerSide(audioBlob);
-            if (transcribedText) {
+            if (transcribedText && transcribedText.trim()) {
               const currentText = originalText || '';
               const updatedText = currentText ? `${currentText} ${transcribedText}` : transcribedText;
               setOriginalText(updatedText);
               
               toast({
                 title: "Audio Transcribed",
-                description: "Your speech has been converted to text successfully.",
+                description: `Successfully converted ${transcribedText.split(' ').length} words to text.`,
                 duration: 3000
+              });
+            } else {
+              toast({
+                title: "No Speech Detected",
+                description: "Try speaking more clearly or check your microphone.",
+                variant: "destructive"
               });
             }
           } catch (error) {
             console.error("Server-side transcription failed:", error);
             toast({
               title: "Transcription Error",
-              description: "Could not transcribe audio. Please try again or check your connection.",
+              description: "Could not transcribe audio. Please check your connection and try again.",
               variant: "destructive"
             });
           }
@@ -109,28 +167,18 @@ export function useDictationSimple() {
       recorder.start(1000);
       
       // ANDROID-OPTIMIZED SPEECH RECOGNITION
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      
-      // Check for speech recognition with Android-specific handling
       const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
       
-      if (!hasSpeechRecognition) {
-        if (isAndroid) {
-          toast({
-            title: "Using Audio Recording",
-            description: "Recording audio for server transcription. Speak clearly and tap stop when finished.",
-            duration: 4000
-          });
-          setDictationStatus("Recording audio - tap stop when done");
-          return true;
-        } else {
-          toast({
-            title: "Speech Recognition Not Available",
-            description: "Try using Chrome browser for speech recognition support."
-          });
-          setDictationStatus("Recording audio for transcription...");
-          return true;
-        }
+      // For Android devices, prioritize server-side transcription as it's more reliable
+      if (isAndroid || !hasSpeechRecognition) {
+        toast({
+          title: "Audio Recording Mode", 
+          description: "Recording audio for high-quality transcription. Speak clearly and tap stop when finished.",
+          duration: 4000
+        });
+        setDictationStatus("🎤 Recording - tap STOP when done speaking");
+        setDictationActive(true);
+        return true;
       }
       
       // Create speech recognition with mobile optimizations
