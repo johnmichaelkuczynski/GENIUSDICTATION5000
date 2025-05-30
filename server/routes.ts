@@ -257,45 +257,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const audioBuffer = req.file.buffer;
       const engine = (req.body.engine as SpeechEngine) || SpeechEngine.GLADIA;
       
+      console.log(`Transcription request - File size: ${audioBuffer.length} bytes, Engine: ${engine}`);
+      console.log(`File details - MIME type: ${req.file.mimetype}, Original name: ${req.file.originalname}`);
+      
+      // Check if we have a valid audio buffer
+      if (audioBuffer.length === 0) {
+        return res.status(400).json({ error: "Empty audio file received" });
+      }
+      
       let transcribedText = "";
       let usedEngine = engine;
 
       // Try AssemblyAI first for best mobile support, then fallback to selected engine
       try {
+        console.log("Attempting AssemblyAI transcription...");
         if (process.env.ASSEMBLYAI_API_KEY) {
           transcribedText = await assemblyaiTranscribe(audioBuffer);
           usedEngine = "AssemblyAI" as SpeechEngine;
+          console.log(`AssemblyAI successful - Result: "${transcribedText.substring(0, 100)}..."`);
         } else {
+          console.log("AssemblyAI API key not found, trying selected engine:", engine);
           // Use selected engine if AssemblyAI not available
           switch (engine) {
             case SpeechEngine.GLADIA:
+              console.log("Attempting Gladia transcription...");
               transcribedText = await gladiaTranscribe(audioBuffer);
               break;
             case SpeechEngine.WHISPER:
+              console.log("Attempting Whisper transcription...");
               transcribedText = await whisperTranscribe(audioBuffer);
               break;
             case SpeechEngine.DEEPGRAM:
+              console.log("Attempting Deepgram transcription...");
               transcribedText = await deepgramTranscribe(audioBuffer);
               break;
           }
+          console.log(`${engine} successful - Result: "${transcribedText.substring(0, 100)}..."`);
         }
       } catch (primaryError) {
-        console.error(`Error with primary transcription:`, primaryError);
+        console.error(`Error with primary transcription (${usedEngine}):`, primaryError);
         
         // Try Whisper as fallback
         try {
+          console.log("Attempting Whisper fallback...");
           transcribedText = await whisperTranscribe(audioBuffer);
           usedEngine = SpeechEngine.WHISPER;
+          console.log(`Whisper fallback successful - Result: "${transcribedText.substring(0, 100)}..."`);
         } catch (fallbackError) {
           console.error("Error with Whisper fallback:", fallbackError);
           
-          // Try Deepgram as second fallback if available
-          if (process.env.DEEPGRAM_API_KEY) {
+          // Try Gladia as final fallback if available
+          if (process.env.GLADIA_API_KEY) {
             try {
-              transcribedText = await deepgramTranscribe(audioBuffer);
-              usedEngine = SpeechEngine.DEEPGRAM;
+              console.log("Attempting Gladia final fallback...");
+              transcribedText = await gladiaTranscribe(audioBuffer);
+              usedEngine = SpeechEngine.GLADIA;
+              console.log(`Gladia fallback successful - Result: "${transcribedText.substring(0, 100)}..."`);
             } catch (finalError) {
-              console.error("Error with Deepgram fallback:", finalError);
+              console.error("Error with Gladia fallback:", finalError);
               throw new Error("All transcription engines failed");
             }
           } else {
@@ -304,6 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      console.log(`Transcription complete - Engine: ${usedEngine}, Length: ${transcribedText.length} chars`);
       res.json({ text: transcribedText, engine: usedEngine });
     } catch (error) {
       console.error("Error in transcription:", error);
