@@ -21,6 +21,7 @@ import { transformText as perplexityTransform } from "./services/perplexity";
 import { transcribeAudio as gladiaTranscribe } from "./services/gladia";
 import { transcribeAudio as deepgramTranscribe } from "./services/deepgram";
 import { transcribeAudio as whisperTranscribe } from "./services/openai";
+import { transcribeAudio as assemblyaiTranscribe } from "./services/assemblyai";
 import { 
   extractTextFromDocument, 
   generateDocument,
@@ -259,21 +260,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let transcribedText = "";
       let usedEngine = engine;
 
-      // Try primary engine first
+      // Try AssemblyAI first for best mobile support, then fallback to selected engine
       try {
-        switch (engine) {
-          case SpeechEngine.GLADIA:
-            transcribedText = await gladiaTranscribe(audioBuffer);
-            break;
-          case SpeechEngine.WHISPER:
-            transcribedText = await whisperTranscribe(audioBuffer);
-            break;
-          case SpeechEngine.DEEPGRAM:
-            transcribedText = await deepgramTranscribe(audioBuffer);
-            break;
+        if (process.env.ASSEMBLYAI_API_KEY) {
+          transcribedText = await assemblyaiTranscribe(audioBuffer);
+          usedEngine = "AssemblyAI" as SpeechEngine;
+        } else {
+          // Use selected engine if AssemblyAI not available
+          switch (engine) {
+            case SpeechEngine.GLADIA:
+              transcribedText = await gladiaTranscribe(audioBuffer);
+              break;
+            case SpeechEngine.WHISPER:
+              transcribedText = await whisperTranscribe(audioBuffer);
+              break;
+            case SpeechEngine.DEEPGRAM:
+              transcribedText = await deepgramTranscribe(audioBuffer);
+              break;
+          }
         }
       } catch (primaryError) {
-        console.error(`Error with ${engine} transcription:`, primaryError);
+        console.error(`Error with primary transcription:`, primaryError);
         
         // Try Whisper as fallback
         try {

@@ -31,9 +31,9 @@ export function useDictationSimple() {
       setDictationStatus("Requesting microphone access...");
       
       // Mobile-specific microphone request with constraints
-      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      const audioConstraints = isMobile ? {
+      const audioConstraints = isMobileDevice ? {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -109,7 +109,6 @@ export function useDictationSimple() {
       recorder.start(1000);
       
       // ANDROID-OPTIMIZED SPEECH RECOGNITION
-      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const isAndroid = /Android/i.test(navigator.userAgent);
       
       // Check for speech recognition with Android-specific handling
@@ -141,12 +140,12 @@ export function useDictationSimple() {
       
       // Configure for mobile compatibility
       recognition.lang = 'en-US';
-      recognition.continuous = !isMobile; // On mobile, use shorter sessions
+      recognition.continuous = !isMobileDevice; // On mobile, use shorter sessions
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
       
       // Mobile-specific settings
-      if (isMobile) {
+      if (isMobileDevice) {
         recognition.continuous = false; // Shorter sessions on mobile
         recognition.interimResults = false; // Reduce processing on mobile
       }
