@@ -61,31 +61,78 @@ export function useDictationSimple() {
         audioUrlRef.current = audioUrl;
         audioRef.current = new Audio(audioUrl);
         
+        // If speech recognition isn't available (mobile fallback), transcribe server-side
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+          setDictationStatus("Transcribing audio...");
+          
+          try {
+            const transcribedText = await processAudioServerSide(audioBlob);
+            if (transcribedText) {
+              const currentText = originalText || '';
+              const updatedText = currentText ? `${currentText} ${transcribedText}` : transcribedText;
+              setOriginalText(updatedText);
+              
+              toast({
+                title: "Audio Transcribed",
+                description: "Your speech has been converted to text successfully.",
+                duration: 3000
+              });
+            }
+          } catch (error) {
+            console.error("Server-side transcription failed:", error);
+            toast({
+              title: "Transcription Error",
+              description: "Could not transcribe audio. Please try again or check your connection.",
+              variant: "destructive"
+            });
+          }
+        }
+        
         setDictationStatus("Ready");
       });
       
       // Start recording audio
       recorder.start(1000);
       
-      // SIMPLIFIED SPEECH RECOGNITION
-      // Use the Web Speech API directly
+      // MOBILE-COMPATIBLE SPEECH RECOGNITION
+      // Check for speech recognition support with mobile fallbacks
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        toast({
-          title: "Speech Recognition Not Available",
-          description: "Your browser doesn't support speech recognition. Try Chrome or Edge."
-        });
-        return false;
+        if (isMobile) {
+          toast({
+            title: "Speech Recognition Setup",
+            description: "For best results on mobile, please use Chrome browser and ensure microphone permissions are granted.",
+            duration: 6000
+          });
+        } else {
+          toast({
+            title: "Speech Recognition Not Available", 
+            description: "Your browser doesn't support speech recognition. Try Chrome or Edge."
+          });
+        }
+        
+        // Still continue with audio recording for server-side transcription
+        setDictationStatus("Recording audio for transcription...");
+        return true;
       }
       
-      // Create speech recognition
+      // Create speech recognition with mobile optimizations
       // @ts-ignore - TypeScript doesn't know about these browser-specific APIs
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
-      // Configure for best results
+      // Configure for mobile compatibility
       recognition.lang = 'en-US';
-      recognition.continuous = true; // Keep listening
-      recognition.interimResults = true; // Show results as you speak
+      recognition.continuous = !isMobile; // On mobile, use shorter sessions
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      
+      // Mobile-specific settings
+      if (isMobile) {
+        recognition.continuous = false; // Shorter sessions on mobile
+        recognition.interimResults = false; // Reduce processing on mobile
+      }
       
       // CRITICAL: save entire text and never reset it
       let fullText = originalText || '';
@@ -234,8 +281,25 @@ export function useDictationSimple() {
   };
 }
 
-// Process audio using local API if needed
-async function processAudio(audioBlob: Blob): Promise<string> {
-  // The simplified version doesn't need server-side processing
-  return "";
+// Process audio using server-side transcription for mobile devices
+async function processAudioServerSide(audioBlob: Blob): Promise<string> {
+  try {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    
+    const response = await fetch('/api/transcribe', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Transcription failed: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.text || '';
+  } catch (error) {
+    console.error('Server-side transcription error:', error);
+    throw error;
+  }
 }
