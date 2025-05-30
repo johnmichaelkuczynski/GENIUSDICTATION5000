@@ -25,13 +25,27 @@ export function useDictationSimple() {
   const audioUrlRef = useRef<string | null>(null);
   const recognitionRef = useRef<any>(null);
   
-  // Extremely simple dictation start function that prioritizes reliability
+  // Mobile-optimized dictation start function
   const startDictation = useCallback(async () => {
     try {
-      setDictationStatus("Listening...");
+      setDictationStatus("Requesting microphone access...");
       
-      // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Mobile-specific microphone request with constraints
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      const audioConstraints = isMobile ? {
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 16000, // Lower sample rate for mobile
+          channelCount: 1 // Mono for better mobile performance
+        }
+      } : { audio: true };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+      
+      setDictationStatus("Microphone connected - Starting recording...");
       
       // Create a media recorder just for saving audio
       const recorder = new MediaRecorder(stream);
@@ -94,27 +108,30 @@ export function useDictationSimple() {
       // Start recording audio
       recorder.start(1000);
       
-      // MOBILE-COMPATIBLE SPEECH RECOGNITION
-      // Check for speech recognition support with mobile fallbacks
+      // ANDROID-OPTIMIZED SPEECH RECOGNITION
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isAndroid = /Android/i.test(navigator.userAgent);
       
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        if (isMobile) {
+      // Check for speech recognition with Android-specific handling
+      const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+      
+      if (!hasSpeechRecognition) {
+        if (isAndroid) {
           toast({
-            title: "Speech Recognition Setup",
-            description: "For best results on mobile, please use Chrome browser and ensure microphone permissions are granted.",
-            duration: 6000
+            title: "Using Audio Recording",
+            description: "Recording audio for server transcription. Speak clearly and tap stop when finished.",
+            duration: 4000
           });
+          setDictationStatus("Recording audio - tap stop when done");
+          return true;
         } else {
           toast({
-            title: "Speech Recognition Not Available", 
-            description: "Your browser doesn't support speech recognition. Try Chrome or Edge."
+            title: "Speech Recognition Not Available",
+            description: "Try using Chrome browser for speech recognition support."
           });
+          setDictationStatus("Recording audio for transcription...");
+          return true;
         }
-        
-        // Still continue with audio recording for server-side transcription
-        setDictationStatus("Recording audio for transcription...");
-        return true;
       }
       
       // Create speech recognition with mobile optimizations
