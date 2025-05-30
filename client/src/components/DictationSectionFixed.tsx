@@ -60,7 +60,7 @@ const DictationSection = () => {
     setContentReferences
   } = useAppContext();
 
-  const { transformText, cancelTransformation, clearAll, processingProgress, isChunkedProcessing } = useTransformationEnhanced();
+  const { transformText, transformProcessedText, cancelTransformation, clearAll, processingProgress, isChunkedProcessing } = useTransformationEnhanced();
   const { 
     dictationStatus, 
     startDictation, 
