@@ -271,6 +271,76 @@ const DictationSection = () => {
         variant: "destructive"
       });
     }
+  }
+
+  const handleDoHomework = async () => {
+    try {
+      console.log("Starting homework mode with:", { originalText, customInstructions });
+      
+      // First check if we have text with instructions
+      if (!originalText || originalText.trim().length === 0) {
+        toast({
+          title: "No Instructions Found",
+          description: "Please enter the assignment, exam questions, or instructions first",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Show a toast notification to indicate homework is starting
+      toast({
+        title: "Starting Assignment",
+        description: "Working on your homework/exam...",
+        duration: 3000,
+      });
+      
+      // Create homework-specific instructions
+      const homeworkInstructions = customInstructions 
+        ? `Follow these instructions: ${originalText}\n\nAdditional context: ${customInstructions}`
+        : `Follow these instructions and complete the assignment: ${originalText}`;
+      
+      // Use the transform API but with homework mode instructions
+      const response = await fetch("/api/transform", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: "I need to complete the following assignment or follow these instructions:",
+          instructions: `${homeworkInstructions}. IMPORTANT: 
+          - Actually complete the assignment/exam/task rather than just rewriting it
+          - Provide detailed answers, solutions, or responses as requested
+          - Show your work for mathematical problems
+          - Use proper LaTeX notation for math: \\(expression\\) for inline math and $$expression$$ for display math
+          - If it's an exam, answer all questions thoroughly
+          - If it's homework, solve all problems step by step
+          - If it's instructions, follow them precisely and provide the requested output`,
+          model: selectedAIModel,
+          preset: "Academic",
+          useStyleReference,
+          useContentReference
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Homework completion failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      setProcessedText(result.text);
+      
+      // Show success toast
+      toast({
+        title: "Assignment Complete",
+        description: "Your homework/exam has been completed successfully.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error completing homework:", error);
+      toast({
+        title: "Assignment Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCancelTransformation = () => {
@@ -1736,6 +1806,26 @@ const DictationSection = () => {
                               Large Text
                             </Badge>
                           )}
+                        </>
+                      )}
+                    </Button>
+
+                    {/* Do Homework Button */}
+                    <Button 
+                      variant="secondary"
+                      className="flex items-center bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/50" 
+                      onClick={handleDoHomework}
+                      disabled={isProcessing || !originalText}
+                    >
+                      {isProcessing || isProcessingChunks ? (
+                        <>
+                          <span className="animate-spin h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
+                          Solving...
+                        </>
+                      ) : (
+                        <>
+                          <i className="ri-book-line mr-2"></i>
+                          Do Homework
                         </>
                       )}
                     </Button>
