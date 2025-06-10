@@ -509,23 +509,39 @@ const DictationSection = () => {
         setIsUploading(true);
         
         if (isDocumentFile) {
+          // Clear any previous text first
+          setOriginalText("");
+          clearDetectionResult();
+          
           // Process document file
           const extractedText = await processDocument(file);
-          setOriginalText(extractedText);
-          toast({
-            title: "File uploaded successfully",
-            description: `Text extracted from ${file.name}`,
-          });
+          const cleanedText = extractedText ? extractedText.trim() : "";
           
-          // Automatically run AI detection if there's enough text
-          // We still run detection in the background but NEVER auto-open the dialog
-          if (extractedText.trim().length >= 50 && shouldAutoAssess) {
-            setTimeout(() => {
-              detectAI(extractedText);
-              // Removed automatic dialog opening
-            }, 500);
+          if (cleanedText) {
+            setOriginalText(cleanedText);
+            toast({
+              title: "Document uploaded successfully",
+              description: `Extracted ${cleanedText.split(' ').length} words from ${file.name}`,
+            });
+            
+            // Run AI detection in the background
+            if (cleanedText.length >= 50 && shouldAutoAssess) {
+              setTimeout(() => {
+                detectAI(cleanedText);
+              }, 500);
+            }
+          } else {
+            toast({
+              title: "No text found",
+              description: "Could not extract readable text from this document.",
+              variant: "destructive"
+            });
           }
         } else if (isAudioFile) {
+          // Clear any previous text first
+          setOriginalText("");
+          clearDetectionResult();
+          
           // Process audio file using the dictation API
           const formData = new FormData();
           formData.append("audio", file);
@@ -540,20 +556,33 @@ const DictationSection = () => {
           }
           
           const data = await response.json();
-          setOriginalText(data.text);
-          toast({
-            title: "Audio transcribed successfully",
-            description: `Speech transcribed from ${file.name}`,
-          });
+          const transcribedText = data.text ? data.text.trim() : "";
           
-          // We can still run AI detection in the background but won't show the dialog automatically
-          if (data.text.trim().length >= 50 && shouldAutoAssess) {
-            setTimeout(() => {
-              detectAI(data.text);
-              // Removed the automatic dialog opening
-            }, 500);
+          if (transcribedText) {
+            setOriginalText(transcribedText);
+            toast({
+              title: "Audio transcribed successfully",
+              description: `Transcribed ${transcribedText.split(' ').length} words from ${file.name}`,
+            });
+            
+            // Run AI detection in the background
+            if (transcribedText.length >= 50 && shouldAutoAssess) {
+              setTimeout(() => {
+                detectAI(transcribedText);
+              }, 500);
+            }
+          } else {
+            toast({
+              title: "No speech detected",
+              description: "Could not transcribe any speech from this audio file.",
+              variant: "destructive"
+            });
           }
         } else if (isImageFile) {
+          // Clear any previous text first to avoid contamination
+          setOriginalText("");
+          clearDetectionResult();
+          
           // Process image file with OCR
           const formData = new FormData();
           formData.append("image", file);
@@ -568,17 +597,29 @@ const DictationSection = () => {
           }
           
           const data = await response.json();
-          setOriginalText(data.text);
-          toast({
-            title: "Screenshot processed successfully",
-            description: `Text and math extracted from ${file.name}`,
-          });
           
-          // Run AI detection in the background for OCR text
-          if (data.text.trim().length >= 50 && shouldAutoAssess) {
-            setTimeout(() => {
-              detectAI(data.text);
-            }, 500);
+          // Clean and validate extracted text
+          const extractedText = data.text ? data.text.trim() : "";
+          
+          if (extractedText) {
+            setOriginalText(extractedText);
+            toast({
+              title: "Image processed successfully",
+              description: `Extracted ${extractedText.split(' ').length} words from ${file.name}`,
+            });
+            
+            // Run AI detection in the background for OCR text
+            if (extractedText.length >= 50 && shouldAutoAssess) {
+              setTimeout(() => {
+                detectAI(extractedText);
+              }, 500);
+            }
+          } else {
+            toast({
+              title: "No text found",
+              description: "Could not extract readable text from this image. Try a clearer image or check if it contains text.",
+              variant: "destructive"
+            });
           }
         }
       } catch (error) {
@@ -1150,9 +1191,9 @@ const DictationSection = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button 
-                            variant="ghost" 
+                            variant="outline" 
                             size="sm" 
-                            className="text-xs flex items-center"
+                            className="text-xs flex items-center bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-950/50"
                             onClick={handleFileUploadClick}
                             disabled={isUploading}
                           >
@@ -1161,11 +1202,11 @@ const DictationSection = () => {
                             ) : (
                               <i className="ri-upload-line mr-1"></i>
                             )}
-                            {isUploading ? "Uploading..." : "Upload"}
+                            {isUploading ? "Uploading..." : "Upload File"}
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom">
-                          <p className="text-xs">Upload PDF, DOCX, TXT, or audio files (MP3, WAV)</p>
+                          <p className="text-xs">Upload PDF, DOCX, TXT, audio files, or screenshots</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -1256,25 +1297,51 @@ const DictationSection = () => {
                   </div>
 
                   {!showMathPreview ? (
-                    <Textarea
-                      ref={textareaRef}
-                      value={originalText}
-                      onChange={(e) => {
-                        setOriginalText(e.target.value);
-                        clearDetectionResult(); // Clear detection when text changes
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                          e.preventDefault();
-                          if (originalText.trim() && !isProcessing) {
-                            handleTransformText();
+                    <div className="relative">
+                      <Textarea
+                        ref={textareaRef}
+                        value={originalText}
+                        onChange={(e) => {
+                          setOriginalText(e.target.value);
+                          clearDetectionResult(); // Clear detection when text changes
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                            e.preventDefault();
+                            if (originalText.trim() && !isProcessing) {
+                              handleTransformText();
+                            }
                           }
-                        }
-                      }}
-                      placeholder="Start dictating or type here... (Ctrl+Enter to transform)"
-                      className={`h-[256px] resize-none ${isDragging ? 'bg-primary/5 border-primary' : ''}`}
-                      style={{ maxHeight: "256px" }}
-                    />
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setIsDragging(true);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          setIsDragging(false);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setIsDragging(false);
+                          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                            handleFileChange({ target: { files: e.dataTransfer.files } } as any);
+                          }
+                        }}
+                        placeholder="Start dictating, type here, or drag & drop files... (Ctrl+Enter to transform)"
+                        className={`h-[256px] resize-none transition-all ${isDragging ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700 border-2 border-dashed' : ''}`}
+                        style={{ maxHeight: "256px" }}
+                      />
+                      {isDragging && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-blue-50/90 dark:bg-blue-950/90 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-md">
+                          <div className="text-center">
+                            <i className="ri-upload-cloud-2-line text-3xl text-blue-500 mb-2"></i>
+                            <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Drop your file here</p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400">PDF, DOCX, TXT, audio, or images</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="relative">
                       <div 
