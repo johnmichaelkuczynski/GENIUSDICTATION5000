@@ -39,6 +39,7 @@ import { assessWithAnthropic } from "./services/anthropicAssessment";
 import { assessWithPerplexity } from "./services/perplexityAssessment";
 import { extractTextFromImage, isMathpixConfigured } from "./services/mathpix";
 import { extractTextWithTesseract, enhanceMathNotation, isTesseractAvailable } from "./services/tesseractOCR";
+import { extractTextWithAI, isAIOCRAvailable } from "./services/aiOCR";
 import { sendProcessedText } from "./services/sendgrid";
 // Texify service removed - service no longer exists
 
@@ -370,14 +371,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let extractedText = '';
       let usedService = 'none';
       
-      // Check Tesseract availability
+      // Check OCR service availability
       const tesseractAvailable = await isTesseractAvailable();
       const mathpixAvailable = isMathpixConfigured();
+      const aiOCRAvailable = isAIOCRAvailable();
       
-      console.log(`OCR services available - Tesseract: ${tesseractAvailable}, Mathpix: ${mathpixAvailable}`);
+      console.log(`OCR services available - Tesseract: ${tesseractAvailable}, Mathpix: ${mathpixAvailable}, AI OCR: ${aiOCRAvailable}`);
       
-      // Try Tesseract first (reliable and built-in)
-      if (tesseractAvailable) {
+      // Try AI OCR first (best for mathematical content)
+      if (aiOCRAvailable) {
+        try {
+          console.log("Attempting AI OCR extraction...");
+          extractedText = await extractTextWithAI(buffer);
+          usedService = 'AI OCR';
+          console.log(`AI OCR successful - Extracted ${extractedText.length} characters`);
+        } catch (aiError: any) {
+          console.error("AI OCR failed:", aiError);
+          
+          // Try Mathpix as fallback
+          if (mathpixAvailable) {
+            try {
+              console.log("Attempting Mathpix fallback...");
+              extractedText = await extractTextFromImage(buffer);
+              usedService = 'Mathpix';
+              console.log(`Mathpix successful - Extracted ${extractedText.length} characters`);
+            } catch (mathpixError: any) {
+              console.error("Mathpix failed:", mathpixError);
+              throw new Error(`AI OCR and Mathpix both failed: ${aiError?.message}, ${mathpixError?.message}`);
+            }
+          } else {
+            throw aiError;
+          }
+        }
+      } else if (tesseractAvailable) {
         try {
           console.log("Attempting Tesseract OCR extraction...");
           extractedText = await extractTextWithTesseract(buffer);
@@ -401,10 +427,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`Mathpix successful - Extracted ${extractedText.length} characters`);
             } catch (mathpixError: any) {
               console.error("Mathpix fallback failed:", mathpixError);
-              throw new Error(`Both OCR services failed. Tesseract: ${tesseractError?.message || tesseractError}, Mathpix: ${mathpixError?.message || mathpixError}`);
+              throw new Error(`Tesseract and Mathpix both failed: ${tesseractError?.message || tesseractError}, ${mathpixError?.message || mathpixError}`);
             }
           } else {
             throw new Error(`Tesseract failed and Mathpix not configured: ${tesseractError?.message || tesseractError}`);
+          }
+        }
+      } else if (aiOCRAvailable) {
+        try {
+          console.log("Attempting AI OCR extraction...");
+          extractedText = await extractTextWithAI(buffer);
+          usedService = 'AI OCR';
+          console.log(`AI OCR successful - Extracted ${extractedText.length} characters`);
+        } catch (aiError: any) {
+          console.error("AI OCR failed:", aiError);
+          
+          // Try Mathpix as fallback
+          if (mathpixAvailable) {
+            try {
+              console.log("Attempting Mathpix fallback...");
+              extractedText = await extractTextFromImage(buffer);
+              usedService = 'Mathpix';
+              console.log(`Mathpix successful - Extracted ${extractedText.length} characters`);
+            } catch (mathpixError: any) {
+              console.error("Mathpix failed:", mathpixError);
+              throw new Error(`AI OCR and Mathpix both failed: ${aiError?.message}, ${mathpixError?.message}`);
+            }
+          } else {
+            throw aiError;
           }
         }
       } else if (mathpixAvailable) {
@@ -413,12 +463,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           extractedText = await extractTextFromImage(buffer);
           usedService = 'Mathpix';
           console.log(`Mathpix successful - Extracted ${extractedText.length} characters`);
-        } catch (mathpixError) {
+        } catch (mathpixError: any) {
           console.error("Mathpix failed:", mathpixError);
           throw mathpixError;
         }
       } else {
-        const errorMsg = "No OCR services available. Tesseract installation may be incomplete.";
+        const errorMsg = "No OCR services available. OpenAI API key recommended for best math recognition.";
         console.error(errorMsg);
         return res.status(503).json({ error: errorMsg });
       }

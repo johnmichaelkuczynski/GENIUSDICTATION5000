@@ -61,7 +61,12 @@ export async function extractTextWithTesseract(imageBuffer: Buffer): Promise<str
           'c:classify_bln_numeric_mode': '1'
         };
 
-        const text = await tesseract.recognize(processedImageBuffer, config);
+        const text = await Promise.race([
+          tesseract.recognize(processedImageBuffer, config),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Tesseract timeout')), 10000)
+          )
+        ]) as string;
         
         if (text && text.trim().length > 0) {
           const score = text.trim().length;
