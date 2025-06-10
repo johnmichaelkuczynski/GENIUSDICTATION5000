@@ -358,7 +358,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No image file provided" });
       }
 
-      const { buffer, mimetype } = req.file;
+      const { buffer, mimetype, originalname } = req.file;
+      
+      console.log(`OCR request - File: ${originalname}, Type: ${mimetype}, Size: ${buffer.length} bytes`);
       
       // Validate that it's an image file
       if (!mimetype.startsWith('image/')) {
@@ -366,33 +368,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let extractedText = '';
+      let usedService = 'none';
       
-      // Use Tesseract OCR (reliable and built-in)
-      if (await isTesseractAvailable()) {
+      // Check Tesseract availability
+      const tesseractAvailable = await isTesseractAvailable();
+      const mathpixAvailable = isMathpixConfigured();
+      
+      console.log(`OCR services available - Tesseract: ${tesseractAvailable}, Mathpix: ${mathpixAvailable}`);
+      
+      // Try Tesseract first (reliable and built-in)
+      if (tesseractAvailable) {
         try {
+          console.log("Attempting Tesseract OCR extraction...");
           extractedText = await extractTextWithTesseract(buffer);
-          extractedText = enhanceMathNotation(extractedText);
-        } catch (tesseractError) {
-          console.log("Tesseract failed, trying Mathpix fallback:", tesseractError);
-          if (isMathpixConfigured()) {
-            extractedText = await extractTextFromImage(buffer);
+          
+          if (extractedText && extractedText.trim()) {
+            extractedText = enhanceMathNotation(extractedText);
+            usedService = 'Tesseract';
+            console.log(`Tesseract successful - Extracted ${extractedText.length} characters`);
           } else {
-            throw tesseractError;
+            throw new Error("Tesseract returned empty text");
+          }
+        } catch (tesseractError: any) {
+          console.error("Tesseract failed:", tesseractError);
+          
+          // Try Mathpix as fallback
+          if (mathpixAvailable) {
+            try {
+              console.log("Attempting Mathpix fallback...");
+              extractedText = await extractTextFromImage(buffer);
+              usedService = 'Mathpix';
+              console.log(`Mathpix successful - Extracted ${extractedText.length} characters`);
+            } catch (mathpixError: any) {
+              console.error("Mathpix fallback failed:", mathpixError);
+              throw new Error(`Both OCR services failed. Tesseract: ${tesseractError?.message || tesseractError}, Mathpix: ${mathpixError?.message || mathpixError}`);
+            }
+          } else {
+            throw new Error(`Tesseract failed and Mathpix not configured: ${tesseractError?.message || tesseractError}`);
           }
         }
-      } else if (isMathpixConfigured()) {
-        // Use Mathpix if available
-        extractedText = await extractTextFromImage(buffer);
+      } else if (mathpixAvailable) {
+        try {
+          console.log("Attempting Mathpix OCR extraction...");
+          extractedText = await extractTextFromImage(buffer);
+          usedService = 'Mathpix';
+          console.log(`Mathpix successful - Extracted ${extractedText.length} characters`);
+        } catch (mathpixError) {
+          console.error("Mathpix failed:", mathpixError);
+          throw mathpixError;
+        }
       } else {
-        return res.status(503).json({ 
-          error: "OCR service unavailable. Tesseract should be available by default." 
+        const errorMsg = "No OCR services available. Tesseract installation may be incomplete.";
+        console.error(errorMsg);
+        return res.status(503).json({ error: errorMsg });
+      }
+      
+      // Validate extraction result
+      if (!extractedText || extractedText.trim().length === 0) {
+        return res.status(422).json({ 
+          error: "No text could be extracted from this image. Please ensure the image contains readable text or mathematical expressions.",
+          service: usedService
         });
       }
       
-      res.json({ text: extractedText });
+      console.log(`OCR extraction complete - Service: ${usedService}, Result: "${extractedText.substring(0, 100)}..."`);
+      res.json({ text: extractedText, service: usedService });
+      
     } catch (error: any) {
       console.error("OCR extraction error:", error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ 
+        error: error.message || "OCR extraction failed",
+        details: error.stack
+      });
     }
   });
 

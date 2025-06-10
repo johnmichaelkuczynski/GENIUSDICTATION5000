@@ -11,36 +11,87 @@ import sharp from 'sharp';
  */
 export async function extractTextWithTesseract(imageBuffer: Buffer): Promise<string> {
   try {
-    // Preprocess image for better OCR accuracy
+    console.log('Starting Tesseract OCR processing...');
+    
+    // Get image info for debugging
+    const imageInfo = await sharp(imageBuffer).metadata();
+    console.log(`Input image: ${imageInfo.width}x${imageInfo.height}, format: ${imageInfo.format}`);
+
+    // Enhanced preprocessing for better OCR accuracy, especially for math
     const processedImageBuffer = await sharp(imageBuffer)
+      .resize(null, 800, { 
+        withoutEnlargement: false,
+        kernel: sharp.kernel.lanczos3 
+      })
       .greyscale()
       .normalize()
-      .sharpen()
+      .linear(1.2, -(128 * 1.2) + 128) // Increase contrast
+      .sharpen({ sigma: 1, m1: 0.5, m2: 2, x1: 2, y2: 10 })
+      .threshold(128) // Convert to black and white for better text recognition
       .png()
       .toBuffer();
 
-    // Configure Tesseract for best text + math recognition
-    const config = {
-      lang: 'eng',
-      oem: 1,
-      psm: 6, // Uniform block of text
-      tessjs_create_hocr: '0',
-      tessjs_create_tsv: '0',
-      preserve_interword_spaces: '1'
-    };
+    console.log('Image preprocessing complete');
 
-    const text = await tesseract.recognize(processedImageBuffer, config);
+    // Try multiple PSM modes for better recognition
+    const psmModes = [
+      6,  // Uniform block of text
+      8,  // Single word
+      13, // Raw line (good for math equations)
+      3,  // Fully automatic page segmentation
+      4   // Single column of text
+    ];
+
+    let bestResult = '';
+    let bestScore = 0;
+
+    for (const psm of psmModes) {
+      try {
+        console.log(`Trying PSM mode ${psm}...`);
+        
+        const config = {
+          lang: 'eng',
+          oem: 1, // LSTM neural net mode
+          psm: psm,
+          tessjs_create_hocr: '0',
+          tessjs_create_tsv: '0',
+          preserve_interword_spaces: '1',
+          // Additional configs for better math recognition
+          'c:tessedit_char_whitelist': 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:!?()[]{}+-*/=<>^_|\\/ \n\t',
+          'c:classify_bln_numeric_mode': '1'
+        };
+
+        const text = await tesseract.recognize(processedImageBuffer, config);
+        
+        if (text && text.trim().length > 0) {
+          const score = text.trim().length;
+          console.log(`PSM ${psm} extracted ${score} characters`);
+          
+          if (score > bestScore) {
+            bestResult = text;
+            bestScore = score;
+          }
+        }
+      } catch (psmError: any) {
+        console.log(`PSM mode ${psm} failed:`, psmError?.message || psmError);
+        continue;
+      }
+    }
     
-    if (!text || text.trim().length === 0) {
-      throw new Error('No text could be extracted from the image');
+    if (!bestResult || bestResult.trim().length === 0) {
+      throw new Error('No text could be extracted from the image with any PSM mode');
     }
 
+    console.log(`Best result from Tesseract: ${bestResult.length} characters`);
+
     // Clean up the extracted text
-    const cleanedText = text
+    const cleanedText = bestResult
       .replace(/\n\s*\n/g, '\n\n') // Clean up excessive newlines
       .replace(/\s+/g, ' ') // Normalize spaces
+      .replace(/[^\x20-\x7E\n]/g, '') // Remove non-printable characters
       .trim();
 
+    console.log(`Cleaned text: "${cleanedText.substring(0, 200)}..."`);
     return cleanedText;
 
   } catch (error: any) {
@@ -51,34 +102,93 @@ export async function extractTextWithTesseract(imageBuffer: Buffer): Promise<str
 
 /**
  * Process mathematical expressions in text
- * This is a basic implementation that can be enhanced with ML models
+ * Enhanced implementation for better math recognition and LaTeX conversion
  * @param text The extracted text
  * @returns Text with improved math formatting
  */
 export function enhanceMathNotation(text: string): string {
-  // Basic patterns for common mathematical expressions
   let enhanced = text;
 
-  // Convert common mathematical patterns to LaTeX
+  // First, clean up common OCR errors in mathematical text
   enhanced = enhanced
-    // Fractions: a/b -> \frac{a}{b}
-    .replace(/(\w+)\s*\/\s*(\w+)/g, '\\(\\frac{$1}{$2}\\)')
-    // Limits: lim -> \lim
-    .replace(/\blim\b/gi, '\\(\\lim\\)')
-    // Integrals: integral -> \int
-    .replace(/\bintegral\b/gi, '\\(\\int\\)')
-    // Derivatives: d/dx -> \frac{d}{dx}
-    .replace(/d\s*\/\s*d(\w+)/g, '\\(\\frac{d}{d$1}\\)')
-    // Summation: sum -> \sum
-    .replace(/\bsum\b/gi, '\\(\\sum\\)')
-    // Pi: pi -> \pi
+    // Fix common character recognition errors
+    .replace(/\|/g, 'I') // Vertical bars often misread as I
+    .replace(/([0-9])\s*[Il]\s*([0-9])/g, '$1/$2') // 1 l 2 -> 1/2
+    .replace(/([0-9])\s*o\s*([0-9])/g, '$1+$2') // 1 o 2 -> 1+2
+    .replace(/\[\]/g, '()') // Square brackets to parentheses
+    .replace(/\s+([+\-*/=<>])\s+/g, ' $1 ') // Normalize operator spacing
+    .replace(/([0-9])\s*x\s*([0-9])/g, '$1 × $2'); // Fix multiplication
+
+  // Convert mathematical symbols and expressions to LaTeX
+  enhanced = enhanced
+    // Greek letters
+    .replace(/\balpha\b/gi, '\\(\\alpha\\)')
+    .replace(/\bbeta\b/gi, '\\(\\beta\\)')
+    .replace(/\bgamma\b/gi, '\\(\\gamma\\)')
+    .replace(/\bdelta\b/gi, '\\(\\delta\\)')
+    .replace(/\bepsilon\b/gi, '\\(\\epsilon\\)')
+    .replace(/\btheta\b/gi, '\\(\\theta\\)')
+    .replace(/\blambda\b/gi, '\\(\\lambda\\)')
+    .replace(/\bmu\b/gi, '\\(\\mu\\)')
     .replace(/\bpi\b/gi, '\\(\\pi\\)')
-    // Infinity: infinity -> \infty
+    .replace(/\bsigma\b/gi, '\\(\\sigma\\)')
+    .replace(/\bphi\b/gi, '\\(\\phi\\)')
+    .replace(/\bomega\b/gi, '\\(\\omega\\)')
+    
+    // Mathematical functions
+    .replace(/\bsin\b/gi, '\\(\\sin\\)')
+    .replace(/\bcos\b/gi, '\\(\\cos\\)')
+    .replace(/\btan\b/gi, '\\(\\tan\\)')
+    .replace(/\bln\b/gi, '\\(\\ln\\)')
+    .replace(/\blog\b/gi, '\\(\\log\\)')
+    .replace(/\bexp\b/gi, '\\(\\exp\\)')
+    
+    // Calculus notation
+    .replace(/\blim\b/gi, '\\(\\lim\\)')
+    .replace(/\bintegral\b/gi, '\\(\\int\\)')
+    .replace(/\bsum\b/gi, '\\(\\sum\\)')
+    .replace(/\bprod\b/gi, '\\(\\prod\\)')
+    .replace(/d\s*\/\s*d([a-zA-Z])/g, '\\(\\frac{d}{d$1}\\)')
+    
+    // Special symbols
     .replace(/\binfinity\b/gi, '\\(\\infty\\)')
-    // Squared: x^2 -> x^{2}
-    .replace(/(\w+)\^(\d+)/g, '\\($1^{$2}\\)')
-    // Square root: sqrt -> \sqrt
-    .replace(/\bsqrt\s*\(([^)]+)\)/gi, '\\(\\sqrt{$1}\\)');
+    .replace(/\bpartial\b/gi, '\\(\\partial\\)')
+    .replace(/\bnabla\b/gi, '\\(\\nabla\\)')
+    .replace(/\+\-/g, '\\(\\pm\\)')
+    .replace(/\-\+/g, '\\(\\mp\\)')
+    .replace(/!=/g, '\\(\\neq\\)')
+    .replace(/<=/g, '\\(\\leq\\)')
+    .replace(/>=/g, '\\(\\geq\\)')
+    .replace(/\bapprox\b/gi, '\\(\\approx\\)')
+    
+    // Powers and subscripts
+    .replace(/([a-zA-Z0-9])\^([a-zA-Z0-9]+)/g, '\\($1^{$2}\\)')
+    .replace(/([a-zA-Z])_([a-zA-Z0-9]+)/g, '\\($1_{$2}\\)')
+    
+    // Fractions - more sophisticated pattern
+    .replace(/(\d+)\s*\/\s*(\d+)/g, '\\(\\frac{$1}{$2}\\)')
+    .replace(/([a-zA-Z]+)\s*\/\s*([a-zA-Z]+)/g, '\\(\\frac{$1}{$2}\\)')
+    
+    // Square roots
+    .replace(/\bsqrt\s*\(([^)]+)\)/gi, '\\(\\sqrt{$1}\\)')
+    .replace(/\bsqrt\s+([a-zA-Z0-9]+)/gi, '\\(\\sqrt{$1}\\)')
+    
+    // Absolute value
+    .replace(/\|([^|]+)\|/g, '\\(|$1|\\)')
+    
+    // Matrices notation
+    .replace(/\bmatrix\b/gi, '\\(\\text{matrix}\\)')
+    .replace(/\bdet\b/gi, '\\(\\det\\)')
+    
+    // Set notation
+    .replace(/\bunion\b/gi, '\\(\\cup\\)')
+    .replace(/\bintersection\b/gi, '\\(\\cap\\)')
+    .replace(/\bsubset\b/gi, '\\(\\subset\\)')
+    .replace(/\bin\b(?=\s)/gi, '\\(\\in\\)')
+    
+    // Clean up any double spaces
+    .replace(/\s+/g, ' ')
+    .trim();
 
   return enhanced;
 }
