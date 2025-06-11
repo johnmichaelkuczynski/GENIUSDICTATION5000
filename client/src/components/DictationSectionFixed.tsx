@@ -139,6 +139,13 @@ const DictationSection = () => {
     }
   }, [dictationActive, startDictation, stopDictation, setDictationActive]);
 
+  const [currentTab, setCurrentTab] = useState("direct-dictation");
+  const [showVoiceSelect, setShowVoiceSelect] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showMathPreview, setShowMathPreview] = useState(false);
+  const [isDictatingInstructions, setIsDictatingInstructions] = useState(false);
+
   // Instructions dictation functionality
   const handleToggleInstructionsDictation = useCallback(async () => {
     if (isDictatingInstructions) {
@@ -164,7 +171,7 @@ const DictationSection = () => {
         
         let finalTranscript = '';
         
-        recognition.onresult = (event: SpeechRecognitionEvent) => {
+        recognition.onresult = (event: any) => {
           let interimTranscript = '';
           
           for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -182,7 +189,7 @@ const DictationSection = () => {
           setCustomInstructions(newInstructions);
         };
         
-        recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        recognition.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
           setIsDictatingInstructions(false);
           toast({
@@ -215,12 +222,6 @@ const DictationSection = () => {
     }
   }, [isDictatingInstructions, customInstructions, setCustomInstructions, toast]);
 
-  const [currentTab, setCurrentTab] = useState("direct-dictation");
-  const [showVoiceSelect, setShowVoiceSelect] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showMathPreview, setShowMathPreview] = useState(false);
-  const [isDictatingInstructions, setIsDictatingInstructions] = useState(false);
   const [contentDocuments, setContentDocuments] = useState<{ id: string; name: string; content: string; contentId: number }[]>([]);
   const [selectedContentId, setSelectedContentId] = useState<number | null>(null);
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
