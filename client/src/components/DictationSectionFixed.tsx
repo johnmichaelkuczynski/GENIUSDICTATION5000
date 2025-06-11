@@ -28,6 +28,33 @@ import { TextChunkManager } from "@/components/TextChunkManager";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// Extend Window interface for speech recognition
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+    SpeechRecognition: any;
+    instructionsRecognition: any;
+  }
+}
+
+// Speech recognition types
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: {
+    length: number;
+    [index: number]: {
+      isFinal: boolean;
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
+
 // Helper function to count words in a string
 const countWords = (text: string): number => {
   if (!text) return 0;
@@ -112,11 +139,88 @@ const DictationSection = () => {
     }
   }, [dictationActive, startDictation, stopDictation, setDictationActive]);
 
+  // Instructions dictation functionality
+  const handleToggleInstructionsDictation = useCallback(async () => {
+    if (isDictatingInstructions) {
+      setIsDictatingInstructions(false);
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        // Stop any ongoing speech recognition
+        if (window.instructionsRecognition) {
+          window.instructionsRecognition.stop();
+          window.instructionsRecognition = null;
+        }
+      }
+    } else {
+      setIsDictatingInstructions(true);
+      
+      // Check for speech recognition support
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        
+        let finalTranscript = '';
+        
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
+          let interimTranscript = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + ' ';
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+          
+          // Update the custom instructions with the accumulated speech
+          const currentInstructions = customInstructions || '';
+          const newInstructions = (currentInstructions + ' ' + finalTranscript + interimTranscript).trim();
+          setCustomInstructions(newInstructions);
+        };
+        
+        recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+          console.error('Speech recognition error:', event.error);
+          setIsDictatingInstructions(false);
+          toast({
+            title: "Voice input error",
+            description: "Could not access microphone. Please check permissions.",
+            variant: "destructive"
+          });
+        };
+        
+        recognition.onend = () => {
+          setIsDictatingInstructions(false);
+          window.instructionsRecognition = null;
+        };
+        
+        window.instructionsRecognition = recognition;
+        recognition.start();
+        
+        toast({
+          title: "Listening for instructions",
+          description: "Speak your transformation instructions clearly",
+        });
+      } else {
+        setIsDictatingInstructions(false);
+        toast({
+          title: "Speech recognition not supported",
+          description: "Your browser doesn't support voice input",
+          variant: "destructive"
+        });
+      }
+    }
+  }, [isDictatingInstructions, customInstructions, setCustomInstructions, toast]);
+
   const [currentTab, setCurrentTab] = useState("direct-dictation");
   const [showVoiceSelect, setShowVoiceSelect] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showMathPreview, setShowMathPreview] = useState(false);
+  const [isDictatingInstructions, setIsDictatingInstructions] = useState(false);
   const [contentDocuments, setContentDocuments] = useState<{ id: string; name: string; content: string; contentId: number }[]>([]);
   const [selectedContentId, setSelectedContentId] = useState<number | null>(null);
   const [isAddDocDialogOpen, setIsAddDocDialogOpen] = useState(false);
@@ -1715,23 +1819,64 @@ const DictationSection = () => {
                 
                 {/* Custom Instructions */}
                 <div>
-                  <Label htmlFor="custom-instructions" className="text-xs font-medium mb-1">Custom Instructions</Label>
-                  <Textarea
-                    id="custom-instructions"
-                    value={customInstructions}
-                    onChange={(e) => setCustomInstructions(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (originalText.trim() && !isProcessing) {
-                          handleTransformText();
+                  <div className="flex items-center justify-between mb-1">
+                    <Label htmlFor="custom-instructions" className="text-xs font-medium">Custom Instructions</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`text-xs h-6 px-2 flex items-center ${
+                        isDictatingInstructions 
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' 
+                          : 'hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                      }`}
+                      onClick={handleToggleInstructionsDictation}
+                      disabled={isProcessing}
+                    >
+                      {isDictatingInstructions ? (
+                        <>
+                          <span className="animate-pulse w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                          Stop
+                        </>
+                      ) : (
+                        <>
+                          <i className="ri-mic-line mr-1"></i>
+                          Dictate
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    <Textarea
+                      id="custom-instructions"
+                      value={customInstructions}
+                      onChange={(e) => setCustomInstructions(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (originalText.trim() && !isProcessing) {
+                            handleTransformText();
+                          }
                         }
+                      }}
+                      placeholder={
+                        isDictatingInstructions 
+                          ? "Speak your transformation instructions..." 
+                          : "E.g., Rewrite in academic style, focusing on epistemology concepts. Include examples of foundationalism and coherentism. (Ctrl+Enter to transform)"
                       }
-                    }}
-                    placeholder="E.g., Rewrite in academic style, focusing on epistemology concepts. Include examples of foundationalism and coherentism. (Ctrl+Enter to transform)"
-                    className="text-sm resize-none"
-                    rows={2}
-                  />
+                      className={`text-sm resize-none ${
+                        isDictatingInstructions ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800' : ''
+                      }`}
+                      rows={2}
+                    />
+                    {isDictatingInstructions && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-red-50/80 dark:bg-red-950/40 rounded-md pointer-events-none">
+                        <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+                          <span className="animate-pulse w-3 h-3 bg-red-500 rounded-full"></span>
+                          <span className="text-sm font-medium">Listening for instructions...</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Style Reference Toggle */}
