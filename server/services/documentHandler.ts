@@ -8,6 +8,73 @@ import fs from 'fs';
 import path from 'path';
 
 /**
+ * Process LaTeX expressions for PDF output
+ */
+function processLatexForPrint(text: string): string {
+  // Convert LaTeX expressions to more readable math format for PDF
+  let processedText = text;
+  
+  // Handle inline math expressions \( ... \)
+  processedText = processedText.replace(/\\?\\\(/g, '').replace(/\\?\\\)/g, '');
+  
+  // Handle display math expressions \[ ... \]
+  processedText = processedText.replace(/\\?\\\[/g, '\n\n').replace(/\\?\\\]/g, '\n\n');
+  
+  // Handle dollar sign math expressions
+  processedText = processedText.replace(/\$\$(.*?)\$\$/g, '\n\n$1\n\n');
+  processedText = processedText.replace(/\$(.*?)\$/g, '$1');
+  
+  // Convert common LaTeX commands to readable text
+  processedText = processedText
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')
+    .replace(/\\beta/g, 'β')
+    .replace(/\\gamma/g, 'γ')
+    .replace(/\\alpha/g, 'α')
+    .replace(/\\delta/g, 'δ')
+    .replace(/\\lambda/g, 'λ')
+    .replace(/\\mu/g, 'μ')
+    .replace(/\\sigma/g, 'σ')
+    .replace(/\\theta/g, 'θ')
+    .replace(/\\phi/g, 'φ')
+    .replace(/\\psi/g, 'ψ')
+    .replace(/\\omega/g, 'ω')
+    .replace(/\\pi/g, 'π')
+    .replace(/\\tau/g, 'τ')
+    .replace(/\\sum/g, '∑')
+    .replace(/\\int/g, '∫')
+    .replace(/\\partial/g, '∂')
+    .replace(/\\infty/g, '∞')
+    .replace(/\\cdot/g, '·')
+    .replace(/\\times/g, '×')
+    .replace(/\\div/g, '÷')
+    .replace(/\\pm/g, '±')
+    .replace(/\\mp/g, '∓')
+    .replace(/\\approx/g, '≈')
+    .replace(/\\neq/g, '≠')
+    .replace(/\\leq/g, '≤')
+    .replace(/\\geq/g, '≥')
+    .replace(/\\leftarrow/g, '←')
+    .replace(/\\rightarrow/g, '→')
+    .replace(/\\Leftarrow/g, '⇐')
+    .replace(/\\Rightarrow/g, '⇒')
+    .replace(/\\leftrightarrow/g, '↔')
+    .replace(/\\Leftrightarrow/g, '⇔')
+    .replace(/\\{/g, '{')
+    .replace(/\\}/g, '}')
+    .replace(/\\\\/g, '')
+    .replace(/\\text\{([^}]+)\}/g, '$1')
+    .replace(/\\mathrm\{([^}]+)\}/g, '$1')
+    .replace(/\\mathbf\{([^}]+)\}/g, '$1')
+    .replace(/\\mathit\{([^}]+)\}/g, '$1')
+    .replace(/\^\{([^}]+)\}/g, '^($1)')
+    .replace(/\_\{([^}]+)\}/g, '_($1)')
+    .replace(/\^(\w)/g, '^$1')
+    .replace(/\_(\w)/g, '_$1');
+  
+  return processedText;
+}
+
+/**
  * Extract text from various document formats
  * @param documentBuffer The document buffer
  * @param fileName The document file name
@@ -208,7 +275,7 @@ function processSVGForPrint(text: string): string {
 async function generatePrintableHTML(text: string, fileName: string): Promise<Buffer> {
   try {
     // Process text with embedded SVG for print output
-    const processedText = processSVGForPrint(text);
+    const processedText = processLatexForPrint(processSVGForPrint(text));
     
     // Create HTML content with KaTeX for math rendering
     const htmlContent = `
