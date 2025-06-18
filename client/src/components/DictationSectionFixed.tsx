@@ -1702,7 +1702,10 @@ const DictationSection = () => {
                 <div className="flex-1">
                   {processedText ? (
                     <div className="min-h-[256px] max-h-[256px] overflow-y-auto border rounded-md p-3 bg-background">
-                      <SVGRenderer text={processedText} className="text-sm" />
+                      <div className="space-y-4">
+                        <SVGRenderer text={processedText} className="text-sm" />
+                        <MathDisplay text={processedText} className="text-sm hidden" />
+                      </div>
                     </div>
                   ) : (
                     <div className="min-h-[256px] border rounded-md p-3 bg-muted/10 flex items-center justify-center text-muted-foreground text-sm">

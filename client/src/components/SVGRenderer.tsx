@@ -1,4 +1,5 @@
 import React from 'react';
+import { MathDisplay } from './ui/math-display';
 
 interface SVGRendererProps {
   text: string;
@@ -6,7 +7,7 @@ interface SVGRendererProps {
 }
 
 /**
- * Component that renders text with embedded SVG graphs properly displayed
+ * Component that renders text with embedded SVG graphs and proper LaTeX math
  */
 export const SVGRenderer: React.FC<SVGRendererProps> = ({ text, className }) => {
   // Split text into parts and identify SVG sections
@@ -21,14 +22,12 @@ export const SVGRenderer: React.FC<SVGRendererProps> = ({ text, className }) => 
     let match;
 
     while ((match = svgPattern.exec(text)) !== null) {
-      // Add text before the SVG
+      // Add text before the SVG with proper math rendering
       if (match.index > lastIndex) {
         const beforeText = text.substring(lastIndex, match.index);
         if (beforeText.trim()) {
           parts.push(
-            <div key={`text-${lastIndex}`} className="whitespace-pre-wrap">
-              {beforeText}
-            </div>
+            <MathDisplay key={`text-${lastIndex}`} text={beforeText} className="whitespace-pre-wrap" />
           );
         }
       }
@@ -53,21 +52,19 @@ export const SVGRenderer: React.FC<SVGRendererProps> = ({ text, className }) => 
       lastIndex = match.index + match[0].length;
     }
 
-    // Add remaining text after the last SVG
+    // Add remaining text after the last SVG with proper math rendering
     if (lastIndex < text.length) {
       const remainingText = text.substring(lastIndex);
       if (remainingText.trim()) {
         parts.push(
-          <div key={`text-${lastIndex}`} className="whitespace-pre-wrap">
-            {remainingText}
-          </div>
+          <MathDisplay key={`text-${lastIndex}`} text={remainingText} className="whitespace-pre-wrap" />
         );
       }
     }
 
-    // If no SVG found, return original text
+    // If no SVG found, return original text with math rendering
     if (parts.length === 0) {
-      return <div className="whitespace-pre-wrap">{text}</div>;
+      return <MathDisplay text={text} className="whitespace-pre-wrap" />;
     }
 
     return <>{parts}</>;

@@ -37,28 +37,30 @@ export function generateViralSpreadGraph(): string {
 
   // Generate realistic epidemic curve data
   const points: GraphPoint[] = [];
-  for (let t = 0; t <= 100; t += 1) {
+  for (let t = 0; t <= 100; t += 2) {
     let infected: number;
     
-    // Sigmoid curve with plateau and surge patterns
-    if (t < 20) {
-      // Initial slow spread
-      infected = 2 / (1 + Math.exp(-0.3 * (t - 10)));
-    } else if (t < 40) {
-      // Exponential growth phase
-      infected = 5 + 40 / (1 + Math.exp(-0.3 * (t - 30)));
-    } else if (t < 60) {
-      // Plateau phase
-      infected = 45 + 5 * Math.sin(0.2 * (t - 40));
-    } else if (t < 80) {
-      // Second surge (variant or relaxed measures)
-      infected = 45 + 30 / (1 + Math.exp(-0.4 * (t - 70)));
+    // Simple epidemic curve with clear phases
+    if (t <= 10) {
+      // Initial slow spread (exponential start)
+      infected = 0.5 * Math.exp(0.1 * t);
+    } else if (t <= 30) {
+      // Rapid growth phase
+      infected = 2 + 25 * (1 - Math.exp(-0.15 * (t - 10)));
+    } else if (t <= 50) {
+      // Peak and plateau
+      infected = 25 + 20 * Math.exp(-0.1 * (t - 30)) + 3 * Math.sin(0.3 * (t - 30));
+    } else if (t <= 70) {
+      // Second wave
+      infected = 20 + 15 * Math.exp(-0.05 * (t - 50)) * (1 + 0.8 * Math.sin(0.2 * (t - 50)));
     } else {
       // Decline and stabilization
-      infected = 75 - 15 / (1 + Math.exp(-0.3 * (t - 85)));
+      infected = 15 * Math.exp(-0.08 * (t - 70)) + 2;
     }
     
-    points.push({ x: t, y: Math.max(0, Math.min(100, infected)) });
+    // Ensure values are within bounds and add some realistic noise
+    infected = Math.max(0, Math.min(80, infected + (Math.random() - 0.5) * 2));
+    points.push({ x: t, y: infected });
   }
 
   return generateSVGGraph(points, config);
@@ -131,22 +133,32 @@ export function generateMathFunctionGraph(equation: string, title: string): stri
  * Safe mathematical expression evaluation
  */
 function evaluateExpression(expr: string, x: number): number {
-  // Replace common math functions and constants
-  let cleanExpr = expr
-    .replace(/\^/g, '**')
-    .replace(/sin/g, 'Math.sin')
-    .replace(/cos/g, 'Math.cos')
-    .replace(/tan/g, 'Math.tan')
-    .replace(/log/g, 'Math.log10')
-    .replace(/ln/g, 'Math.log')
-    .replace(/sqrt/g, 'Math.sqrt')
-    .replace(/abs/g, 'Math.abs')
-    .replace(/pi/g, 'Math.PI')
-    .replace(/e(?![a-zA-Z])/g, 'Math.E')
-    .replace(/x/g, x.toString());
+  try {
+    // Replace common math functions and constants
+    let cleanExpr = expr
+      .replace(/\^/g, '**')
+      .replace(/sin/g, 'Math.sin')
+      .replace(/cos/g, 'Math.cos')
+      .replace(/tan/g, 'Math.tan')
+      .replace(/log/g, 'Math.log10')
+      .replace(/ln/g, 'Math.log')
+      .replace(/sqrt/g, 'Math.sqrt')
+      .replace(/abs/g, 'Math.abs')
+      .replace(/pi/g, 'Math.PI')
+      .replace(/e(?![a-zA-Z])/g, 'Math.E')
+      .replace(/x/g, x.toString());
 
-  // Use Function constructor for safe evaluation
-  return new Function('return ' + cleanExpr)();
+    // Fix unary operator precedence issues with exponentiation
+    cleanExpr = cleanExpr.replace(/-(\d+(?:\.\d+)?)\*\*/g, '(($1) * -1)**');
+    cleanExpr = cleanExpr.replace(/Math\.(\w+)\(-(\d+(?:\.\d+)?)\*\*/g, 'Math.$1((($2) * -1)**');
+
+    // Use Function constructor for safe evaluation
+    const result = new Function('return ' + cleanExpr)();
+    return isFinite(result) ? result : 0;
+  } catch (error) {
+    console.error('Error evaluating expression:', expr, error);
+    return 0;
+  }
 }
 
 /**
@@ -163,11 +175,14 @@ function generateSVGGraph(points: GraphPoint[], config: GraphConfig): string {
     y: config.height - padding - ((point.y - config.yMin) / (config.yMax - config.yMin)) * graphHeight
   }));
 
-  // Generate path string
+  // Generate path string - ensure coordinates are valid numbers
   const pathData = svgPoints.length > 0 
-    ? `M ${svgPoints[0].x} ${svgPoints[0].y} ` + 
-      svgPoints.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')
+    ? `M ${svgPoints[0].x.toFixed(2)} ${svgPoints[0].y.toFixed(2)} ` + 
+      svgPoints.slice(1).map(p => `L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ')
     : '';
+
+  console.log(`Generated SVG path with ${svgPoints.length} points`);
+  console.log(`Path data: ${pathData.substring(0, 100)}...`);
 
   // Generate grid lines
   const gridLines: string[] = [];
