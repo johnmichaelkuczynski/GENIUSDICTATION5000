@@ -160,6 +160,46 @@ async function generateDOCX(text: string, fileName: string): Promise<Buffer> {
  * @returns Buffer containing the PDF document
  */
 /**
+ * Process text with embedded SVG for print output
+ * @param text The text content with embedded SVG graphs
+ * @returns HTML content with properly formatted SVG graphs
+ */
+function processSVGForPrint(text: string): string {
+  if (!text) return '';
+
+  // Look for SVG content between the figure markers
+  const svgPattern = /\*\*Figure: Mathematical Visualization\*\*\s*\n\n(<svg[^]*?<\/svg>)\s*\n\n\*The above graph[^]*?\*\n\n/g;
+  
+  let processedText = text;
+  let match;
+  
+  while ((match = svgPattern.exec(text)) !== null) {
+    const fullMatch = match[0];
+    const svgContent = match[1];
+    
+    // Create properly formatted HTML for the graph
+    const graphHTML = `
+      <div class="graph-container">
+        <div class="graph-title">Mathematical Visualization</div>
+        ${svgContent}
+        <div class="graph-caption">The above graph illustrates the mathematical relationship described in the analysis.</div>
+      </div>
+    `;
+    
+    // Replace the original pattern with formatted HTML
+    processedText = processedText.replace(fullMatch, graphHTML);
+  }
+  
+  // Convert remaining text to paragraphs
+  return processedText.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return '';
+    if (trimmed.includes('<div class="graph-container">')) return trimmed;
+    return `<p>${trimmed}</p>`;
+  }).join('');
+}
+
+/**
  * Generate printable HTML content for browser's native PDF functionality
  * @param text The text content with LaTeX notation
  * @param fileName The output file name
@@ -167,6 +207,9 @@ async function generateDOCX(text: string, fileName: string): Promise<Buffer> {
  */
 async function generatePrintableHTML(text: string, fileName: string): Promise<Buffer> {
   try {
+    // Process text with embedded SVG for print output
+    const processedText = processSVGForPrint(text);
+    
     // Create HTML content with KaTeX for math rendering
     const htmlContent = `
       <!DOCTYPE html>
@@ -227,13 +270,33 @@ async function generatePrintableHTML(text: string, fileName: string): Promise<Bu
           .print-button:hover {
             background: #0056b3;
           }
+          .graph-container {
+            text-align: center;
+            margin: 2em 0;
+            padding: 1em;
+            border: 1px solid #ddd;
+            page-break-inside: avoid;
+          }
+          .graph-title {
+            font-weight: bold;
+            margin-bottom: 1em;
+            font-size: 14pt;
+          }
+          .graph-caption {
+            font-style: italic;
+            margin-top: 1em;
+            font-size: 11pt;
+            color: #666;
+          }
+          svg {
+            max-width: 100%;
+            height: auto;
+          }
         </style>
       </head>
       <body>
         <button class="print-button no-print" onclick="window.print()">Print / Save as PDF</button>
-        ${text.split('\n').map(line => 
-          line.trim() ? `<p>${line.trim()}</p>` : ''
-        ).join('')}
+        ${processedText}
         
         <script>
           document.addEventListener("DOMContentLoaded", function() {
