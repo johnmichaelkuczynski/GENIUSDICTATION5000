@@ -296,16 +296,55 @@ function generateErrorGraph(equation: string): string {
 }
 
 /**
+ * Generate an SVG graph for radioactive decay showing half-life curve
+ */
+export function generateRadioactiveDecayGraph(): string {
+  const config: GraphConfig = {
+    width: 600,
+    height: 400,
+    xMin: 0,
+    xMax: 10,
+    yMin: 0,
+    yMax: 100,
+    title: "Radioactive Isotope Decay - Biological Half-Life",
+    xLabel: "Time (half-lives)",
+    yLabel: "Remaining Activity (%)"
+  };
+
+  // Generate exponential decay curve: N(t) = N₀ * e^(-λt)
+  // For half-life display, we use: N(t) = N₀ * (1/2)^(t/T½)
+  const points: GraphPoint[] = [];
+  
+  for (let t = 0; t <= 10; t += 0.1) {
+    // Exponential decay with realistic biological half-life
+    const remaining = 100 * Math.pow(0.5, t);
+    
+    points.push({
+      x: t,
+      y: remaining
+    });
+  }
+
+  console.log(`Generated radioactive decay curve with ${points.length} data points`);
+  console.log(`Decay range: ${points[0].y.toFixed(1)}% to ${points[points.length-1].y.toFixed(3)}%`);
+  
+  return generateSVGGraph(points, config);
+}
+
+/**
  * Detect if text content requires a specific type of graph
  */
 export function detectGraphType(text: string): string | null {
   const lowerText = text.toLowerCase();
+  console.log('Detecting graph type for text:', lowerText.substring(0, 200) + '...');
   
   if (lowerText.includes('viral') && (lowerText.includes('spread') || lowerText.includes('infection'))) {
+    console.log('Detected: viral-spread graph');
     return 'viral-spread';
   }
   
   if (lowerText.includes('population') && lowerText.includes('dynamic')) {
+    console.log('Detected: population-dynamics graph');
     return 'population-dynamics';
   }
   
@@ -315,6 +354,7 @@ export function detectGraphType(text: string): string | null {
       (lowerText.includes('pet') && lowerText.includes('scan')) ||
       (lowerText.includes('isotope') && (lowerText.includes('decay') || lowerText.includes('half'))) ||
       (lowerText.includes('exponential') && lowerText.includes('decay'))) {
+    console.log('Detected: radioactive-decay graph');
     return 'radioactive-decay';
   }
   
@@ -347,22 +387,37 @@ export function detectGraphType(text: string): string | null {
  * Generate appropriate graph based on detected content
  */
 export function generateGraphForContent(text: string): string | null {
+  console.log('Starting graph generation for content...');
   const graphType = detectGraphType(text);
   
-  if (!graphType) return null;
+  if (!graphType) {
+    console.log('No graph type detected');
+    return null;
+  }
+  
+  console.log('Detected graph type:', graphType);
   
   if (graphType === 'viral-spread') {
+    console.log('Generating viral spread graph');
     return generateViralSpreadGraph();
   }
   
   if (graphType === 'population-dynamics') {
+    console.log('Generating population dynamics graph');
     return generatePopulationDynamicsGraph();
+  }
+  
+  if (graphType === 'radioactive-decay') {
+    console.log('Generating radioactive decay graph');
+    return generateRadioactiveDecayGraph();
   }
   
   if (graphType.startsWith('function:')) {
     const equation = graphType.substring(9);
+    console.log('Generating math function graph for:', equation);
     return generateMathFunctionGraph(equation, `Graph of ${equation}`);
   }
   
+  console.log('Graph type not handled:', graphType);
   return null;
 }

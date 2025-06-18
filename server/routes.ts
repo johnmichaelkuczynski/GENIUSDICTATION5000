@@ -259,7 +259,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if the content requires a graph and embed it
-      const graphSvg = generateGraphForContent(text);
+      console.log('Checking for graph generation with original text:', text.substring(0, 100) + '...');
+      console.log('Checking for graph generation with transformed text:', transformedText.substring(0, 100) + '...');
+      
+      const graphSvg = generateGraphForContent(text + ' ' + transformedText);
       let finalText = transformedText;
       
       if (graphSvg) {
@@ -267,6 +270,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const insertPosition = findGraphInsertPosition(transformedText);
         finalText = insertGraphIntoText(transformedText, graphSvg, insertPosition);
         console.log('Graph embedded in transformed text');
+      } else {
+        console.log('No graph detected for this content');
       }
 
       res.json({ text: finalText, model });
