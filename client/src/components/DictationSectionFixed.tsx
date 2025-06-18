@@ -1556,6 +1556,28 @@ const DictationSection = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
+                        className="text-xs flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                        onClick={() => {
+                          try {
+                            quickPrint(processedText, "Mathematical Document");
+                            toast({
+                              title: "Print Window Opened",
+                              description: "Use browser's print dialog to save as PDF or print directly"
+                            });
+                          } catch (error) {
+                            toast({
+                              title: "Print Failed",
+                              description: "Could not open print window",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <i className="ri-printer-line mr-1"></i> Print/Save PDF
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
                         className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
                         onClick={async () => {
                           try {
