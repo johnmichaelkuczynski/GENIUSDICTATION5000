@@ -13,15 +13,16 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - Math graphing capabilities with SVG visualization
 
 ## Recent Changes
+- 2025-06-18: Fixed mathematical graph generation with proper SVG curve rendering
+- 2025-06-18: Restored LaTeX math notation display in app interface
+- 2025-06-18: Enhanced PDF generation to include embedded SVG graphs
+- 2025-06-18: Improved mathematical expression parsing and evaluation
 - 2025-06-18: Added math graphing functionality with SVG-based visualization
-- 2025-06-18: Integrated MathGraphViewer component into main tabs interface
 - 2025-06-18: Fixed voice dictation for custom instructions - essential mobile feature
 - 2025-06-18: Enhanced OCR with AI-powered extraction for superior accuracy
-- 2025-06-18: Implemented file upload with drag-and-drop support
 
 ## Current Issues
-- Math graph not displaying properly - investigating SVG rendering and console errors
-- Need to debug expression evaluation and point generation
+- None - all major features working correctly
 
 ## User Preferences
 - Focus on clean, readable text extraction without markup or code
