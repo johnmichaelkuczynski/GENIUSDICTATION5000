@@ -25,6 +25,7 @@ import { TextAssessmentDialog } from "@/components/TextAssessmentDialog";
 import { ManualAssessmentDialog } from "@/components/ManualAssessmentDialog";
 import { AssessmentModelSelector, AssessmentModel } from "@/components/AssessmentModelSelector";
 import { TextChunkManager } from "@/components/TextChunkManager";
+import { MathGraphViewer } from "@/components/MathGraphViewer";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -1246,10 +1247,11 @@ const DictationSection = () => {
       <Card>
         {/* Tab Navigation */}
         <Tabs defaultValue="direct-dictation" className="w-full" onValueChange={setCurrentTab} value={currentTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="direct-dictation">Direct Dictation</TabsTrigger>
             <TabsTrigger value="style-emulation">Style Emulation</TabsTrigger>
             <TabsTrigger value="content-reference">Content Reference</TabsTrigger>
+            <TabsTrigger value="math-graphing">Math Graphing</TabsTrigger>
           </TabsList>
           
           <TabsContent value="direct-dictation" className="p-6">
@@ -2351,6 +2353,19 @@ const DictationSection = () => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="math-graphing" className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">Mathematical Function Graphing</h3>
+                <Badge variant="outline">SVG Export Available</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Visualize mathematical functions, parametric equations, and polar coordinates using interactive SVG graphs.
+              </p>
+              <MathGraphViewer />
             </div>
           </TabsContent>
         </Tabs>
