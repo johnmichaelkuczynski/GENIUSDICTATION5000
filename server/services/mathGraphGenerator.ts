@@ -100,6 +100,22 @@ export function generatePopulationDynamicsGraph(): string {
  * Generate a mathematical function graph based on equation
  */
 export function generateMathFunctionGraph(equation: string, title: string): string {
+  // Clean the equation to extract just the mathematical expression
+  let cleanEquation = equation.replace(/^.*?([x\^2\*\+\-\(\)\/\d\.]+).*$/, '$1').trim();
+  
+  // Handle common cases
+  if (cleanEquation.includes('x^2') || cleanEquation === 'x²') {
+    cleanEquation = 'x^2';
+  } else if (cleanEquation.includes('x^3')) {
+    cleanEquation = 'x^3';
+  } else if (cleanEquation.includes('sin') && cleanEquation.includes('x')) {
+    cleanEquation = 'sin(x)';
+  } else if (cleanEquation.includes('cos') && cleanEquation.includes('x')) {
+    cleanEquation = 'cos(x)';
+  }
+  
+  console.log(`Cleaned equation: "${cleanEquation}" from original: "${equation}"`);
+  
   const config: GraphConfig = {
     width: 600,
     height: 400,
@@ -107,7 +123,7 @@ export function generateMathFunctionGraph(equation: string, title: string): stri
     xMax: 3,
     yMin: -3,
     yMax: 3,
-    title: title || `Graph of ${equation}`,
+    title: title || `Graph of ${cleanEquation}`,
     xLabel: "x",
     yLabel: "y"
   };
@@ -115,11 +131,11 @@ export function generateMathFunctionGraph(equation: string, title: string): stri
   const points: GraphPoint[] = [];
   
   try {
-    for (let x = config.xMin; x <= config.xMax; x += 0.05) {
+    for (let x = config.xMin; x <= config.xMax; x += 0.1) {
       // Skip x=0 for functions with singularities like sin(1/x)
-      if (Math.abs(x) < 0.01 && equation.includes('1/x')) continue;
+      if (Math.abs(x) < 0.01 && cleanEquation.includes('1/x')) continue;
       
-      const y = evaluateExpression(equation, x);
+      const y = evaluateExpression(cleanEquation, x);
       if (isFinite(y) && !isNaN(y)) {
         // Clamp values to visible range
         const clampedY = Math.max(config.yMin, Math.min(config.yMax, y));
@@ -127,14 +143,14 @@ export function generateMathFunctionGraph(equation: string, title: string): stri
       }
     }
     
-    console.log(`Generated ${points.length} points for ${equation}`);
+    console.log(`Generated ${points.length} points for cleaned equation: ${cleanEquation}`);
     
     if (points.length === 0) {
       throw new Error("No valid points generated");
     }
   } catch (error) {
     console.error('Error generating function graph:', error);
-    return generateErrorGraph(equation);
+    return generateErrorGraph(cleanEquation);
   }
 
   return generateSVGGraph(points, config);
@@ -295,16 +311,23 @@ export function detectGraphType(text: string): string | null {
   
   // Look for mathematical equations in various formats
   const patterns = [
-    /(?:y\s*=|f\(x\)\s*=)\s*([^.]+)/i,
-    /graph\s+([x\^2\*\+\-\(\)\/\w\s]+)/i,
-    /plot\s+([x\^2\*\+\-\(\)\/\w\s]+)/i,
-    /function\s+([x\^2\*\+\-\(\)\/\w\s]+)/i
+    /(?:y\s*=|f\(x\)\s*=)\s*([x\^2\*\+\-\(\)\/\w\s]+?)(?:\s|$)/i,
+    /graph\s+([x\^2\*\+\-\(\)\/\w]+)/i,
+    /plot\s+([x\^2\*\+\-\(\)\/\w]+)/i,
+    /function\s+([x\^2\*\+\-\(\)\/\w]+)/i
   ];
   
   for (const pattern of patterns) {
     const match = text.match(pattern);
     if (match) {
-      return `function:${match[1].trim()}`;
+      // Clean the extracted expression to keep only mathematical symbols
+      let expr = match[1].trim();
+      // Extract only the mathematical expression part (x, numbers, operators, functions)
+      const mathMatch = expr.match(/^([x\^2\*\+\-\(\)\/\d\.\s]*)/);
+      if (mathMatch) {
+        expr = mathMatch[1].trim();
+      }
+      return `function:${expr}`;
     }
   }
   

@@ -259,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if the content requires a graph and embed it
-      const graphSvg = generateGraphForContent(text + " " + transformedText);
+      const graphSvg = generateGraphForContent(text);
       let finalText = transformedText;
       
       if (graphSvg) {
