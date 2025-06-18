@@ -154,7 +154,10 @@ const DictationSection = () => {
   // Extract graphs from processed text
   const extractedGraphs = useMemo(() => {
     if (!processedText) return [];
-    return extractGraphsFromText(processedText);
+    console.log("Processing text for graphs:", processedText.substring(0, 200) + "...");
+    const graphs = extractGraphsFromText(processedText);
+    console.log("Extracted graphs:", graphs.length, graphs);
+    return graphs;
   }, [processedText]);
   
   // Clean text without graphs
@@ -1748,6 +1751,15 @@ const DictationSection = () => {
                 )}
                 
                 <div className="flex-1 space-y-4">
+                  {/* Debug Info */}
+                  {processedText && (
+                    <div className="text-xs text-muted-foreground">
+                      Debug: {extractedGraphs.length} graphs found
+                      {processedText.includes('svg') && ' | SVG detected in text'}
+                      {processedText.includes('Mathematical Visualization') && ' | Graph marker found'}
+                    </div>
+                  )}
+                  
                   {/* Graph Display Section */}
                   {extractedGraphs.length > 0 && (
                     <GraphDisplayPanel 

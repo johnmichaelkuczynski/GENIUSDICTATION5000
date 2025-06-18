@@ -14,26 +14,51 @@ export interface ExtractedGraph {
 export function extractGraphsFromText(text: string): ExtractedGraph[] {
   const graphs: ExtractedGraph[] = [];
   
-  // Pattern to match SVG graphs with their surrounding context
-  const svgPattern = /\*\*Figure: Mathematical Visualization\*\*\s*\n\n(<svg[^]*?<\/svg>)\s*\n\n\*The above graph[^]*?\*\n\n/g;
+  // Multiple patterns to match different SVG formats
+  const patterns = [
+    // Main pattern with full context
+    /\*\*Figure: Mathematical Visualization\*\*\s*\n\n(<svg[^]*?<\/svg>)\s*\n\n\*The above graph[^]*?\*/g,
+    // Simpler pattern without trailing text
+    /\*\*Figure: Mathematical Visualization\*\*\s*\n\n(<svg[^]*?<\/svg>)/g,
+    // Any SVG pattern as fallback
+    /(<svg[^]*?<\/svg>)/g
+  ];
   
-  let match;
   let graphIndex = 1;
+  let foundGraphs = false;
   
-  while ((match = svgPattern.exec(text)) !== null) {
-    const svgContent = match[1];
+  // Try each pattern until we find graphs
+  for (const pattern of patterns) {
+    pattern.lastIndex = 0; // Reset regex
+    let match;
     
-    // Extract title from SVG if available
-    const titleMatch = svgContent.match(/<text[^>]*class="graph-title"[^>]*>([^<]+)<\/text>/);
-    const title = titleMatch ? titleMatch[1] : `Mathematical Visualization ${graphIndex}`;
+    while ((match = pattern.exec(text)) !== null) {
+      const svgContent = match[1];
+      
+      // Skip if we already found this SVG
+      if (!graphs.some(g => g.svg === svgContent)) {
+        // Extract title from SVG if available
+        const titleMatch = svgContent.match(/<text[^>]*class="graph-title"[^>]*>([^<]+)<\/text>/);
+        const title = titleMatch ? titleMatch[1] : `Mathematical Visualization ${graphIndex}`;
+        
+        graphs.push({
+          svg: svgContent,
+          title: title,
+          caption: "The above graph illustrates the mathematical relationship described in the analysis."
+        });
+        
+        graphIndex++;
+        foundGraphs = true;
+      }
+    }
     
-    graphs.push({
-      svg: svgContent,
-      title: title,
-      caption: "The above graph illustrates the mathematical relationship described in the analysis."
-    });
-    
-    graphIndex++;
+    // If we found graphs with this pattern, use them
+    if (foundGraphs) break;
+  }
+  
+  console.log(`Graph extraction complete: Found ${graphs.length} graphs`);
+  if (graphs.length > 0) {
+    console.log("First graph preview:", graphs[0].svg.substring(0, 100) + "...");
   }
   
   return graphs;
@@ -43,8 +68,26 @@ export function extractGraphsFromText(text: string): ExtractedGraph[] {
  * Remove graphs from text content, leaving clean text
  */
 export function removeGraphsFromText(text: string): string {
-  const svgPattern = /\*\*Figure: Mathematical Visualization\*\*\s*\n\n<svg[^]*?<\/svg>\s*\n\n\*The above graph[^]*?\*\n\n/g;
-  return text.replace(svgPattern, '').trim();
+  // Remove different graph patterns
+  let cleanText = text;
+  
+  const patterns = [
+    // Full pattern with trailing text
+    /\*\*Figure: Mathematical Visualization\*\*\s*\n\n<svg[^]*?<\/svg>\s*\n\n\*The above graph[^]*?\*\n\n/g,
+    // Simpler pattern without trailing text
+    /\*\*Figure: Mathematical Visualization\*\*\s*\n\n<svg[^]*?<\/svg>\s*\n\n/g,
+    // Any remaining SVG tags
+    /<svg[^]*?<\/svg>/g
+  ];
+  
+  for (const pattern of patterns) {
+    cleanText = cleanText.replace(pattern, '');
+  }
+  
+  // Clean up extra whitespace
+  cleanText = cleanText.replace(/\n\n\n+/g, '\n\n').trim();
+  
+  return cleanText;
 }
 
 /**

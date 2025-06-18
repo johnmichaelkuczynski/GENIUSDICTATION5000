@@ -309,6 +309,15 @@ export function detectGraphType(text: string): string | null {
     return 'population-dynamics';
   }
   
+  // Check for radioactive decay, half-life, and PET scan content
+  if ((lowerText.includes('radioactive') && lowerText.includes('decay')) ||
+      (lowerText.includes('half') && lowerText.includes('life')) ||
+      (lowerText.includes('pet') && lowerText.includes('scan')) ||
+      (lowerText.includes('isotope') && (lowerText.includes('decay') || lowerText.includes('half'))) ||
+      (lowerText.includes('exponential') && lowerText.includes('decay'))) {
+    return 'radioactive-decay';
+  }
+  
   // Look for mathematical equations in various formats
   const patterns = [
     /(?:y\s*=|f\(x\)\s*=)\s*([x\^2\*\+\-\(\)\/\w\s]+?)(?:\s|$)/i,
