@@ -28,6 +28,7 @@ import {
   generateAssessmentReport
 } from "./services/documentHandler";
 import { generateLaTeXFile, LaTeXExportOptions } from "./services/latexExport";
+import { generateGraphForContent } from "./services/mathGraphGenerator";
 import {
   generateSpeech,
   getAvailableVoices
@@ -225,7 +226,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`After retry - Original: ${originalWordCount} words, Transformed: ${retryWordCount} words`);
       }
 
-      res.json({ text: transformedText, model });
+      // Check if the content requires a graph and embed it
+      const graphSvg = generateGraphForContent(text + " " + transformedText);
+      let finalText = transformedText;
+      
+      if (graphSvg) {
+        // Insert the graph at an appropriate position in the text
+        const insertPosition = findGraphInsertPosition(transformedText);
+        finalText = insertGraphIntoText(transformedText, graphSvg, insertPosition);
+      }
+
+      res.json({ text: finalText, model });
     } catch (error) {
       console.error("Error transforming text:", error);
       
@@ -247,6 +258,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: errorMessage });
     }
   });
+
+  /**
+   * Find the best position to insert a graph in the text
+   */
+  function findGraphInsertPosition(text: string): number {
+    // Look for common section headers where graphs would be appropriate
+    const graphKeywords = [
+      'analysis', 'data', 'results', 'findings', 'trends', 'pattern', 
+      'model', 'simulation', 'spread', 'growth', 'dynamics', 'curve'
+    ];
+    
+    const sentences = text.split(/[.!?]+/);
+    
+    for (let i = 0; i < sentences.length; i++) {
+      const sentence = sentences[i].toLowerCase();
+      if (graphKeywords.some(keyword => sentence.includes(keyword))) {
+        // Insert graph after this sentence
+        const position = text.indexOf(sentences[i]) + sentences[i].length + 1;
+        return Math.min(position, text.length);
+      }
+    }
+    
+    // If no specific position found, insert after first paragraph
+    const firstParagraph = text.indexOf('\n\n');
+    return firstParagraph > 0 ? firstParagraph + 2 : Math.floor(text.length / 3);
+  }
+
+  /**
+   * Insert graph SVG into text at specified position
+   */
+  function insertGraphIntoText(text: string, graphSvg: string, position: number): string {
+    const beforeText = text.substring(0, position);
+    const afterText = text.substring(position);
+    
+    const graphSection = `\n\n**Figure: Mathematical Visualization**\n\n${graphSvg}\n\n*The above graph illustrates the mathematical relationship described in the analysis.*\n\n`;
+    
+    return beforeText + graphSection + afterText;
+  }
 
   // Speech-to-text transcription endpoint
   app.post("/api/transcribe", upload.single("audio"), async (req, res) => {
