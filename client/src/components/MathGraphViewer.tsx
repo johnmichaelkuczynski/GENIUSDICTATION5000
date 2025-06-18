@@ -76,25 +76,19 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
       const result = new Function('return ' + cleanExpr)();
       return result;
     } catch (e) {
-      console.error('Expression evaluation error:', e, 'for expression:', expr);
       throw new Error(`Invalid expression: ${expr}`);
     }
   }, []);
 
   // Generate points for the graph
   const graphPoints = useMemo(() => {
-    console.log('Generating graph points for equation:', equation);
-    if (!equation.trim()) {
-      console.log('No equation provided');
-      return [];
-    }
+    if (!equation.trim()) return [];
     
     setError(null);
     const points: Point[] = [];
 
     try {
       if (graphType === 'function') {
-        console.log('Processing function type graph');
         // y = f(x) format
         for (let x = settings.xMin; x <= settings.xMax; x += settings.step) {
           try {
@@ -107,7 +101,6 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
             continue;
           }
         }
-        console.log('Generated', points.length, 'points for function');
       } else if (graphType === 'parametric') {
         // x = f(t), y = g(t) format - expect "x_expr,y_expr"
         const [xExpr, yExpr] = equation.split(',').map(e => e.trim());
@@ -228,17 +221,12 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
 
   // Generate path string for the curve
   const pathString = useMemo(() => {
-    console.log('Graph points:', graphPoints.length, 'points');
-    if (graphPoints.length === 0) {
-      console.log('No graph points generated');
-      return '';
-    }
+    if (graphPoints.length === 0) return '';
     
     let path = `M ${graphPoints[0].x} ${graphPoints[0].y}`;
     for (let i = 1; i < graphPoints.length; i++) {
       path += ` L ${graphPoints[i].x} ${graphPoints[i].y}`;
     }
-    console.log('Generated path:', path.substring(0, 100) + '...');
     return path;
   }, [graphPoints]);
 
@@ -401,39 +389,52 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
 
         {/* Graph Display */}
         <div className="w-full bg-white border rounded-lg p-4 overflow-x-auto">
-          <svg
-            id="math-graph-svg"
-            width={SVG_WIDTH}
-            height={SVG_HEIGHT}
-            viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-            className="mx-auto"
-          >
-            {/* Grid */}
-            {gridLines}
-            
-            {/* Axes */}
-            {axes}
-            
-            {/* Function curve */}
-            {pathString && (
-              <path
-                d={pathString}
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )}
-            
-            {/* Axis labels */}
-            <text x={SVG_WIDTH - 20} y={mathToSvg(0, 0).y - 5} textAnchor="middle" fontSize="12" fill="#6b7280">
-              x
-            </text>
-            <text x={mathToSvg(0, 0).x + 10} y={20} textAnchor="middle" fontSize="12" fill="#6b7280">
-              y
-            </text>
-          </svg>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <svg
+              id="math-graph-svg"
+              width={SVG_WIDTH}
+              height={SVG_HEIGHT}
+              viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+              className="border border-gray-200"
+              style={{ maxWidth: '100%', height: 'auto' }}
+            >
+              {/* Background */}
+              <rect width="100%" height="100%" fill="#ffffff" />
+              
+              {/* Grid */}
+              {gridLines}
+              
+              {/* Axes */}
+              {axes}
+              
+              {/* Function curve */}
+              {pathString && (
+                <path
+                  d={pathString}
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+              
+              {/* Axis labels */}
+              <text x={SVG_WIDTH - 20} y={mathToSvg(0, 0).y - 5} textAnchor="middle" fontSize="12" fill="#6b7280">
+                x
+              </text>
+              <text x={mathToSvg(0, 0).x + 10} y={20} textAnchor="middle" fontSize="12" fill="#6b7280">
+                y
+              </text>
+              
+              {/* Debug info */}
+              {equation && (
+                <text x={10} y={20} fontSize="10" fill="#666">
+                  Equation: {equation} | Points: {graphPoints.length}
+                </text>
+              )}
+            </svg>
+          </div>
         </div>
 
         {/* Instructions */}
