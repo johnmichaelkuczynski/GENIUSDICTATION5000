@@ -26,8 +26,8 @@ interface MathGraphViewerProps {
   onEquationChange?: (equation: string) => void;
 }
 
-export function MathGraphViewer({ equation: initialEquation = '', onEquationChange }: MathGraphViewerProps) {
-  const [equation, setEquation] = useState(initialEquation);
+export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationChange }: MathGraphViewerProps) {
+  const [equation, setEquation] = useState(initialEquation || 'x^2');
   const [graphType, setGraphType] = useState<'function' | 'parametric' | 'polar'>('function');
   const [settings, setSettings] = useState<GraphSettings>({
     xMin: -10,
@@ -73,21 +73,28 @@ export function MathGraphViewer({ equation: initialEquation = '', onEquationChan
       }
 
       // Use Function constructor for safe evaluation
-      return new Function('return ' + cleanExpr)();
+      const result = new Function('return ' + cleanExpr)();
+      return result;
     } catch (e) {
+      console.error('Expression evaluation error:', e, 'for expression:', expr);
       throw new Error(`Invalid expression: ${expr}`);
     }
   }, []);
 
   // Generate points for the graph
   const graphPoints = useMemo(() => {
-    if (!equation.trim()) return [];
+    console.log('Generating graph points for equation:', equation);
+    if (!equation.trim()) {
+      console.log('No equation provided');
+      return [];
+    }
     
     setError(null);
     const points: Point[] = [];
 
     try {
       if (graphType === 'function') {
+        console.log('Processing function type graph');
         // y = f(x) format
         for (let x = settings.xMin; x <= settings.xMax; x += settings.step) {
           try {
@@ -100,6 +107,7 @@ export function MathGraphViewer({ equation: initialEquation = '', onEquationChan
             continue;
           }
         }
+        console.log('Generated', points.length, 'points for function');
       } else if (graphType === 'parametric') {
         // x = f(t), y = g(t) format - expect "x_expr,y_expr"
         const [xExpr, yExpr] = equation.split(',').map(e => e.trim());
@@ -220,12 +228,17 @@ export function MathGraphViewer({ equation: initialEquation = '', onEquationChan
 
   // Generate path string for the curve
   const pathString = useMemo(() => {
-    if (graphPoints.length === 0) return '';
+    console.log('Graph points:', graphPoints.length, 'points');
+    if (graphPoints.length === 0) {
+      console.log('No graph points generated');
+      return '';
+    }
     
     let path = `M ${graphPoints[0].x} ${graphPoints[0].y}`;
     for (let i = 1; i < graphPoints.length; i++) {
       path += ` L ${graphPoints[i].x} ${graphPoints[i].y}`;
     }
+    console.log('Generated path:', path.substring(0, 100) + '...');
     return path;
   }, [graphPoints]);
 
