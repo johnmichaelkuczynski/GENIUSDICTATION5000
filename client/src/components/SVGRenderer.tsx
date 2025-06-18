@@ -1,5 +1,5 @@
 import React from 'react';
-import { MathDisplay } from './ui/math-display';
+import { MathDisplay } from './MathDisplay';
 
 interface SVGRendererProps {
   text: string;

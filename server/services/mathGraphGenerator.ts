@@ -103,10 +103,10 @@ export function generateMathFunctionGraph(equation: string, title: string): stri
   const config: GraphConfig = {
     width: 600,
     height: 400,
-    xMin: -10,
-    xMax: 10,
-    yMin: -10,
-    yMax: 10,
+    xMin: -3,
+    xMax: 3,
+    yMin: -3,
+    yMax: 3,
     title: title || `Graph of ${equation}`,
     xLabel: "x",
     yLabel: "y"
@@ -115,11 +115,22 @@ export function generateMathFunctionGraph(equation: string, title: string): stri
   const points: GraphPoint[] = [];
   
   try {
-    for (let x = config.xMin; x <= config.xMax; x += 0.1) {
+    for (let x = config.xMin; x <= config.xMax; x += 0.05) {
+      // Skip x=0 for functions with singularities like sin(1/x)
+      if (Math.abs(x) < 0.01 && equation.includes('1/x')) continue;
+      
       const y = evaluateExpression(equation, x);
-      if (isFinite(y) && y >= config.yMin && y <= config.yMax) {
-        points.push({ x, y });
+      if (isFinite(y) && !isNaN(y)) {
+        // Clamp values to visible range
+        const clampedY = Math.max(config.yMin, Math.min(config.yMax, y));
+        points.push({ x, y: clampedY });
       }
+    }
+    
+    console.log(`Generated ${points.length} points for ${equation}`);
+    
+    if (points.length === 0) {
+      throw new Error("No valid points generated");
     }
   } catch (error) {
     console.error('Error generating function graph:', error);
@@ -134,29 +145,40 @@ export function generateMathFunctionGraph(equation: string, title: string): stri
  */
 function evaluateExpression(expr: string, x: number): number {
   try {
+    // Handle special cases for common mathematical expressions
+    if (expr.includes('x^2*sin(1/x)') || expr.includes('x²sin(1/x)')) {
+      if (x === 0) return 0; // Handle singularity at x=0
+      return x * x * Math.sin(1 / x);
+    }
+    
     // Replace common math functions and constants
     let cleanExpr = expr
       .replace(/\^/g, '**')
-      .replace(/sin/g, 'Math.sin')
-      .replace(/cos/g, 'Math.cos')
-      .replace(/tan/g, 'Math.tan')
-      .replace(/log/g, 'Math.log10')
-      .replace(/ln/g, 'Math.log')
-      .replace(/sqrt/g, 'Math.sqrt')
-      .replace(/abs/g, 'Math.abs')
-      .replace(/pi/g, 'Math.PI')
-      .replace(/e(?![a-zA-Z])/g, 'Math.E')
-      .replace(/x/g, x.toString());
+      .replace(/²/g, '**2')
+      .replace(/³/g, '**3')
+      .replace(/sin\(/g, 'Math.sin(')
+      .replace(/cos\(/g, 'Math.cos(')
+      .replace(/tan\(/g, 'Math.tan(')
+      .replace(/log\(/g, 'Math.log10(')
+      .replace(/ln\(/g, 'Math.log(')
+      .replace(/sqrt\(/g, 'Math.sqrt(')
+      .replace(/abs\(/g, 'Math.abs(')
+      .replace(/\bpi\b/g, 'Math.PI')
+      .replace(/\be\b/g, 'Math.E');
 
-    // Fix unary operator precedence issues with exponentiation
-    cleanExpr = cleanExpr.replace(/-(\d+(?:\.\d+)?)\*\*/g, '(($1) * -1)**');
-    cleanExpr = cleanExpr.replace(/Math\.(\w+)\(-(\d+(?:\.\d+)?)\*\*/g, 'Math.$1((($2) * -1)**');
+    // Replace x with the actual value, handling parentheses properly
+    cleanExpr = cleanExpr.replace(/\bx\b/g, `(${x})`);
+
+    // Fix common expression patterns
+    cleanExpr = cleanExpr.replace(/(\d+)\(/g, '$1*('); // 2(x) -> 2*(x)
+    cleanExpr = cleanExpr.replace(/\)(\d+)/g, ')*$1'); // (x)2 -> (x)*2
+    cleanExpr = cleanExpr.replace(/\)\(/g, ')*('); // )(-> )*(
 
     // Use Function constructor for safe evaluation
     const result = new Function('return ' + cleanExpr)();
     return isFinite(result) ? result : 0;
   } catch (error) {
-    console.error('Error evaluating expression:', expr, error);
+    console.error('Error evaluating expression:', expr, 'at x =', x, error);
     return 0;
   }
 }
@@ -271,11 +293,19 @@ export function detectGraphType(text: string): string | null {
     return 'population-dynamics';
   }
   
-  // Look for mathematical equations
-  const mathPattern = /(?:y\s*=|f\(x\)\s*=)\s*([^.]+)/i;
-  const match = text.match(mathPattern);
-  if (match) {
-    return `function:${match[1].trim()}`;
+  // Look for mathematical equations in various formats
+  const patterns = [
+    /(?:y\s*=|f\(x\)\s*=)\s*([^.]+)/i,
+    /graph\s+([x\^2\*\+\-\(\)\/\w\s]+)/i,
+    /plot\s+([x\^2\*\+\-\(\)\/\w\s]+)/i,
+    /function\s+([x\^2\*\+\-\(\)\/\w\s]+)/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return `function:${match[1].trim()}`;
+    }
   }
   
   return null;
