@@ -1611,7 +1611,8 @@ const DictationSection = () => {
                               body: JSON.stringify({
                                 text: processedText,
                                 format: "pdf",
-                                fileName: "mathematical-document"
+                                fileName: "mathematical-document",
+                                separateGraphs: true
                               })
                             });
                             
@@ -1746,10 +1747,19 @@ const DictationSection = () => {
                   </div>
                 )}
                 
-                <div className="flex-1">
+                <div className="flex-1 space-y-4">
+                  {/* Graph Display Section */}
+                  {extractedGraphs.length > 0 && (
+                    <GraphDisplayPanel 
+                      graphs={extractedGraphs.map(g => g.svg)} 
+                      className="mb-4"
+                    />
+                  )}
+                  
+                  {/* Text Display Section */}
                   {processedText ? (
                     <div className="min-h-[256px] max-h-[256px] overflow-y-auto border rounded-md p-3 bg-background">
-                      <SVGRenderer text={processedText} className="text-sm" />
+                      <SVGRenderer text={cleanProcessedText} className="text-sm" />
                     </div>
                   ) : (
                     <div className="min-h-[256px] border rounded-md p-3 bg-muted/10 flex items-center justify-center text-muted-foreground text-sm">

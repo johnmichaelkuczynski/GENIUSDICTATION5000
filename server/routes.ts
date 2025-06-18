@@ -537,16 +537,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Document generation endpoint
+  // Document generation endpoint with graph separation support
   app.post("/api/generate-document", async (req, res) => {
     try {
-      const { text, format, fileName = "document" } = req.body;
+      const { text, format, fileName = "document", separateGraphs = false } = req.body;
 
       if (!text || !format) {
         return res.status(400).json({ error: "Text and format are required" });
       }
 
-      const documentBuffer = await generateDocument(text, format, fileName);
+      let documentBuffer;
+      
+      if (separateGraphs && format === "pdf") {
+        // Extract graphs and generate combined document with graphs on top
+        const extractGraphsFromText = (text: string) => {
+          const graphs = [];
+          const svgPattern = /\*\*Figure: Mathematical Visualization\*\*\s*\n\n(<svg[^]*?<\/svg>)\s*\n\n\*The above graph[^]*?\*\n\n/g;
+          let match;
+          let graphIndex = 1;
+          
+          while ((match = svgPattern.exec(text)) !== null) {
+            const svgContent = match[1];
+            const titleMatch = svgContent.match(/<text[^>]*class="graph-title"[^>]*>([^<]+)<\/text>/);
+            const title = titleMatch ? titleMatch[1] : `Mathematical Visualization ${graphIndex}`;
+            
+            graphs.push({
+              svg: svgContent,
+              title: title,
+              caption: "The above graph illustrates the mathematical relationship described in the analysis."
+            });
+            graphIndex++;
+          }
+          return graphs;
+        };
+        
+        const removeGraphsFromText = (text: string) => {
+          const svgPattern = /\*\*Figure: Mathematical Visualization\*\*\s*\n\n<svg[^]*?<\/svg>\s*\n\n\*The above graph[^]*?\*\n\n/g;
+          return text.replace(svgPattern, '').trim();
+        };
+        
+        const graphs = extractGraphsFromText(text);
+        const cleanText = removeGraphsFromText(text);
+        
+        // Generate combined HTML with graphs on top, text below
+        const currentDate = new Date().toLocaleDateString();
+        const combinedHTML = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>${fileName}</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+            <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+            <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+            <style>
+              @page { margin: 2cm; size: A4; }
+              @media print { .no-print { display: none !important; } .page-break { page-break-before: always; } }
+              body { font-family: 'Times New Roman', serif; font-size: 14px; line-height: 1.6; margin: 0; padding: 20px; background: white; color: #000; }
+              .header { text-align: center; margin-bottom: 3em; border-bottom: 2px solid #333; padding-bottom: 1em; }
+              .title { font-size: 2em; font-weight: bold; margin-bottom: 0.5em; }
+              .date { font-size: 1em; color: #666; }
+              .graphs-section { margin-bottom: 4em; }
+              .graph-container { margin: 3em 0; page-break-inside: avoid; text-align: center; border: 1px solid #ddd; padding: 2em; border-radius: 8px; background: #fafafa; }
+              .text-section { white-space: pre-wrap; word-wrap: break-word; }
+              svg { max-width: 100%; height: auto; }
+              .print-controls { position: fixed; top: 20px; right: 20px; background: #007bff; color: white; border: none; padding: 15px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+              .print-controls:hover { background: #0056b3; }
+              h1, h2, h3, h4, h5, h6 { page-break-after: avoid; margin-top: 1.5em; margin-bottom: 0.5em; }
+              .katex { font-size: 1em; }
+              .katex-display { margin: 1em 0; page-break-inside: avoid; }
+            </style>
+          </head>
+          <body>
+            <button class="print-controls no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+            
+            <div class="header">
+              <div class="title">${fileName}</div>
+              <div class="date">${currentDate}</div>
+            </div>
+            
+            ${graphs.length > 0 ? `
+              <div class="graphs-section">
+                <h2 style="text-align: center; margin-bottom: 2em; font-size: 1.5em; font-weight: bold;">Mathematical Visualizations</h2>
+                ${graphs.map((graph, index) => `
+                  <div class="graph-container">
+                    <h3 style="margin-bottom: 1em; font-size: 1.2em; font-weight: bold;">${graph.title}</h3>
+                    <div class="graph-content" style="margin: 1em 0;">${graph.svg}</div>
+                    <p style="margin-top: 1em; font-style: italic; color: #666; font-size: 0.9em;">${graph.caption}</p>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="page-break"></div>
+            ` : ''}
+            
+            <div class="text-section">
+              <h2 style="margin-bottom: 1em;">Analysis</h2>
+              ${cleanText.replace(/\n\n/g, '</p><p>').replace(/^/, '<p>').replace(/$/, '</p>').replace(/<p><\/p>/g, '')}
+            </div>
+            
+            <script>
+              document.addEventListener("DOMContentLoaded", function() {
+                if (window.renderMathInElement) {
+                  renderMathInElement(document.body, {
+                    delimiters: [
+                      {left: "$$", right: "$$", display: true},
+                      {left: "$", right: "$", display: false},
+                      {left: "\\\\[", right: "\\\\]", display: true},
+                      {left: "\\\\(", right: "\\\\)", display: false}
+                    ],
+                    throwOnError: false
+                  });
+                }
+              });
+            </script>
+          </body>
+          </html>
+        `;
+        
+        documentBuffer = Buffer.from(combinedHTML, 'utf8');
+      } else {
+        // Use existing document generation
+        documentBuffer = await generateDocument(text, format, fileName);
+      }
       
       // Set appropriate content type
       let contentType = "text/plain";
