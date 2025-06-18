@@ -27,8 +27,10 @@ import { ManualAssessmentDialog } from "@/components/ManualAssessmentDialog";
 import { AssessmentModelSelector, AssessmentModel } from "@/components/AssessmentModelSelector";
 import { TextChunkManager } from "@/components/TextChunkManager";
 import { MathGraphViewer } from "@/components/MathGraphViewer";
+import { GraphDisplayPanel } from "@/components/GraphDisplayPanel";
 import { useToast } from "@/hooks/use-toast";
 import { quickPrint } from "@/utils/printUtils";
+import { extractGraphsFromText, removeGraphsFromText, generateCombinedDocumentHTML } from "@/utils/graphExtractor";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Extend Window interface for speech recognition
@@ -148,6 +150,18 @@ const DictationSection = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [showMathPreview, setShowMathPreview] = useState(false);
   const [isDictatingInstructions, setIsDictatingInstructions] = useState(false);
+  
+  // Extract graphs from processed text
+  const extractedGraphs = useMemo(() => {
+    if (!processedText) return [];
+    return extractGraphsFromText(processedText);
+  }, [processedText]);
+  
+  // Clean text without graphs
+  const cleanProcessedText = useMemo(() => {
+    if (!processedText) return '';
+    return removeGraphsFromText(processedText);
+  }, [processedText]);
 
   // Instructions dictation functionality
   const handleToggleInstructionsDictation = useCallback(async () => {
@@ -1559,10 +1573,20 @@ const DictationSection = () => {
                         className="text-xs flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
                         onClick={() => {
                           try {
-                            quickPrint(processedText, "Mathematical Document");
+                            const combinedHTML = generateCombinedDocumentHTML(
+                              processedText, 
+                              extractedGraphs, 
+                              "Mathematical Document"
+                            );
+                            const printWindow = window.open('', '_blank');
+                            if (printWindow) {
+                              printWindow.document.write(combinedHTML);
+                              printWindow.document.close();
+                              printWindow.focus();
+                            }
                             toast({
                               title: "Print Window Opened",
-                              description: "Use browser's print dialog to save as PDF or print directly"
+                              description: "Graphs displayed at top, text below. Use browser's print dialog to save as PDF"
                             });
                           } catch (error) {
                             toast({

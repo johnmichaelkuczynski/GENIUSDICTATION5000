@@ -13,10 +13,11 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - Math graphing capabilities with SVG visualization
 
 ## Recent Changes
+- 2025-06-18: Added browser-based Print/Save PDF function with optimized formatting
 - 2025-06-18: Fixed mathematical graph generation with proper SVG curve rendering
-- 2025-06-18: Restored LaTeX math notation display in app interface
-- 2025-06-18: Enhanced PDF generation to include embedded SVG graphs
-- 2025-06-18: Improved mathematical expression parsing and evaluation
+- 2025-06-18: Restored LaTeX math notation display in app interface and PDF downloads
+- 2025-06-18: Enhanced PDF generation to include embedded SVG graphs with readable math notation
+- 2025-06-18: Improved mathematical expression parsing and evaluation for accurate graphing
 - 2025-06-18: Added math graphing functionality with SVG-based visualization
 - 2025-06-18: Fixed voice dictation for custom instructions - essential mobile feature
 - 2025-06-18: Enhanced OCR with AI-powered extraction for superior accuracy
@@ -27,8 +28,10 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 ## User Preferences
 - Focus on clean, readable text extraction without markup or code
 - Mobile-first approach for voice dictation features
-- SVG-based visualizations for mathematical content
+- SVG-based visualizations for mathematical content with proper curve rendering
 - Professional, academic writing style for transformations
+- LaTeX math notation must display correctly in both app interface and PDF downloads
+- Print/Save PDF functionality for immediate document generation
 
 ## Architecture
 - Frontend: React with TypeScript, Tailwind CSS, shadcn/ui components
