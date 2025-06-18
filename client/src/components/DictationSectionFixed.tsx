@@ -1751,14 +1751,7 @@ const DictationSection = () => {
                 )}
                 
                 <div className="flex-1 space-y-4">
-                  {/* Debug Info */}
-                  {processedText && (
-                    <div className="text-xs text-muted-foreground">
-                      Debug: {extractedGraphs.length} graphs found
-                      {processedText.includes('svg') && ' | SVG detected in text'}
-                      {processedText.includes('Mathematical Visualization') && ' | Graph marker found'}
-                    </div>
-                  )}
+
                   
                   {/* Graph Display Section */}
                   {extractedGraphs.length > 0 && (
