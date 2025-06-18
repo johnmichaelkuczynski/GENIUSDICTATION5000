@@ -28,6 +28,7 @@ import { AssessmentModelSelector, AssessmentModel } from "@/components/Assessmen
 import { TextChunkManager } from "@/components/TextChunkManager";
 import { MathGraphViewer } from "@/components/MathGraphViewer";
 import { useToast } from "@/hooks/use-toast";
+import { quickPrint } from "@/utils/printUtils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Extend Window interface for speech recognition
