@@ -526,166 +526,179 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
         </CardContent>
       </Card>
 
-      {/* Main Input/Output Boxes - SIDE BY SIDE */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Box A - Input Text */}
+      {/* Three Main Boxes - SIDE BY SIDE */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* BOX A: Input Text */}
         <Card className="border-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between text-xl">
-              <div className="flex items-center gap-3">
-                <FileText className="w-6 h-6" />
-                Box A - Input Text
-                {isAnalyzingInput && (
-                  <Badge variant="outline" className="animate-pulse">
-                    Analyzing...
-                  </Badge>
-                )}
-                {inputAiScore !== null && !isAnalyzingInput && (
-                  <Badge variant={inputAiScore > 50 ? "destructive" : "secondary"} className="text-sm">
-                    AI Score: {inputAiScore}%
-                  </Badge>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => analyzeText(inputText)}
-                  disabled={!inputText.trim() || isAnalyzingInput}
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Analyze
-                </Button>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".txt,.pdf,.doc,.docx"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Textarea
-              placeholder="Enter or paste your text here, or upload a document..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              className="min-h-[500px] text-base leading-relaxed resize-y"
-            />
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => sendToMainApp(inputText)}
-                disabled={!inputText.trim()}
-                className="flex items-center gap-2"
-              >
-                <ArrowUp className="w-4 h-4" />
-                Send to Genius Dictation
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-blue-600">BOX A: Input Text</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="w-4 h-4 mr-1" /> Upload
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => copyToClipboard(inputText)}>
+                <Copy className="w-4 h-4 mr-1" /> Copy
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setInputText('')}>
+                Delete
               </Button>
             </div>
+          </CardHeader>
+          <CardContent>
+            <input ref={fileInputRef} type="file" accept=".txt,.pdf,.doc,.docx" onChange={handleFileUpload} className="hidden" />
+            <Textarea
+              placeholder="Paste your AI-generated text here..."
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              className="min-h-[400px] text-sm resize-y"
+            />
           </CardContent>
         </Card>
 
-        {/* Box D - Output Text */}
+        {/* BOX B: Style Sample */}
         <Card className="border-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between text-xl">
-              <div className="flex items-center gap-3">
-                <FileText className="w-6 h-6" />
-                Box D - Rewritten Output
-                {isAnalyzingOutput && (
-                  <Badge variant="outline" className="animate-pulse">
-                    Analyzing...
-                  </Badge>
-                )}
-                {outputAiScore !== null && !isAnalyzingOutput && (
-                  <Badge variant={outputAiScore > 50 ? "destructive" : "secondary"} className="text-sm">
-                    AI Score: {outputAiScore}%
-                  </Badge>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(outputText)}
-                  disabled={!outputText.trim()}
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => sendToMainApp(outputText)}
-                  disabled={!outputText.trim()}
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Send
-                </Button>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Textarea
-              value={outputText}
-              onChange={(e) => setOutputText(e.target.value)}
-              placeholder="Rewritten text will appear here..."
-              className="min-h-[500px] text-base leading-relaxed resize-y bg-muted/20"
-            />
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => sendToMainApp(outputText)}
-                disabled={!outputText.trim()}
-                className="flex items-center gap-2"
-              >
-                <ArrowUp className="w-4 h-4" />
-                Send to Genius Dictation
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-green-600">BOX B: Style Sample</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Upload className="w-4 h-4 mr-1" /> Upload
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => copyToClipboard(styleText)}>
+                <Copy className="w-4 h-4 mr-1" /> Copy
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setStyleText('')}>
+                Delete
               </Button>
             </div>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              placeholder="Paste a writing sample that demonstrates the style you want to mimic..."
+              value={styleText}
+              onChange={(e) => setStyleText(e.target.value)}
+              className="min-h-[400px] text-sm resize-y"
+            />
+          </CardContent>
+        </Card>
+
+        {/* BOX C: Humanized Output */}
+        <Card className="border-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-purple-600">BOX C: Humanized Output</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => copyToClipboard(outputText)}>
+                <Copy className="w-4 h-4 mr-1" /> Copy
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setOutputText('')}>
+                Delete
+              </Button>
+              <Button variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600" onClick={() => sendToMainApp(outputText)} disabled={!outputText.trim()}>
+                <Send className="w-4 h-4 mr-1" /> Send to Homework
+              </Button>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <Button variant="outline" size="sm">TXT</Button>
+              <Button variant="outline" size="sm">Word</Button>
+              <Button variant="outline" size="sm">PDF</Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              placeholder="Humanized text will appear here..."
+              value={outputText}
+              onChange={(e) => setOutputText(e.target.value)}
+              className="min-h-[400px] text-sm resize-y bg-muted/20"
+            />
           </CardContent>
         </Card>
       </div>
 
-      {/* Humanization Controls */}
-      <Card className="border-2">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between text-xl">
-            <span>Humanization Controls</span>
-            <div className="flex gap-2">
-              <Select value={provider} onValueChange={setProvider}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select AI Provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="anthropic">Anthropic Claude</SelectItem>
-                  <SelectItem value="openai">OpenAI GPT-4</SelectItem>
-                  <SelectItem value="perplexity">Perplexity</SelectItem>
-                  <SelectItem value="deepseek">DeepSeek</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Bottom Section with Controls */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Side - Custom Instructions and Writing Sample Dropdown */}
+        <div className="space-y-6">
+          {/* Custom Instructions */}
+          <div>
+            <Label className="text-base font-semibold mb-2 block">Custom Instructions</Label>
+            <Textarea
+              placeholder="Enter specific instructions for how the rewrite should be done..."
+              value={customInstructions}
+              onChange={(e) => setCustomInstructions(e.target.value)}
+              className="min-h-[120px] resize-y"
+            />
+          </div>
+
+          {/* Writing Sample Dropdown */}
+          <div>
+            <Label className="text-base font-semibold mb-2 block">Writing Sample</Label>
+            <Select value={selectedWritingSample} onValueChange={handleWritingSampleSelect}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="FORMAL AND FUNCTIONAL RELATIONSHIPS (Content-Neutral)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="formal-functional">FORMAL AND FUNCTIONAL RELATIONSHIPS (Content-Neutral)</SelectItem>
+                {Object.entries(WRITING_SAMPLES).map(([category, samples]) => 
+                  samples.map((sample) => (
+                    <SelectItem key={sample.id} value={sample.id}>
+                      {sample.name.toUpperCase()} ({category})
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* AI Provider */}
+          <div>
+            <Label className="text-base font-semibold mb-2 block">AI Provider</Label>
+            <Select value={provider} onValueChange={setProvider}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Anthropic Claude" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="anthropic">Anthropic Claude</SelectItem>
+                <SelectItem value="openai">OpenAI GPT-4</SelectItem>
+                <SelectItem value="perplexity">Perplexity</SelectItem>
+                <SelectItem value="deepseek">DeepSeek</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Humanize Button */}
+          <Button
+            onClick={handleRewrite}
+            disabled={!inputText.trim() || isLoading}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 text-lg font-semibold"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin mr-2 h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                HUMANIZING...
+              </>
+            ) : (
+              <>
+                <Zap className="w-5 h-5 mr-2" />
+                HUMANIZE TEXT
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Right Side - Humanization Techniques */}
+        <div>
+          <Label className="text-base font-semibold mb-4 block">Humanization Techniques</Label>
+          
+          {/* Most Effective Section */}
+          <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <span className="font-semibold text-sm">MOST EFFECTIVE (1-6)</span>
             </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Instruction Presets */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">Instruction Presets</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-              {INSTRUCTION_PRESETS.map((preset) => (
+            <div className="text-xs text-muted-foreground mb-3">
+              Add a quick parenthetical or em-dash remark — factual, not jokey.
+            </div>
+            <div className="space-y-2">
+              {INSTRUCTION_PRESETS.slice(0, 8).map((preset) => (
                 <div key={preset.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={preset.id}
@@ -700,7 +713,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
                   />
                   <label
                     htmlFor={preset.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary"
+                    className="text-xs font-medium cursor-pointer hover:text-primary"
                     title={preset.description}
                   >
                     {preset.name}
@@ -710,108 +723,37 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
             </div>
           </div>
 
-          {/* Custom Instructions */}
-          <div className="space-y-2">
-            <Label htmlFor="custom-instructions" className="text-base font-medium">Custom Instructions</Label>
-            <Textarea
-              id="custom-instructions"
-              placeholder="Add any custom instructions for the rewrite..."
-              value={customInstructions}
-              onChange={(e) => setCustomInstructions(e.target.value)}
-              className="min-h-[100px] resize-y"
-            />
-          </div>
-
-          {/* Humanize Button */}
-          <div className="flex justify-center">
-            <Button
-              onClick={handleRewrite}
-              disabled={!inputText.trim() || isLoading}
-              size="lg"
-              className="px-12 py-3 text-lg font-semibold"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin mr-2 h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                  Humanizing...
-                </>
-              ) : (
-                <>
-                  <Zap className="w-5 h-5 mr-2" />
-                  Humanize Text
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Style and Content Boxes - BOTTOM SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Box B - Style Sample */}
-        <Card className="border-2">
-          <CardHeader>
-            <CardTitle className="text-xl">Box B - Writing Style Sample</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Tabs defaultValue="samples" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="samples">Sample Library</TabsTrigger>
-                <TabsTrigger value="manual">Manual Input</TabsTrigger>
-              </TabsList>
-              <TabsContent value="samples" className="space-y-4">
-                <div className="space-y-4">
-                  {Object.entries(WRITING_SAMPLES).map(([category, samples]) => (
-                    <div key={category}>
-                      <Label className="text-sm font-semibold capitalize text-primary">{category} Samples</Label>
-                      <div className="grid gap-3 mt-2">
-                        {samples.map((sample) => (
-                          <Button
-                            key={sample.id}
-                            variant={selectedWritingSample === sample.id ? "default" : "outline"}
-                            size="sm"
-                            className="justify-start h-auto p-4 text-left"
-                            onClick={() => handleWritingSampleSelect(sample.id)}
-                          >
-                            <div className="text-left w-full">
-                              <div className="font-medium text-base">{sample.name}</div>
-                              <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                {sample.preview}
-                              </div>
-                            </div>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+          {/* Additional Style Tweaks */}
+          <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="font-semibold text-sm text-blue-600">Additional Style Tweaks</span>
+            </div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {INSTRUCTION_PRESETS.slice(8).map((preset) => (
+                <div key={preset.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={preset.id}
+                    checked={selectedPresets.includes(preset.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedPresets([...selectedPresets, preset.id]);
+                      } else {
+                        setSelectedPresets(selectedPresets.filter(id => id !== preset.id));
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor={preset.id}
+                    className="text-xs font-medium cursor-pointer hover:text-primary"
+                    title={preset.description}
+                  >
+                    {preset.name}
+                  </label>
                 </div>
-              </TabsContent>
-              <TabsContent value="manual" className="space-y-4">
-                <Textarea
-                  placeholder="Paste a writing sample that demonstrates the style you want to mimic..."
-                  value={styleText}
-                  onChange={(e) => setStyleText(e.target.value)}
-                  className="min-h-[300px] text-base leading-relaxed resize-y"
-                />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        {/* Box C - Content Mix */}
-        <Card className="border-2">
-          <CardHeader>
-            <CardTitle className="text-xl">Box C - Content Reference (Optional)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              placeholder="Add content to blend or reference in the rewrite..."
-              value={contentMixText}
-              onChange={(e) => setContentMixText(e.target.value)}
-              className="min-h-[400px] text-base leading-relaxed resize-y"
-            />
-          </CardContent>
-        </Card>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
