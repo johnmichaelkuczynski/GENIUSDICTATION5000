@@ -3,62 +3,6 @@ import { pgTable, text, varchar, integer, boolean, jsonb, timestamp } from "driz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Enum for speech engines
-export enum SpeechEngine {
-  WHISPER = "whisper",
-  GLADIA = "gladia",
-  DEEPGRAM = "deepgram",
-  ASSEMBLYAI = "assemblyai"
-}
-
-// Enum for AI models
-export enum AIModel {
-  GPT_4O = "gpt-4o",
-  CLAUDE_SONNET = "claude-3-5-sonnet-20241022",
-  PERPLEXITY = "llama-3.1-sonar-small-128k-online"
-}
-
-// Request/response schemas for API endpoints
-export const transformRequestSchema = z.object({
-  text: z.string().min(1, "Text is required"),
-  engine: z.nativeEnum(AIModel),
-  userInstruction: z.string().optional(),
-  retainFormatting: z.boolean().default(false),
-  includeGraphs: z.boolean().default(false),
-});
-
-export const apiKeyRequestSchema = z.object({
-  keys: z.record(z.string(), z.string()),
-});
-
-export const extractTextRequestSchema = z.object({
-  imageData: z.string(),
-  enhanceMath: z.boolean().default(true),
-});
-
-export const ttsRequestSchema = z.object({
-  text: z.string().min(1, "Text is required"),
-  voice: z.string().optional(),
-  speed: z.number().min(0.5).max(2.0).default(1.0),
-});
-
-export const detectAIRequestSchema = z.object({
-  text: z.string().min(1, "Text is required"),
-});
-
-export const detectAIResponseSchema = z.object({
-  isAI: z.boolean(),
-  confidence: z.number(),
-  details: z.string().optional(),
-});
-
-export type TransformRequest = z.infer<typeof transformRequestSchema>;
-export type APIKeyRequest = z.infer<typeof apiKeyRequestSchema>;
-export type ExtractTextRequest = z.infer<typeof extractTextRequestSchema>;
-export type TTSRequest = z.infer<typeof ttsRequestSchema>;
-export type DetectAIRequest = z.infer<typeof detectAIRequestSchema>;
-export type DetectAIResponse = z.infer<typeof detectAIResponseSchema>;
-
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
