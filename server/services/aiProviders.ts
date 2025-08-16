@@ -99,22 +99,18 @@ function buildRewritePrompt(params: {
   customInstructions?: string;
 }): string {
   const hasStyle = !!(params.styleText && params.styleText.trim() !== "");
-  const hasContent = !!(params.contentMixText && params.contentMixText.trim() !== "");
   const defaultStyleSample = "There are two broad types of relationships: formal and functional. Formal relationships hold between descriptions. A description is any statement that can be true or false. Example of a formal relationship: The description that a shape is a square cannot be true unless the description that it has four equal sides is true. Therefore, a shape's being a square depends on its having four equal sides. Functional relationships hold between events or conditions. (An event is anything that happens at a specific time; a condition is anything that can change over time.) Example of a functional relationship: A switch's being in the on position causes the light bulb connected to it to be lit. Therefore, the light bulb's being lit depends on the switch's being in the on position.";
   
   const styleSample = hasStyle ? params.styleText! : defaultStyleSample;
 
-  let prompt = `Rewrite the text below so that its style matches, at a granular level, the style of the following style sample:\n"${styleSample}"\n\n`;
+  // SIMPLE STYLE TRANSFER INSTRUCTION ONLY
+  return `Rewrite this text so that it is exactly in the style of the following style sample:
 
-  if (hasContent) {
-    prompt += `Judiciously integrate relevant ideas, examples, and details from the following content reference to enrich the rewrite:\n"${params.contentMixText}"\n\n`;
-  }
+Style sample:
+"${styleSample}"
 
-  // <<< PRESETS/APPLIED INSTRUCTIONS HERE >>>
-  prompt += buildPresetBlock(params.selectedPresets, params.customInstructions);
-
-  prompt += `Text to rewrite:\n"${params.inputText}"`;
-  return prompt;
+Text to rewrite:
+"${params.inputText}"`;
 }
 
 export interface RewriteParams {
