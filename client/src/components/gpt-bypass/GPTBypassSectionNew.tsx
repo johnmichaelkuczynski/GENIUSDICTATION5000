@@ -526,12 +526,24 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
         </CardContent>
       </Card>
 
-      {/* Three Main Boxes - SIDE BY SIDE */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Top Row: Input and Output Boxes - MUCH WIDER */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* BOX A: Input Text */}
         <Card className="border-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-blue-600">BOX A: Input Text</CardTitle>
+            <CardTitle className="text-lg font-semibold text-blue-600 flex items-center justify-between">
+              <span>BOX A: Input Text</span>
+              {inputAiScore !== null && (
+                <Badge variant={inputAiScore > 50 ? "destructive" : "secondary"} className="text-sm">
+                  {inputAiScore}% AI
+                </Badge>
+              )}
+              {isAnalyzingInput && (
+                <Badge variant="outline" className="animate-pulse text-sm">
+                  Analyzing...
+                </Badge>
+              )}
+            </CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="w-4 h-4 mr-1" /> Upload
@@ -549,33 +561,13 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
             <Textarea
               placeholder="Paste your AI-generated text here..."
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              className="min-h-[400px] text-sm resize-y"
-            />
-          </CardContent>
-        </Card>
-
-        {/* BOX B: Style Sample */}
-        <Card className="border-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-green-600">BOX B: Style Sample</CardTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Upload className="w-4 h-4 mr-1" /> Upload
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => copyToClipboard(styleText)}>
-                <Copy className="w-4 h-4 mr-1" /> Copy
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setStyleText('')}>
-                Delete
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              placeholder="Paste a writing sample that demonstrates the style you want to mimic..."
-              value={styleText}
-              onChange={(e) => setStyleText(e.target.value)}
+              onChange={(e) => {
+                setInputText(e.target.value);
+                // Auto-analyze when text changes
+                if (e.target.value.trim().length > 50) {
+                  setTimeout(() => analyzeText(e.target.value), 1000);
+                }
+              }}
               className="min-h-[400px] text-sm resize-y"
             />
           </CardContent>
@@ -584,7 +576,19 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
         {/* BOX C: Humanized Output */}
         <Card className="border-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-purple-600">BOX C: Humanized Output</CardTitle>
+            <CardTitle className="text-lg font-semibold text-purple-600 flex items-center justify-between">
+              <span>BOX C: Humanized Output</span>
+              {outputAiScore !== null && (
+                <Badge variant={outputAiScore > 50 ? "destructive" : "secondary"} className="text-sm">
+                  {outputAiScore}% AI
+                </Badge>
+              )}
+              {isAnalyzingOutput && (
+                <Badge variant="outline" className="animate-pulse text-sm">
+                  Analyzing...
+                </Badge>
+              )}
+            </CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => copyToClipboard(outputText)}>
                 <Copy className="w-4 h-4 mr-1" /> Copy
@@ -606,8 +610,72 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
             <Textarea
               placeholder="Humanized text will appear here..."
               value={outputText}
-              onChange={(e) => setOutputText(e.target.value)}
+              onChange={(e) => {
+                setOutputText(e.target.value);
+                // Auto-analyze output when it changes
+                if (e.target.value.trim().length > 50) {
+                  setTimeout(() => analyzeOutputText(e.target.value), 1000);
+                }
+              }}
               className="min-h-[400px] text-sm resize-y bg-muted/20"
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom Row: Style Sample and Content Reference */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* BOX B: Style Sample */}
+        <Card className="border-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-green-600">BOX B: Style Sample</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Upload className="w-4 h-4 mr-1" /> Upload
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => copyToClipboard(styleText)}>
+                <Copy className="w-4 h-4 mr-1" /> Copy
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setStyleText('')}>
+                Delete
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              placeholder="Paste a writing sample that demonstrates the style you want to mimic..."
+              value={styleText}
+              onChange={(e) => setStyleText(e.target.value)}
+              className="min-h-[300px] text-sm resize-y"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Content Reference Box (Box C from screenshot) */}
+        <Card className="border-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-orange-600">Content Reference (Box C)</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Upload className="w-4 h-4 mr-1" /> Upload File
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => copyToClipboard(contentMixText)}>
+                <Copy className="w-4 h-4 mr-1" /> Copy
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setContentMixText('')}>
+                Clear
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs text-muted-foreground mb-2">
+              GPTZero AI Detection: Not analyzed
+            </div>
+            <Textarea
+              placeholder="Paste or upload content you want to blend with your text..."
+              value={contentMixText}
+              onChange={(e) => setContentMixText(e.target.value)}
+              className="min-h-[300px] text-sm resize-y"
             />
           </CardContent>
         </Card>
