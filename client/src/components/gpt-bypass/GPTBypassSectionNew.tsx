@@ -134,6 +134,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
   const [outputText, setOutputText] = useState('');
   const [customInstructions, setCustomInstructions] = useState('');
   const [selectedPresets, setSelectedPresets] = useState<string[]>([]);
+  const [selectedWritingSample, setSelectedWritingSample] = useState<string>('formal-functional');
   const [provider, setProvider] = useState('anthropic');
   const [isLoading, setIsLoading] = useState(false);
   const [inputAiScore, setInputAiScore] = useState<number | null>(null);
@@ -143,13 +144,32 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
   const [isAnalyzingOutput, setIsAnalyzingOutput] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const styleFileInputRef = useRef<HTMLInputElement>(null);
 
   // Set default style sample on mount
   useEffect(() => {
     if (!styleText) {
-      setStyleText(WRITING_SAMPLES.academic[0].content);
+      const defaultSample = WRITING_SAMPLES.academic.find(s => s.id === 'formal-functional');
+      if (defaultSample) {
+        setStyleText(defaultSample.content);
+      }
     }
   }, [styleText]);
+
+  // Handle writing sample selection
+  const handleWritingSampleSelect = (sampleId: string) => {
+    setSelectedWritingSample(sampleId);
+    // Find the sample across all categories
+    const allSamples = [...WRITING_SAMPLES.academic, ...WRITING_SAMPLES.professional, ...WRITING_SAMPLES.creative];
+    const sample = allSamples.find(s => s.id === sampleId);
+    if (sample) {
+      setStyleText(sample.content);
+      toast({
+        title: "Writing sample selected",
+        description: `Applied "${sample.name}" as your writing style reference.`,
+      });
+    }
+  };
 
   // Handle received text from main app
   useEffect(() => {
@@ -640,6 +660,92 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
         </Card>
       </div>
 
+      {/* Humanization Controls */}
+      <Card className="border-2">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between text-xl">
+            <span>Humanization Controls</span>
+            <div className="flex gap-2">
+              <Select value={provider} onValueChange={setProvider}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select AI Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="anthropic">Anthropic Claude</SelectItem>
+                  <SelectItem value="openai">OpenAI GPT-4</SelectItem>
+                  <SelectItem value="perplexity">Perplexity</SelectItem>
+                  <SelectItem value="deepseek">DeepSeek</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Instruction Presets */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Instruction Presets</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+              {INSTRUCTION_PRESETS.map((preset) => (
+                <div key={preset.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={preset.id}
+                    checked={selectedPresets.includes(preset.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedPresets([...selectedPresets, preset.id]);
+                      } else {
+                        setSelectedPresets(selectedPresets.filter(id => id !== preset.id));
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor={preset.id}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary"
+                    title={preset.description}
+                  >
+                    {preset.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Instructions */}
+          <div className="space-y-2">
+            <Label htmlFor="custom-instructions" className="text-base font-medium">Custom Instructions</Label>
+            <Textarea
+              id="custom-instructions"
+              placeholder="Add any custom instructions for the rewrite..."
+              value={customInstructions}
+              onChange={(e) => setCustomInstructions(e.target.value)}
+              className="min-h-[100px] resize-y"
+            />
+          </div>
+
+          {/* Humanize Button */}
+          <div className="flex justify-center">
+            <Button
+              onClick={handleRewrite}
+              disabled={!inputText.trim() || isLoading}
+              size="lg"
+              className="px-12 py-3 text-lg font-semibold"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin mr-2 h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                  Humanizing...
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5 mr-2" />
+                  Humanize Text
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Style and Content Boxes - BOTTOM SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Box B - Style Sample */}
@@ -662,10 +768,10 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
                         {samples.map((sample) => (
                           <Button
                             key={sample.id}
-                            variant="outline"
+                            variant={selectedWritingSample === sample.id ? "default" : "outline"}
                             size="sm"
                             className="justify-start h-auto p-4 text-left"
-                            onClick={() => setStyleText(sample.content)}
+                            onClick={() => handleWritingSampleSelect(sample.id)}
                           >
                             <div className="text-left w-full">
                               <div className="font-medium text-base">{sample.name}</div>
@@ -702,7 +808,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
               placeholder="Add content to blend or reference in the rewrite..."
               value={contentMixText}
               onChange={(e) => setContentMixText(e.target.value)}
-              className="min-h-[300px] text-base leading-relaxed resize-y"
+              className="min-h-[400px] text-base leading-relaxed resize-y"
             />
           </CardContent>
         </Card>
