@@ -823,12 +823,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Detect if text is AI-generated using GPTZero
           const detectionResult = await detectAIContent(text);
           
-          // Add assessment text to the response
-          const assessment = generateAssessment(detectionResult.probability);
-          return res.json({
-            ...detectionResult,
-            assessment
-          });
+          // Return raw detection result without canned assessment
+          return res.json(detectionResult);
         } catch (gptzeroError) {
           console.error(`GPTZero detection failed, using ${provider} fallback:`, gptzeroError);
           // Fall through to the selected provider assessment
@@ -858,13 +854,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (providerError) {
         console.error(`Error with ${provider} assessment:`, providerError);
-        // If the selected provider fails, fall back to OpenAI
-        if (provider !== 'openai') {
-          console.log("Falling back to OpenAI for assessment");
-          assessmentResult = await directAssessText(text);
-        } else {
-          throw providerError;
-        }
+        // No fallbacks allowed - must fail if provider fails
+        throw providerError;
       }
       return res.json(assessmentResult);
     } catch (error) {
@@ -879,17 +870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Helper function to generate assessment text based on AI generation probability
   function generateAssessment(probability: number): string {
-    if (probability > 0.8) {
-      return "This text appears to be AI-generated with high confidence. It may lack the natural variance and personal style of human writing. Consider adding more personal voice, unique expressions, and varying your sentence structure to make it more authentic.";
-    } else if (probability > 0.6) {
-      return "This text likely contains AI-generated elements. While it's well-structured, it may benefit from more distinctive phrasing and personal perspectives. Try incorporating more of your unique voice and experiences.";
-    } else if (probability > 0.4) {
-      return "This text shows a balance of AI and human-like qualities. It has decent structure but could benefit from more specific details and personal insights to increase its authenticity and impact.";
-    } else if (probability > 0.2) {
-      return "This text appears mostly human-written. It has good natural variation, though some sections might be refined for stronger personal voice. Consider enhancing specific points with concrete examples or unique perspectives.";
-    } else {
-      return "This text demonstrates characteristics of authentic human writing, with natural variation in structure and expression. It has a good balance of complexity and clarity, with a distinctive personal voice.";
-    }
+    throw new Error("CANNED_FALLBACK_BLOCKED: route must not short-circuit assessment.");
   }
 
   app.post("/api/settings/api-keys", async (req, res) => {

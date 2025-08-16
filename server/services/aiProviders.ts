@@ -304,3 +304,35 @@ export class AIProviderService {
 }
 
 export const aiProviderService = new AIProviderService();
+
+// ===== HARD-ROUTED PROVIDER GATEWAY (do not modify) =====
+
+type ProviderName = "Anthropic" | "Perplexity" | "OpenAI";
+
+export async function runAssessmentViaProvider(opts: {
+  provider: ProviderName;
+  inputText: string;
+  styleText?: string;
+  params?: Record<string, unknown>;
+}) {
+  const { provider, inputText, styleText, params } = opts;
+
+  if (!inputText || inputText.trim().length === 0) {
+    throw new Error("ASSESSMENT_INPUT_EMPTY");
+  }
+
+  const { anthropicAssess } = await import("./anthropicAssessment");
+  const { perplexityAssess } = await import("./perplexityAssessment");
+  const { directAssess } = await import("./directAssessment");
+
+  switch (provider) {
+    case "Anthropic":
+      return await anthropicAssess({ inputText, styleText, params });
+    case "Perplexity":
+      return await perplexityAssess({ inputText, styleText, params });
+    case "OpenAI":
+      return await directAssess({ inputText, styleText, params });
+    default:
+      throw new Error(`UNSUPPORTED_PROVIDER:${String(provider)}`);
+  }
+}

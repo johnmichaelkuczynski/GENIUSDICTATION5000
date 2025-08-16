@@ -301,7 +301,7 @@ export function ManualAssessmentDialog({
       });
       
       // Set default assessment
-      setAssessment("Unable to assess your text at this time. You can still provide context and custom instructions for rewriting.");
+      throw new Error("ASSESSMENT_FAILED");
     } finally {
       setIsAssessing(false);
     }
@@ -309,17 +309,7 @@ export function ManualAssessmentDialog({
 
   // Generate a default assessment if the API doesn't provide one
   const getDefaultAssessment = (probability: number): string => {
-    if (probability > 0.8) {
-      return "This text appears to be AI-generated with high confidence. It may lack the natural variance and personal style of human writing. Consider adding more personal voice, unique expressions, and varying your sentence structure to make it more authentic.";
-    } else if (probability > 0.6) {
-      return "This text likely contains AI-generated elements. While it's well-structured, it may benefit from more distinctive phrasing and personal perspectives. Try incorporating more of your unique voice and experiences.";
-    } else if (probability > 0.4) {
-      return "This text shows a balance of AI and human-like qualities. It has decent structure but could benefit from more specific details and personal insights to increase its authenticity and impact.";
-    } else if (probability > 0.2) {
-      return "This text appears mostly human-written. It has good natural variation, though some sections might be refined for stronger personal voice. Consider enhancing specific points with concrete examples or unique perspectives.";
-    } else {
-      return "This text demonstrates characteristics of authentic human writing, with natural variation in structure and expression. It has a good balance of complexity and clarity, with a distinctive personal voice.";
-    }
+    throw new Error("CANNED_FALLBACK_BLOCKED: ManualAssessmentDialog cannot fabricate results.");
   };
 
   // Get color class based on probability

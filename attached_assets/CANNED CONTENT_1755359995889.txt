@@ -1,0 +1,637 @@
+~/workspace$ cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+# Obvious stubs & mocks
+rg -n --hidden -S -i -g '!.git' -g '!node_modules' -C2 \
+'e2e|stub|mock|demo|fixture|sample_response|canned|hardcod|static_response|__mocks__|testdata|fixtures|responses\.json'
+
+# Silent short-circuit returns (static strings)
+rg -n --hidden -S -i -g '!.git' -g '!node_modules' -C1 \
+'return\s+["\'][^"\']{3,400}["\']\s*;?'
+
+# Preview / truncation (“free users get boilerplate”)
+rg -n --hidden -S -i -g '!.git' -g '!node_modules' -C2 \
+'\.slice\(\s*0\s*,\s*2\d{2}\s*\)|\.substring\(\s*0\s*,\s*2\d{2}\s*\)|maxChars|truncate|preview'
+
+# Safety gags / moderation wrappers that force generic tone
+rg -n --hidden -S -i -g '!.git' -g '!node_modules' -C2 \
+'moderation|safe(ty)?|filter|sanitize|redact|blocklist|refuse|decline|comply|policy'
+
+# “Humanize” paths that bypass the LLM
+rg -n --hidden -S -i -g '!.git' -g '!node_modules' -C3 \
+'humaniz(e|er|ing)|rewrite_metrics|friction|compression|asymmetry|signal_density'
+server/routes.ts
+889-      return "This text appears mostly human-written. It has good natural variation, though some sections might be refined for stronger personal voice. Consider enhancing specific points with concrete examples or unique perspectives.";
+890-    } else {
+891:      return "This text demonstrates characteristics of authentic human writing, with natural variation in structure and expression. It has a good balance of complexity and clarity, with a distinctive personal voice.";
+892-    }
+893-  }
+--
+903-
+904-      // In a real application, these would be stored in Replit Secrets
+905:      // For the purposes of this demo, we're setting them in process.env
+906-      // but they will not persist between restarts
+907-      
+
+server/services/directAssessment.ts
+169-    return "This text appears mostly human-written. It has good natural variation, though some sections might be refined for stronger personal voice. Consider enhancing specific points with concrete examples or unique perspectives.";
+170-  } else {
+171:    return "This text demonstrates characteristics of authentic human writing, with natural variation in structure and expression. It has a good balance of complexity and clarity, with a distinctive personal voice.";
+172-  }
+173-}
+
+server/services/textAssessment.ts
+162-    return "This text appears mostly human-written. It has good natural variation, though some sections might be refined for stronger personal voice. Consider enhancing specific points with concrete examples or unique perspectives.";
+163-  } else {
+164:    return "This text demonstrates characteristics of authentic human writing, with natural variation in structure and expression. It has a good balance of complexity and clarity, with a distinctive personal voice.";
+165-  }
+166-}
+
+server/services/azureSpeech.ts
+65- */
+66-export async function getAvailableVoices() {
+67:  // For simplicity, we're hardcoding a few common voices
+68-  // In a production app, you would call the Azure API to get the complete list
+69-  return [
+
+client/src/hooks/useTransformation.ts
+86-      
+87-      // Check if we've selected a model that requires specific API keys
+88:      const isClaudeModel = selectedAIModel.includes('Claude');
+89-      const isPerplexityModel = selectedAIModel.includes('Perplexity');
+90-      
+--
+205-      
+206-      // Check if we've selected a model that requires specific API keys
+207:      const isClaudeModel = selectedAIModel.includes('Claude');
+208-      const isPerplexityModel = selectedAIModel.includes('Perplexity');
+209-      
+
+client/src/components/gpt-bypass/GPTBypassSectionNew.tsx
+639-          <CardContent>
+640-            <Textarea
+641:              placeholder="Paste a writing sample that demonstrates the style you want to mimic..."
+642-              value={styleText}
+643-              onChange={(e) => setStyleText(e.target.value)}
+
+client/src/components/gpt-bypass/GPTBypassSection.tsx
+398-                <TabsContent value="manual" className="space-y-4">
+399-                  <Textarea
+400:                    placeholder="Paste a writing sample that demonstrates the style you want to mimic..."
+401-                    value={styleText}
+402-                    onChange={(e) => setStyleText(e.target.value)}
+
+client/src/components/ManualAssessmentDialog.tsx
+319-      return "This text appears mostly human-written. It has good natural variation, though some sections might be refined for stronger personal voice. Consider enhancing specific points with concrete examples or unique perspectives.";
+320-    } else {
+321:      return "This text demonstrates characteristics of authentic human writing, with natural variation in structure and expression. It has a good balance of complexity and clarity, with a distinctive personal voice.";
+322-    }
+323-  };
+
+client/src/components/PreliminaryAssessmentDialog.tsx
+305-      return "This text appears mostly human-written. It has good natural variation, though some sections might be refined for stronger personal voice. Consider enhancing specific points with concrete examples or unique perspectives.";
+306-    } else {
+307:      return "This text demonstrates characteristics of authentic human writing, with natural variation in structure and expression. It has a good balance of complexity and clarity, with a distinctive personal voice.";
+308-    }
+309-  };
+
+attached_assets/Pasted-CONTENT-NEUTRAL-FORMAL-AND-FUNCTIONAL-RELATIONSHIPS-There-are-two-broad-types-of-relationshi-1755359636160_1755359636161.txt
+174-Churchill’s Paradox 
+175-
+176:In a non-democratic society, the government oppresses the people. In a democratic society, the people oppress themselves.
+177-
+178-Orlov’s Paradox 
+--
+472-
+473-People who try to avoid working end up working harder than people who don't try to avoid working. Case in point: People who work for pyramid schemes. These schemes never involve putting in time at an office, and one can work one's own hours. Also, theoretically, one can make an unlimited amount of money at one of these schemes doing very little work. But that isn't how it works out. People involved in such schemes end up putting in longer hours than people with real jobs and doing harder work, while being paid little or nothing.
+474:This is not an isolated phenomenon. There are entire demographics of people whose professional lives are about avoiding work but who for that reason end up working far more than most people: street musicians, struggling actors, sex workers, and criminals. 
+475-The solution to this paradox is that slackers are playing a defensive game. By spurning the normal rules of economic engagement, they are forced to take whatever opportunities come their way, which means that they aren’t deciding the terms of those transactions and are therefore constantly short-selling themselves, so that the have to work extra hard to make up the difference. 
+476-People who are extremely successful don’t slack off, but they also don’t work excessively hard. And these two facts are related. They work mainly at choosing the kind of work that they do and spend relatively little of their energy doing work-proper. By contrast, less successful people, including drifters, do little in the way of deciding what kind of work they will do and commensurately more in the way of doing work-proper. 
+
+attached_assets/WRITING SAMPLES_1754965244818_1755355614893.txt
+87-
+88-People who try to avoid working end up working harder than people who don't try to avoid working. Case in point: People who work for pyramid schemes. These schemes never involve putting in time at an office, and one can work one's own hours. Also, theoretically, one can make an unlimited amount of money at one of these schemes doing very little work. But that isn't how it works out. People involved in such schemes end up putting in longer hours than people with real jobs and doing harder work, while being paid little or nothing.
+89:This is not an isolated phenomenon. There are entire demographics of people whose professional lives are about avoiding work but who for that reason end up working far more than most people: street musicians, struggling actors, sex workers, and criminals. 
+90-The solution to this paradox is that slackers are playing a defensive game. By spurning the normal rules of economic engagement, they are forced to take whatever opportunities come their way, which means that they aren’t deciding the terms of those transactions and are therefore constantly short-selling themselves, so that the have to work extra hard to make up the difference. 
+91-People who are extremely successful don’t slack off, but they also don’t work excessively hard. And these two facts are related. They work mainly at choosing the kind of work that they do and spend relatively little of their energy doing work-proper. By contrast, less successful people, including drifters, do little in the way of deciding what kind of work they will do and commensurately more in the way of doing work-proper. 
+
+attached_assets/GPT BYPASS_1754914111473_1755355592732.txt
+119-THERE WILL BE A DROPDOWN WHERE THE USER CAN CHOOSE WHICH LLM TO USE: OPENAI, ANTHROPIC, DEEPSEEK, PERPLEXITY. 
+120-
+121:NO CANNED LOGIC WILL BE USED IN THE CONSTRUCTION OF THIS APP.  
+122-
+123-
+--
+238-Churchill’s Paradox 
+239-
+240:In a non-democratic society, the government oppresses the people. In a democratic society, the people oppress themselves.
+241-
+242-Orlov’s Paradox 
+--
+536-
+537-People who try to avoid working end up working harder than people who don't try to avoid working. Case in point: People who work for pyramid schemes. These schemes never involve putting in time at an office, and one can work one's own hours. Also, theoretically, one can make an unlimited amount of money at one of these schemes doing very little work. But that isn't how it works out. People involved in such schemes end up putting in longer hours than people with real jobs and doing harder work, while being paid little or nothing.
+538:This is not an isolated phenomenon. There are entire demographics of people whose professional lives are about avoiding work but who for that reason end up working far more than most people: street musicians, struggling actors, sex workers, and criminals. 
+539-The solution to this paradox is that slackers are playing a defensive game. By spurning the normal rules of economic engagement, they are forced to take whatever opportunities come their way, which means that they aren’t deciding the terms of those transactions and are therefore constantly short-selling themselves, so that the have to work extra hard to make up the difference. 
+540-People who are extremely successful don’t slack off, but they also don’t work excessively hard. And these two facts are related. They work mainly at choosing the kind of work that they do and spend relatively little of their energy doing work-proper. By contrast, less successful people, including drifters, do little in the way of deciding what kind of work they will do and commensurately more in the way of doing work-proper. 
+
+attached_assets/GPT BYPASS_1755355393896.txt
+160-THE DEFAULT LLM WILL BE ANTHROPIC.
+161-
+162:NO CANNED LOGIC WILL BE USED IN THE CONSTRUCTION OF THIS APP.  
+163-
+164-AS PREVIOUSLY STATED, USERS WHO DO NOT HAVE THEIR OWN WRITING SAMPLES CAN CHOOSE ONE (OR MORE) OF THE THE FOLLOWING (AND THE DEFAULT SHOKULD BE THE FIRST CONTENT-NEUTRAL SAMPLE, 
+--
+340-Churchill’s Paradox 
+341-
+342:In a non-democratic society, the government oppresses the people. In a democratic society, the people oppress themselves.
+343-
+344-Orlov’s Paradox 
+--
+638-
+639-People who try to avoid working end up working harder than people who don't try to avoid working. Case in point: People who work for pyramid schemes. These schemes never involve putting in time at an office, and one can work one's own hours. Also, theoretically, one can make an unlimited amount of money at one of these schemes doing very little work. But that isn't how it works out. People involved in such schemes end up putting in longer hours than people with real jobs and doing harder work, while being paid little or nothing.
+640:This is not an isolated phenomenon. There are entire demographics of people whose professional lives are about avoiding work but who for that reason end up working far more than most people: street musicians, struggling actors, sex workers, and criminals. 
+641-The solution to this paradox is that slackers are playing a defensive game. By spurning the normal rules of economic engagement, they are forced to take whatever opportunities come their way, which means that they aren’t deciding the terms of those transactions and are therefore constantly short-selling themselves, so that the have to work extra hard to make up the difference. 
+642-People who are extremely successful don’t slack off, but they also don’t work excessively hard. And these two facts are related. They work mainly at choosing the kind of work that they do and spend relatively little of their energy doing work-proper. By contrast, less successful people, including drifters, do little in the way of deciding what kind of work they will do and commensurately more in the way of doing work-proper. 
+
+attached_assets/GPT BYPASS_1755354770111.txt
+160-THE DEFAULT LLM WILL BE ANTHROPIC.
+161-
+162:NO CANNED LOGIC WILL BE USED IN THE CONSTRUCTION OF THIS APP.  
+163-
+164-AS PREVIOUSLY STATED, USERS WHO DO NOT HAVE THEIR OWN WRITING SAMPLES CAN CHOOSE ONE (OR MORE) OF THE THE FOLLOWING (AND THE DEFAULT SHOKULD BE THE FIRST CONTENT-NEUTRAL SAMPLE, 
+--
+340-Churchill’s Paradox 
+341-
+342:In a non-democratic society, the government oppresses the people. In a democratic society, the people oppress themselves.
+343-
+344-Orlov’s Paradox 
+--
+638-
+639-People who try to avoid working end up working harder than people who don't try to avoid working. Case in point: People who work for pyramid schemes. These schemes never involve putting in time at an office, and one can work one's own hours. Also, theoretically, one can make an unlimited amount of money at one of these schemes doing very little work. But that isn't how it works out. People involved in such schemes end up putting in longer hours than people with real jobs and doing harder work, while being paid little or nothing.
+640:This is not an isolated phenomenon. There are entire demographics of people whose professional lives are about avoiding work but who for that reason end up working far more than most people: street musicians, struggling actors, sex workers, and criminals. 
+641-The solution to this paradox is that slackers are playing a defensive game. By spurning the normal rules of economic engagement, they are forced to take whatever opportunities come their way, which means that they aren’t deciding the terms of those transactions and are therefore constantly short-selling themselves, so that the have to work extra hard to make up the difference. 
+642-People who are extremely successful don’t slack off, but they also don’t work excessively hard. And these two facts are related. They work mainly at choosing the kind of work that they do and spend relatively little of their energy doing work-proper. By contrast, less successful people, including drifters, do little in the way of deciding what kind of work they will do and commensurately more in the way of doing work-proper. 
+
+attached_assets/GPT BYPASS_1755354673742.txt
+160-THE DEFAULT LLM WILL BE ANTHROPIC.
+161-
+162:NO CANNED LOGIC WILL BE USED IN THE CONSTRUCTION OF THIS APP.  
+163-
+164-AS PREVIOUSLY STATED, USERS WHO DO NOT HAVE THEIR OWN WRITING SAMPLES CAN CHOOSE ONE (OR MORE) OF THE THE FOLLOWING (AND THE DEFAULT SHOKULD BE THE FIRST CONTENT-NEUTRAL SAMPLE, 
+--
+340-Churchill’s Paradox 
+341-
+342:In a non-democratic society, the government oppresses the people. In a democratic society, the people oppress themselves.
+343-
+344-Orlov’s Paradox 
+--
+638-
+639-People who try to avoid working end up working harder than people who don't try to avoid working. Case in point: People who work for pyramid schemes. These schemes never involve putting in time at an office, and one can work one's own hours. Also, theoretically, one can make an unlimited amount of money at one of these schemes doing very little work. But that isn't how it works out. People involved in such schemes end up putting in longer hours than people with real jobs and doing harder work, while being paid little or nothing.
+640:This is not an isolated phenomenon. There are entire demographics of people whose professional lives are about avoiding work but who for that reason end up working far more than most people: street musicians, struggling actors, sex workers, and criminals. 
+641-The solution to this paradox is that slackers are playing a defensive game. By spurning the normal rules of economic engagement, they are forced to take whatever opportunities come their way, which means that they aren’t deciding the terms of those transactions and are therefore constantly short-selling themselves, so that the have to work extra hard to make up the difference. 
+642-People who are extremely successful don’t slack off, but they also don’t work excessively hard. And these two facts are related. They work mainly at choosing the kind of work that they do and spend relatively little of their energy doing work-proper. By contrast, less successful people, including drifters, do little in the way of deciding what kind of work they will do and commensurately more in the way of doing work-proper. 
+
+attached_assets/Pasted-You-re-doing-all-the-right-things-Tesseract-LaTeX-formatting-but-the-pipeline-is-brittle-and-fails-1748380775026.txt
+65-Send uploaded image to Texify → get LaTeX → render with KaTeX → export with Puppeteer.
+66-
+67:Would you like me to give you a Replit-ready demo app that uses Texify API + KaTeX + Puppeteer? Zero Mathpix. Zero Tesseract. One clean pipeline.
+
+attached_assets/Pasted-write-an-intelligence-assessment-in-the-form-of-a-formal-report-of-this-passage-The-meaning-of--1747823909227.txt
+35-
+36-Psychological Profile Indicators
+37:Cognitive Style: Abstract-integrative. Demonstrates comfort with metalinguistic discourse and epistemic recursion.
+38-
+39-Rational Discipline: High. Displays tight control over logical transitions and a commitment to argument over impression.
+bash: !.git': event not found
+bash: !.git': event not found
+bash: syntax error near unexpected token `ty'
+package-lock.json
+4222-      "integrity": "sha512-kja8j7PjmncONqaTsB8fQ+wE2mSU2DJ9D4XKoJ5PFWIdRMa6SLSN1ff4mOr4jCbfRSsxR4keIiySJU0N9T5hIQ==",
+4223-      "license": "MIT",
+4224-      "dependencies": {
+4225:        "humanize-ms": "^1.2.1"
+4226-      },
+4227-      "engines": {
+4228-        "node": ">= 8.0.0"
+--
+7014-        "node": ">= 14"
+7015-      }
+7016-    },
+7017:    "node_modules/humanize-ms": {
+7018-      "version": "1.2.1",
+7019:      "resolved": "https://registry.npmjs.org/humanize-ms/-/humanize-ms-1.2.1.tgz",
+7020-      "integrity": "sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==",
+7021-      "license": "MIT",
+7022-      "dependencies": {
+
+server/services/aiProviders.ts
+30-  "Local disfluency": "Keep one redundant or slightly awkward phrase that still makes sense.",
+31-  "Analogy injection": "Insert a short, concrete comparison to something unrelated but illustrative.",
+32-  "Topic snap": "Abruptly shift focus once, then return.",
+33:  "Friction detail": "Drop in a small, seemingly unnecessary but real-world-plausible detail.",
+34-  
+35:  "Compression — light (−15%)": "Cut filler; merge short clauses; keep meaning. Target ≈15% shorter.",
+36:  "Compression — medium (−30%)": "Trim hard; delete throat-clearing; tighten syntax. Target ≈30% shorter.",
+37:  "Compression — heavy (−45%)": "Sever redundancies; collapse repeats; keep core claims. Target ≈45% shorter.",
+38-  "Mixed cadence": "Alternate short (5–12 words) and long (20–35 words) sentences; avoid uniform rhythm.",
+39-  "Clause surgery": "Reorder main/subordinate clauses in ~30% of sentences without changing meaning.",
+40-  "Front-load claim": "Put the main conclusion in sentence 1; evidence follows.",
+--
+60-  "Claim lock": "Do not add examples, scenarios, or data not present in the source.",
+61-  "Entity lock": "Keep names, counts, and attributions exactly as given.",
+62-  // Combo presets expand to atomic ones:
+63:  "Lean & Sharp": "Compression — medium (−30%); Mixed cadence; Imply one step; Kill stock transitions",
+64-  "Analytic": "Clause surgery; Front-load claim; Scope check; Exact nouns; No lists",
+65-};
+66-
+
+server/services/anthropicAssessment.ts
+51-    Your assessment should include:
+52-    1. An overall intelligence score (0-100)
+53-    2. Surface-level analysis (grammar, syntax, lexical precision, stylistic control) with specific examples quoted from the text
+54:    3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality) with supporting quotations
+55-    4. A list of errata or incomplete sentences, with direct quotes and suggested corrections
+56-    5. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
+57-    6. Psychological profile indicators about the author based on writing style and content
+
+server/services/perplexityAssessment.ts
+45-    Your assessment should include:
+46-    1. An overall intelligence score (0-100)
+47-    2. Surface-level analysis (grammar, syntax, lexical precision, stylistic control) with specific examples quoted from the text
+48:    3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality) with supporting quotations
+49-    4. A list of errata or incomplete sentences, with direct quotes and suggested corrections
+50-    5. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
+51-    6. Psychological profile indicators about the author based on writing style and content
+
+server/services/directAssessment.ts
+46-    Your assessment should include:
+47-    1. An overall intelligence score (0-100)
+48-    2. Surface-level analysis (grammar, syntax, lexical precision, stylistic control) with specific examples quoted from the text
+49:    3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality) with supporting quotations
+50-    4. A list of errata or incomplete sentences, with direct quotes and suggested corrections
+51-    5. A probability score from 0.0 to 1.0 representing how likely the text is AI-generated (0 = definitely human, 1 = definitely AI)
+52-    6. Psychological profile indicators about the author based on writing style and content
+
+attached_assets/Pasted-write-an-intelligence-assessment-in-the-form-of-a-formal-report-of-this-passage-The-meaning-of--1747823909227.txt
+15-Terminology such as morpheme, ratiocinators, competence, and performance is used appropriately and precisely. Slight ambiguity remains in the referent of “they” near the end, which may momentarily disrupt processing.
+16-
+17-Stylistic Control: 90
+18:Stylistic density is high and tailored to an audience comfortable with formal analytic writing. Clarity is sacrificed slightly in favor of compression.
+19-
+20-Deep-Level Analysis
+21-Conceptual Depth: 98
+--
+24-Inferential Continuity: 95
+25-The argument unfolds with clear inferential momentum: beginning with the fixedness of morphemic meaning, then introducing divergence in compositional interpretation, and resolving this tension via Chomsky’s competence/performance framework.
+26-
+27:Semantic Compression: 97
+28:Ideas are conveyed with remarkable density. Each sentence performs multiple inferential functions. The compression is intellectual rather than rhetorical—indicative of original insight rather than stylistic affectation.
+29-
+30-Logical Architecture: 94
+31-The passage is tightly scaffolded, with premises feeding into conclusions and intermediate clauses functioning as necessary bridges. There is a minor syntactic overload in the penultimate sentence, but not to the detriment of overall structure.
+
+attached_assets/Pasted-Build-an-app-that-enables-universal-dictation-and-advanced-text-transformation-for-professionals-wi-1745020967106.txt
+23-   - Provide document download in the original format after modification.
+24-
+25-5. REFERENCE TEXT & STYLE EMULATION:
+26:   - Create a "Personal Style Humanizer" feature that lets users upload sample texts.
+27-   - Allow users to tell the app to emulate the style of these reference documents.
+28-   - Enable extraction and use of specific information from uploaded documents ("use quote 1 in your rewrite").
+29-   - Support multiple reference documents for both style and content sources.
+
+attached_assets/GPT BYPASS_1755355393896.txt
+50-
+51-AI DETECTION HAS TO HAPPEN AUTOMATICALLY (NO BUTTON PUSH NEEDED) IN BOTH INPUT/OUTPUT BOXES 
+52-
+53:HERE ARE THEY ARE (CATEGORIZED...with the ones numbered 1-8 being the most important and should be at the top of the list and also flagged as the most important for humanizing): 
+54-
+55-1. Mixed cadence + clause sprawl
+56-Alternate short and long sentences; allow some long sentences to wander with extra clauses.
+--
+73-7. Topic snap
+74-Abruptly shift focus once, then return.
+75-
+76:8. Friction detail
+77-Drop in a small, seemingly unnecessary but real-world-plausible detail.
+78-
+79-Structure & Cadence
+80:Compression — light (−15%): Cut filler; merge short clauses; keep meaning.
+81-
+82:Compression — medium (−30%): Trim hard; delete throat-clearing; tighten syntax.
+83-
+84:Compression — heavy (−45%): Sever redundancies; collapse repeats; keep core claims.
+85-
+86-DECREASE BY 50%: REDUCE THE LENGTH BY HALF WHILE PRESERVING MEANING 
+87-
+--
+126-
+127-Metric nudge: Replace “more/better” with a minimal, source-safe comparator (“more than last case”).
+128-
+129:Asymmetry & Focus
+130-Asymmetric emphasis: Linger on the main claim; compress secondary points sharply.
+131-
+132-Cull repeats: Delete duplicated sentences/ideas; keep the strongest instance.
+--
+148-Entity lock: Keep names, counts, and attributions exactly as given.
+149-
+150-Combo presets (one-liners)
+151:Lean & Sharp: Compression-medium + mixed cadence + imply one step + kill stock transitions.
+152-
+153-Analytic: Clause surgery + front-load claim + scope check + exact nouns + no lists.
+154-
+--
+622-
+623-Ross’s Paradox
+624-
+625:If your room is clean, it follows that either your room is clean or the house has burned down. The strong entails the weak. But if I order you to clean your room, you are not complying if you either clean your room or burn down the house. Where ‘imperatival logic’ is concerned, the strong appears not to entail the weak. This asymmetry between alethic and imperatival logic is known as Ross’s Paradox. 
+626:Why this asymmetry? Because whereas statements have a word-to-world direction of fit, meaning that the speech-act must conform to the world, imperatives have a world-to-word direction of fit, meaning that the world must conform to the speech-act. A consequence is that in the logic of imperatives, validity flows from the general to the specific, not from the specific to the general, as with statement-logic. If I tell you “either clean your room or burn down the house”, you are complying with my command if you burn down the house, since you have thereby created a state of affairs that validates the proposition expressed in my command (namely, you either you clean your room or burn down the house). Not so if I tell you, “clean your room” and you burn down the house. But if I correctly say “your room is clean”, the world has already supplied us with a state of affairs that validates “either your room is clean or the house has burned down.” 
+627-To sum up: When direction-of-fit is from word-to-world, the general follows from the specific, but when direction-of-fit is from world-to-word, the specific follows from the general. 
+628-
+629-The Lottery Paradox 
+
+attached_assets/GPT BYPASS_1755354770111.txt
+50-
+51-AI DETECTION HAS TO HAPPEN AUTOMATICALLY (NO BUTTON PUSH NEEDED) IN BOTH INPUT/OUTPUT BOXES 
+52-
+53:HERE ARE THEY ARE (CATEGORIZED...with the ones numbered 1-8 being the most important and should be at the top of the list and also flagged as the most important for humanizing): 
+54-
+55-1. Mixed cadence + clause sprawl
+56-Alternate short and long sentences; allow some long sentences to wander with extra clauses.
+--
+73-7. Topic snap
+74-Abruptly shift focus once, then return.
+75-
+76:8. Friction detail
+77-Drop in a small, seemingly unnecessary but real-world-plausible detail.
+78-
+79-Structure & Cadence
+80:Compression — light (−15%): Cut filler; merge short clauses; keep meaning.
+81-
+82:Compression — medium (−30%): Trim hard; delete throat-clearing; tighten syntax.
+83-
+84:Compression — heavy (−45%): Sever redundancies; collapse repeats; keep core claims.
+85-
+86-DECREASE BY 50%: REDUCE THE LENGTH BY HALF WHILE PRESERVING MEANING 
+87-
+--
+126-
+127-Metric nudge: Replace “more/better” with a minimal, source-safe comparator (“more than last case”).
+128-
+129:Asymmetry & Focus
+130-Asymmetric emphasis: Linger on the main claim; compress secondary points sharply.
+131-
+132-Cull repeats: Delete duplicated sentences/ideas; keep the strongest instance.
+--
+148-Entity lock: Keep names, counts, and attributions exactly as given.
+149-
+150-Combo presets (one-liners)
+151:Lean & Sharp: Compression-medium + mixed cadence + imply one step + kill stock transitions.
+152-
+153-Analytic: Clause surgery + front-load claim + scope check + exact nouns + no lists.
+154-
+--
+622-
+623-Ross’s Paradox
+624-
+625:If your room is clean, it follows that either your room is clean or the house has burned down. The strong entails the weak. But if I order you to clean your room, you are not complying if you either clean your room or burn down the house. Where ‘imperatival logic’ is concerned, the strong appears not to entail the weak. This asymmetry between alethic and imperatival logic is known as Ross’s Paradox. 
+626:Why this asymmetry? Because whereas statements have a word-to-world direction of fit, meaning that the speech-act must conform to the world, imperatives have a world-to-word direction of fit, meaning that the world must conform to the speech-act. A consequence is that in the logic of imperatives, validity flows from the general to the specific, not from the specific to the general, as with statement-logic. If I tell you “either clean your room or burn down the house”, you are complying with my command if you burn down the house, since you have thereby created a state of affairs that validates the proposition expressed in my command (namely, you either you clean your room or burn down the house). Not so if I tell you, “clean your room” and you burn down the house. But if I correctly say “your room is clean”, the world has already supplied us with a state of affairs that validates “either your room is clean or the house has burned down.” 
+627-To sum up: When direction-of-fit is from word-to-world, the general follows from the specific, but when direction-of-fit is from world-to-word, the specific follows from the general. 
+628-
+629-The Lottery Paradox 
+
+attached_assets/Pasted-CONTENT-NEUTRAL-FORMAL-AND-FUNCTIONAL-RELATIONSHIPS-There-are-two-broad-types-of-relationshi-1755359636160_1755359636161.txt
+456-
+457-Ross’s Paradox
+458-
+459:If your room is clean, it follows that either your room is clean or the house has burned down. The strong entails the weak. But if I order you to clean your room, you are not complying if you either clean your room or burn down the house. Where ‘imperatival logic’ is concerned, the strong appears not to entail the weak. This asymmetry between alethic and imperatival logic is known as Ross’s Paradox. 
+460:Why this asymmetry? Because whereas statements have a word-to-world direction of fit, meaning that the speech-act must conform to the world, imperatives have a world-to-word direction of fit, meaning that the world must conform to the speech-act. A consequence is that in the logic of imperatives, validity flows from the general to the specific, not from the specific to the general, as with statement-logic. If I tell you “either clean your room or burn down the house”, you are complying with my command if you burn down the house, since you have thereby created a state of affairs that validates the proposition expressed in my command (namely, you either you clean your room or burn down the house). Not so if I tell you, “clean your room” and you burn down the house. But if I correctly say “your room is clean”, the world has already supplied us with a state of affairs that validates “either your room is clean or the house has burned down.” 
+461-To sum up: When direction-of-fit is from word-to-world, the general follows from the specific, but when direction-of-fit is from world-to-word, the specific follows from the general. 
+462-
+463-The Lottery Paradox 
+
+attached_assets/WRITING SAMPLES_1754965244818_1755355614893.txt
+71-
+72-Ross’s Paradox
+73-
+74:If your room is clean, it follows that either your room is clean or the house has burned down. The strong entails the weak. But if I order you to clean your room, you are not complying if you either clean your room or burn down the house. Where ‘imperatival logic’ is concerned, the strong appears not to entail the weak. This asymmetry between alethic and imperatival logic is known as Ross’s Paradox. 
+75:Why this asymmetry? Because whereas statements have a word-to-world direction of fit, meaning that the speech-act must conform to the world, imperatives have a world-to-word direction of fit, meaning that the world must conform to the speech-act. A consequence is that in the logic of imperatives, validity flows from the general to the specific, not from the specific to the general, as with statement-logic. If I tell you “either clean your room or burn down the house”, you are complying with my command if you burn down the house, since you have thereby created a state of affairs that validates the proposition expressed in my command (namely, you either you clean your room or burn down the house). Not so if I tell you, “clean your room” and you burn down the house. But if I correctly say “your room is clean”, the world has already supplied us with a state of affairs that validates “either your room is clean or the house has burned down.” 
+76-To sum up: When direction-of-fit is from word-to-world, the general follows from the specific, but when direction-of-fit is from world-to-word, the specific follows from the general. 
+77-
+78-The Lottery Paradox 
+
+attached_assets/GPT BYPASS_1754914111473_1755355592732.txt
+43-HERE ARE THYE ARE (CATEGORIZED): 
+44-
+45-Structure & Cadence
+46:Compression — light (−15%): Cut filler; merge short clauses; keep meaning.
+47-
+48:Compression — medium (−30%): Trim hard; delete throat-clearing; tighten syntax.
+49-
+50:Compression — heavy (−45%): Sever redundancies; collapse repeats; keep core claims.
+51-
+52-Mixed cadence: Alternate 5–35-word sentences; no uniform rhythm.
+53-
+--
+88-
+89-Metric nudge: Replace “more/better” with a minimal, source-safe comparator (“more than last case”).
+90-
+91:Asymmetry & Focus
+92-Asymmetric emphasis: Linger on the main claim; compress secondary points sharply.
+93-
+94-Cull repeats: Delete duplicated sentences/ideas; keep the strongest instance.
+--
+110-Entity lock: Keep names, counts, and attributions exactly as given.
+111-
+112-Combo presets (one-liners)
+113:Lean & Sharp: Compression-medium + mixed cadence + imply one step + kill stock transitions.
+114-
+115-Analytic: Clause surgery + front-load claim + scope check + exact nouns + no lists.
+116-
+--
+520-
+521-Ross’s Paradox
+522-
+523:If your room is clean, it follows that either your room is clean or the house has burned down. The strong entails the weak. But if I order you to clean your room, you are not complying if you either clean your room or burn down the house. Where ‘imperatival logic’ is concerned, the strong appears not to entail the weak. This asymmetry between alethic and imperatival logic is known as Ross’s Paradox. 
+524:Why this asymmetry? Because whereas statements have a word-to-world direction of fit, meaning that the speech-act must conform to the world, imperatives have a world-to-word direction of fit, meaning that the world must conform to the speech-act. A consequence is that in the logic of imperatives, validity flows from the general to the specific, not from the specific to the general, as with statement-logic. If I tell you “either clean your room or burn down the house”, you are complying with my command if you burn down the house, since you have thereby created a state of affairs that validates the proposition expressed in my command (namely, you either you clean your room or burn down the house). Not so if I tell you, “clean your room” and you burn down the house. But if I correctly say “your room is clean”, the world has already supplied us with a state of affairs that validates “either your room is clean or the house has burned down.” 
+525-To sum up: When direction-of-fit is from word-to-world, the general follows from the specific, but when direction-of-fit is from world-to-word, the specific follows from the general. 
+526-
+527-The Lottery Paradox 
+
+attached_assets/Pasted-Open-server-services-aiProviders-ts-1-At-top-of-file-below-imports-ADD-this-mapping-EXACTLY-c-1754972377817_1754972377817_1755355614894.txt
+3-1) At top of file (below imports), ADD this mapping EXACTLY:
+4-
+5-const PRESET_TEXT: Record<string,string> = {
+6:  "Compression — light (−15%)": "Cut filler; merge short clauses; keep meaning. Target ≈15% shorter.",
+7:  "Compression — medium (−30%)": "Trim hard; delete throat-clearing; tighten syntax. Target ≈30% shorter.",
+8:  "Compression — heavy (−45%)": "Sever redundancies; collapse repeats; keep core claims. Target ≈45% shorter.",
+9-  "Mixed cadence": "Alternate short (5–12 words) and long (20–35 words) sentences; avoid uniform rhythm.",
+10-  "Clause surgery": "Reorder main/subordinate clauses in ~30% of sentences without changing meaning.",
+11-  "Front-load claim": "Put the main conclusion in sentence 1; evidence follows.",
+--
+34-  "Claim lock": "Do not add examples, scenarios, or data not present in the source.",
+35-  "Entity lock": "Keep names, counts, and attributions exactly as given.",
+36-  // Combo presets expand to atomic ones:
+37:  "Lean & Sharp": "Compression — medium (−30%); Mixed cadence; Imply one step; Kill stock transitions",
+38-  "Analytic": "Clause surgery; Front-load claim; Scope check; Exact nouns; No lists",
+39-};
+40-
+
+attached_assets/aiProviders_1755355694301.ts
+30-  "Local disfluency": "Keep one redundant or slightly awkward phrase that still makes sense.",
+31-  "Analogy injection": "Insert a short, concrete comparison to something unrelated but illustrative.",
+32-  "Topic snap": "Abruptly shift focus once, then return.",
+33:  "Friction detail": "Drop in a small, seemingly unnecessary but real-world-plausible detail.",
+34-  
+35:  "Compression — light (−15%)": "Cut filler; merge short clauses; keep meaning. Target ≈15% shorter.",
+36:  "Compression — medium (−30%)": "Trim hard; delete throat-clearing; tighten syntax. Target ≈30% shorter.",
+37:  "Compression — heavy (−45%)": "Sever redundancies; collapse repeats; keep core claims. Target ≈45% shorter.",
+38-  "Mixed cadence": "Alternate short (5–12 words) and long (20–35 words) sentences; avoid uniform rhythm.",
+39-  "Clause surgery": "Reorder main/subordinate clauses in ~30% of sentences without changing meaning.",
+40-  "Front-load claim": "Put the main conclusion in sentence 1; evidence follows.",
+--
+63-  "Claim lock": "Do not add examples, scenarios, or data not present in the source.",
+64-  "Entity lock": "Keep names, counts, and attributions exactly as given.",
+65-  // Combo presets expand to atomic ones:
+66:  "Lean & Sharp": "Compression — medium (−30%); Mixed cadence; Imply one step; Kill stock transitions",
+67-  "Analytic": "Clause surgery; Front-load claim; Scope check; Exact nouns; No lists",
+68-};
+69-
+
+attached_assets/index-u2ooXZkM_1755355710897.js
+130-`)},op=function(){var e=parseInt(document.body.getAttribute(Fr)||"0",10);return isFinite(e)?e:0},Ob=function(){d.useEffect(function(){return document.body.setAttribute(Fr,(op()+1).toString()),function(){var e=op()-1;e<=0?document.body.removeAttribute(Fr):document.body.setAttribute(Fr,e.toString())}},[])},_b=function(e){var t=e.noRelative,n=e.noImportant,r=e.gapMode,o=r===void 0?"margin":r;Ob();var i=d.useMemo(function(){return Rb(o)},[o]);return d.createElement(jb,{styles:Ab(i,!t,o,n?"":"!important")})},Pc=!1;if(typeof window<"u")try{var Gi=Object.defineProperty({},"passive",{get:function(){return Pc=!0,!0}});window.addEventListener("test",Gi,Gi),window.removeEventListener("test",Gi,Gi)}catch{Pc=!1}var mr=Pc?{passive:!1}:!1,Ib=function(e){return e.tagName==="TEXTAREA"},Ag=function(e,t){if(!(e instanceof Element))return!1;var n=window.getComputedStyle(e);return n[t]!=="hidden"&&!(n.overflowY===n.overflowX&&!Ib(e)&&n[t]==="visible")},Db=function(e){return Ag(e,"overflowY")},Mb=function(e){return Ag(e,"overflowX")},ip=function(e,t){var n=t.ownerDocument,r=t;do{typeof ShadowRoot<"u"&&r instanceof ShadowRoot&&(r=r.host);var o=Og(e,r);if(o){var i=_g(e,r),s=i[1],l=i[2];if(s>l)return!0}r=r.parentNode}while(r&&r!==n.body);return!1},Lb=function(e){var t=e.scrollTop,n=e.scrollHeight,r=e.clientHeight;return[t,n,r]},Fb=function(e){var t=e.scrollLeft,n=e.scrollWidth,r=e.clientWidth;return[t,n,r]},Og=function(e,t){return e==="v"?Db(t):Mb(t)},_g=function(e,t){return e==="v"?Lb(t):Fb(t)},zb=function(e,t){return e==="h"&&t==="rtl"?-1:1},$b=function(e,t,n,r,o){var i=zb(e,window.getComputedStyle(t).direction),s=i*r,l=n.target,a=t.contains(l),c=!1,f=s>0,p=0,h=0;do{var w=_g(e,l),S=w[0],v=w[1],x=w[2],g=v-x-i*S;(S||g)&&Og(e,l)&&(p+=g,h+=S),l instanceof ShadowRoot?l=l.host:l=l.parentNode}while(!a&&l!==document.body||a&&(t.contains(l)||t===l));return(f&&(Math.abs(p)<1||!o)||!f&&(Math.abs(h)<1||!o))&&(c=!0),c},Yi=function(e){return"changedTouches"in e?[e.changedTouches[0].clientX,e.changedTouches[0].clientY]:[0,0]},sp=function(e){return[e.deltaX,e.deltaY]},lp=function(e){return e&&"current"in e?e.current:e},Ub=function(e,t){return e[0]===t[0]&&e[1]===t[1]},Bb=function(e){return`
+131-  .block-interactivity-`.concat(e,` {pointer-events: none;}
+132-  .allow-interactivity-`).concat(e,` {pointer-events: all;}
+133:`)},Wb=0,vr=[];function Vb(e){var t=d.useRef([]),n=d.useRef([0,0]),r=d.useRef(),o=d.useState(Wb++)[0],i=d.useState(jg)[0],s=d.useRef(e);d.useEffect(function(){s.current=e},[e]),d.useEffect(function(){if(e.inert){document.body.classList.add("block-interactivity-".concat(o));var v=db([e.lockRef.current],(e.shards||[]).map(lp),!0).filter(Boolean);return v.forEach(function(x){return x.classList.add("allow-interactivity-".concat(o))}),function(){document.body.classList.remove("block-interactivity-".concat(o)),v.forEach(function(x){return x.classList.remove("allow-interactivity-".concat(o))})}}},[e.inert,e.lockRef.current,e.shards]);var l=d.useCallback(function(v,x){if("touches"in v&&v.touches.length===2||v.type==="wheel"&&v.ctrlKey)return!s.current.allowPinchZoom;var g=Yi(v),m=n.current,y="deltaX"in v?v.deltaX:m[0]-g[0],C="deltaY"in v?v.deltaY:m[1]-g[1],E,P=v.target,b=Math.abs(y)>Math.abs(C)?"h":"v";if("touches"in v&&b==="h"&&P.type==="range")return!1;var k=ip(b,P);if(!k)return!0;if(k?E=b:(E=b==="v"?"h":"v",k=ip(b,P)),!k)return!1;if(!r.current&&"changedTouches"in v&&(y||C)&&(r.current=E),!E)return!0;var R=r.current||E;return $b(R,x,v,R==="h"?y:C,!0)},[]),a=d.useCallback(function(v){var x=v;if(!(!vr.length||vr[vr.length-1]!==i)){var g="deltaY"in x?sp(x):Yi(x),m=t.current.filter(function(E){return E.name===x.type&&(E.target===x.target||x.target===E.shadowParent)&&Ub(E.delta,g)})[0];if(m&&m.should){x.cancelable&&x.preventDefault();return}if(!m){var y=(s.current.shards||[]).map(lp).filter(Boolean).filter(function(E){return E.contains(x.target)}),C=y.length>0?l(x,y[0]):!s.current.noIsolation;C&&x.cancelable&&x.preventDefault()}}},[]),c=d.useCallback(function(v,x,g,m){var y={name:v,delta:x,target:g,should:m,shadowParent:Hb(g)};t.current.push(y),setTimeout(function(){t.current=t.current.filter(function(C){return C!==y})},1)},[]),f=d.useCallback(function(v){n.current=Yi(v),r.current=void 0},[]),p=d.useCallback(function(v){c(v.type,sp(v),v.target,l(v,e.lockRef.current))},[]),h=d.useCallback(function(v){c(v.type,Yi(v),v.target,l(v,e.lockRef.current))},[]);d.useEffect(function(){return vr.push(i),e.setCallbacks({onScrollCapture:p,onWheelCapture:p,onTouchMoveCapture:h}),document.addEventListener("wheel",a,mr),document.addEventListener("touchmove",a,mr),document.addEventListener("touchstart",f,mr),function(){vr=vr.filter(function(v){return v!==i}),document.removeEventListener("wheel",a,mr),document.removeEventListener("touchmove",a,mr),document.removeEventListener("touchstart",f,mr)}},[]);var w=e.removeScrollBar,S=e.inert;return d.createElement(d.Fragment,null,S?d.createElement(i,{styles:Bb(o)}):null,w?d.createElement(_b,{gapMode:e.gapMode}):null)}function Hb(e){for(var t=null;e!==null;)e instanceof ShadowRoot&&(t=e.host,e=e.host),e=e.parentNode;return t}const Kb=xb(Rg,Vb);var Hu=d.forwardRef(function(e,t){return d.createElement(Pl,Dt({},e,{ref:t,sideCar:Kb}))});Hu.classNames=Pl.classNames;var Qb=[" ","Enter","ArrowUp","ArrowDown"],Gb=[" ","Enter"],Ci="Select",[kl,Tl,Yb]=rv(Ci),[po,Ak]=Un(Ci,[Yb,Cl]),Nl=Cl(),[Xb,Bn]=po(Ci),[qb,Zb]=po(Ci),Ig=e=>{const{__scopeSelect:t,children:n,open:r,defaultOpen:o,onOpenChange:i,value:s,defaultValue:l,onValueChange:a,dir:c,name:f,autoComplete:p,disabled:h,required:w,form:S}=e,v=Nl(t),[x,g]=d.useState(null),[m,y]=d.useState(null),[C,E]=d.useState(!1),P=Sg(c),[b=!1,k]=li({prop:r,defaultProp:o,onChange:i}),[R,j]=li({prop:s,defaultProp:l,onChange:a}),L=d.useRef(null),D=x?S||!!x.closest("form"):!0,[W,A]=d.useState(new Set),V=Array.from(W).map(z=>z.props.value).join(";");return u.jsx(IE,{...v,children:u.jsxs(Xb,{required:w,scope:t,trigger:x,onTriggerChange:g,valueNode:m,onValueNodeChange:y,valueNodeHasChildren:C,onValueNodeHasChildrenChange:E,contentId:Mr(),value:R,onValueChange:j,open:b,onOpenChange:k,dir:P,triggerPointerDownPosRef:L,disabled:h,children:[u.jsx(kl.Provider,{scope:t,children:u.jsx(qb,{scope:e.__scopeSelect,onNativeOptionAdd:d.useCallback(z=>{A($=>new Set($).add(z))},[]),onNativeOptionRemove:d.useCallback(z=>{A($=>{const N=new Set($);return N.delete(z),N})},[]),children:n})}),D?u.jsxs(iy,{"aria-hidden":!0,required:w,tabIndex:-1,name:f,autoComplete:p,value:R,onChange:z=>j(z.target.value),disabled:h,form:S,children:[R===void 0?u.jsx("option",{value:""}):null,Array.from(W)]},V):null]})})};Ig.displayName=Ci;var Dg="SelectTrigger",Mg=d.forwardRef((e,t)=>{const{__scopeSelect:n,disabled:r=!1,...o}=e,i=Nl(n),s=Bn(Dg,n),l=s.disabled||r,a=ee(t,s.onTriggerChange),c=Tl(n),f=d.useRef("touch"),[p,h,w]=sy(v=>{const x=c().filter(y=>!y.disabled),g=x.find(y=>y.value===s.value),m=ly(x,v,g);m!==void 0&&s.onValueChange(m.value)}),S=v=>{l||(s.onOpenChange(!0),w()),v&&(s.triggerPointerDownPosRef.current={x:Math.round(v.pageX),y:Math.round(v.pageY)})};return u.jsx(ug,{asChild:!0,...i,children:u.jsx(G.button,{type:"button",role:"combobox","aria-controls":s.contentId,"aria-expanded":s.open,"aria-required":s.required,"aria-autocomplete":"none",dir:s.dir,"data-state":s.open?"open":"closed",disabled:l,"data-disabled":l?"":void 0,"data-placeholder":oy(s.value)?"":void 0,...o,ref:a,onClick:B(o.onClick,v=>{v.currentTarget.focus(),f.current!=="mouse"&&S(v)}),onPointerDown:B(o.onPointerDown,v=>{f.current=v.pointerType;const x=v.target;x.hasPointerCapture(v.pointerId)&&x.releasePointerCapture(v.pointerId),v.button===0&&v.ctrlKey===!1&&v.pointerType==="mouse"&&(S(v),v.preventDefault())}),onKeyDown:B(o.onKeyDown,v=>{const x=p.current!=="";!(v.ctrlKey||v.altKey||v.metaKey)&&v.key.length===1&&h(v.key),!(x&&v.key===" ")&&Qb.includes(v.key)&&(S(),v.preventDefault())})})})});Mg.displayName=Dg;var Lg="SelectValue",Fg=d.forwardRef((e,t)=>{const{__scopeSelect:n,className:r,style:o,children:i,placeholder:s="",...l}=e,a=Bn(Lg,n),{onValueNodeHasChildrenChange:c}=a,f=i!==void 0,p=ee(t,a.onValueNodeChange);return Oe(()=>{c(f)},[c,f]),u.jsx(G.span,{...l,ref:p,style:{pointerEvents:"none"},children:oy(a.value)?u.jsx(u.Fragment,{children:s}):i})});Fg.displayName=Lg;var Jb="SelectIcon",zg=d.forwardRef((e,t)=>{const{__scopeSelect:n,children:r,...o}=e;return u.jsx(G.span,{"aria-hidden":!0,...o,ref:t,children:r||"▼"})});zg.displayName=Jb;var eP="SelectPortal",$g=e=>u.jsx(ml,{asChild:!0,...e});$g.displayName=eP;var ar="SelectContent",Ug=d.forwardRef((e,t)=>{const n=Bn(ar,e.__scopeSelect),[r,o]=d.useState();if(Oe(()=>{o(new DocumentFragment)},[]),!n.open){const i=r;return i?fr.createPortal(u.jsx(Bg,{scope:e.__scopeSelect,children:u.jsx(kl.Slot,{scope:e.__scopeSelect,children:u.jsx("div",{children:e.children})})}),i):null}return u.jsx(Wg,{...e,ref:t})});Ug.displayName=ar;var mt=10,[Bg,Wn]=po(ar),tP="SelectContentImpl",nP=no("SelectContent.RemoveScroll"),Wg=d.forwardRef((e,t)=>{const{__scopeSelect:n,position:r="item-aligned",onCloseAutoFocus:o,onEscapeKeyDown:i,onPointerDownOutside:s,side:l,sideOffset:a,align:c,alignOffset:f,arrowPadding:p,collisionBoundary:h,collisionPadding:w,sticky:S,hideWhenDetached:v,avoidCollisions:x,...g}=e,m=Bn(ar,n),[y,C]=d.useState(null),[E,P]=d.useState(null),b=ee(t,U=>C(U)),[k,R]=d.useState(null),[j,L]=d.useState(null),D=Tl(n),[W,A]=d.useState(!1),V=d.useRef(!1);d.useEffect(()=>{if(y)return kg(y)},[y]),Cg();const z=d.useCallback(U=>{const[oe,...ye]=D().map(ne=>ne.ref.current),[I]=ye.slice(-1),Y=document.activeElement;for(const ne of U)if(ne===Y||(ne==null||ne.scrollIntoView({block:"nearest"}),ne===oe&&E&&(E.scrollTop=0),ne===I&&E&&(E.scrollTop=E.scrollHeight),ne==null||ne.focus(),document.activeElement!==Y))return},[D,E]),$=d.useCallback(()=>z([k,y]),[z,k,y]);d.useEffect(()=>{W&&$()},[W,$]);const{onOpenChange:N,triggerPointerDownPosRef:_}=m;d.useEffect(()=>{if(y){let U={x:0,y:0};const oe=I=>{var Y,ne;U={x:Math.abs(Math.round(I.pageX)-(((Y=_.current)==null?void 0:Y.x)??0)),y:Math.abs(Math.round(I.pageY)-(((ne=_.current)==null?void 0:ne.y)??0))}},ye=I=>{U.x<=10&&U.y<=10?I.preventDefault():y.contains(I.target)||N(!1),document.removeEventListener("pointermove",oe),_.current=null};return _.current!==null&&(document.addEventListener("pointermove",oe),document.addEventListener("pointerup",ye,{capture:!0,once:!0})),()=>{document.removeEventListener("pointermove",oe),document.removeEventListener("pointerup",ye,{capture:!0})}}},[y,N,_]),d.useEffect(()=>{const U=()=>N(!1);return window.addEventListener("blur",U),window.addEventListener("resize",U),()=>{window.removeEventListener("blur",U),window.removeEventListener("resize",U)}},[N]);const[F,H]=sy(U=>{const oe=D().filter(Y=>!Y.disabled),ye=oe.find(Y=>Y.ref.current===document.activeElement),I=ly(oe,U,ye);I&&setTimeout(()=>I.ref.current.focus())}),te=d.useCallback((U,oe,ye)=>{const I=!V.current&&!ye;(m.value!==void 0&&m.value===oe||I)&&(R(U),I&&(V.current=!0))},[m.value]),Ee=d.useCallback(()=>y==null?void 0:y.focus(),[y]),me=d.useCallback((U,oe,ye)=>{const I=!V.current&&!ye;(m.value!==void 0&&m.value===oe||I)&&L(U)},[m.value]),Fe=r==="popper"?kc:Vg,Te=Fe===kc?{side:l,sideOffset:a,align:c,alignOffset:f,arrowPadding:p,collisionBoundary:h,collisionPadding:w,sticky:S,hideWhenDetached:v,avoidCollisions:x}:{};return u.jsx(Bg,{scope:n,content:y,viewport:E,onViewportChange:P,itemRefCallback:te,selectedItem:k,onItemLeave:Ee,itemTextRefCallback:me,focusSelectedItem:$,selectedItemText:j,position:r,isPositioned:W,searchRef:F,children:u.jsx(Hu,{as:nP,allowPinchZoom:!0,children:u.jsx(Vu,{asChild:!0,trapped:m.open,onMountAutoFocus:U=>{U.preventDefault()},onUnmountAutoFocus:B(o,U=>{var oe;(oe=m.trigger)==null||oe.focus({preventScroll:!0}),U.preventDefault()}),children:u.jsx(yi,{asChild:!0,disableOutsidePointerEvents:!0,onEscapeKeyDown:i,onPointerDownOutside:s,onFocusOutside:U=>U.preventDefault(),onDismiss:()=>m.onOpenChange(!1),children:u.jsx(Fe,{role:"listbox",id:m.contentId,"data-state":m.open?"open":"closed",dir:m.dir,onContextMenu:U=>U.preventDefault(),...g,...Te,onPlaced:()=>A(!0),ref:b,style:{display:"flex",flexDirection:"column",outline:"none",...g.style},onKeyDown:B(g.onKeyDown,U=>{const oe=U.ctrlKey||U.altKey||U.metaKey;if(U.key==="Tab"&&U.preventDefault(),!oe&&U.key.length===1&&H(U.key),["ArrowUp","ArrowDown","Home","End"].includes(U.key)){let I=D().filter(Y=>!Y.disabled).map(Y=>Y.ref.current);if(["ArrowUp","End"].includes(U.key)&&(I=I.slice().reverse()),["ArrowUp","ArrowDown"].includes(U.key)){const Y=U.target,ne=I.indexOf(Y);I=I.slice(ne+1)}setTimeout(()=>z(I)),U.preventDefault()}})})})})})})});Wg.displayName=tP;var rP="SelectItemAlignedPosition",Vg=d.forwardRef((e,t)=>{const{__scopeSelect:n,onPlaced:r,...o}=e,i=Bn(ar,n),s=Wn(ar,n),[l,a]=d.useState(null),[c,f]=d.useState(null),p=ee(t,b=>f(b)),h=Tl(n),w=d.useRef(!1),S=d.useRef(!0),{viewport:v,selectedItem:x,selectedItemText:g,focusSelectedItem:m}=s,y=d.useCallback(()=>{if(i.trigger&&i.valueNode&&l&&c&&v&&x&&g){const b=i.trigger.getBoundingClientRect(),k=c.getBoundingClientRect(),R=i.valueNode.getBoundingClientRect(),j=g.getBoundingClientRect();if(i.dir!=="rtl"){const Y=j.left-k.left,ne=R.left-Y,Xe=b.left-ne,Nt=b.width+Xe,ho=Math.max(Nt,k.width),mo=window.innerWidth-mt,vo=bc(ne,[mt,Math.max(mt,mo-ho)]);l.style.minWidth=Nt+"px",l.style.left=vo+"px"}else{const Y=k.right-j.right,ne=window.innerWidth-R.right-Y,Xe=window.innerWidth-b.right-ne,Nt=b.width+Xe,ho=Math.max(Nt,k.width),mo=window.innerWidth-mt,vo=bc(ne,[mt,Math.max(mt,mo-ho)]);l.style.minWidth=Nt+"px",l.style.right=vo+"px"}const L=h(),D=window.innerHeight-mt*2,W=v.scrollHeight,A=window.getComputedStyle(c),V=parseInt(A.borderTopWidth,10),z=parseInt(A.paddingTop,10),$=parseInt(A.borderBottomWidth,10),N=parseInt(A.paddingBottom,10),_=V+z+W+N+$,F=Math.min(x.offsetHeight*5,_),H=window.getComputedStyle(v),te=parseInt(H.paddingTop,10),Ee=parseInt(H.paddingBottom,10),me=b.top+b.height/2-mt,Fe=D-me,Te=x.offsetHeight/2,U=x.offsetTop+Te,oe=V+z+U,ye=_-oe;if(oe<=me){const Y=L.length>0&&x===L[L.length-1].ref.current;l.style.bottom="0px";const ne=c.clientHeight-v.offsetTop-v.offsetHeight,Xe=Math.max(Fe,Te+(Y?Ee:0)+ne+$),Nt=oe+Xe;l.style.height=Nt+"px"}else{const Y=L.length>0&&x===L[0].ref.current;l.style.top="0px";const Xe=Math.max(me,V+v.offsetTop+(Y?te:0)+Te)+ye;l.style.height=Xe+"px",v.scrollTop=oe-me+v.offsetTop}l.style.margin=`${mt}px 0`,l.style.minHeight=F+"px",l.style.maxHeight=D+"px",r==null||r(),requestAnimationFrame(()=>w.current=!0)}},[h,i.trigger,i.valueNode,l,c,v,x,g,i.dir,r]);Oe(()=>y(),[y]);const[C,E]=d.useState();Oe(()=>{c&&E(window.getComputedStyle(c).zIndex)},[c]);const P=d.useCallback(b=>{b&&S.current===!0&&(y(),m==null||m(),S.current=!1)},[y,m]);return u.jsx(iP,{scope:n,contentWrapper:l,shouldExpandOnScrollRef:w,onScrollButtonChange:P,children:u.jsx("div",{ref:a,style:{display:"flex",flexDirection:"column",position:"fixed",zIndex:C},children:u.jsx(G.div,{...o,ref:p,style:{boxSizing:"border-box",maxHeight:"100%",...o.style}})})})});Vg.displayName=rP;var oP="SelectPopperPosition",kc=d.forwardRef((e,t)=>{const{__scopeSelect:n,align:r="start",collisionPadding:o=mt,...i}=e,s=Nl(n);return u.jsx(dg,{...s,...i,ref:t,align:r,collisionPadding:o,style:{boxSizing:"border-box",...i.style,"--radix-select-content-transform-origin":"var(--radix-popper-transform-origin)","--radix-select-content-available-width":"var(--radix-popper-available-width)","--radix-select-content-available-height":"var(--radix-popper-available-height)","--radix-select-trigger-width":"var(--radix-popper-anchor-width)","--radix-select-trigger-height":"var(--radix-popper-anchor-height)"}})});kc.displayName=oP;var[iP,Ku]=po(ar,{}),Tc="SelectViewport",Hg=d.forwardRef((e,t)=>{const{__scopeSelect:n,nonce:r,...o}=e,i=Wn(Tc,n),s=Ku(Tc,n),l=ee(t,i.onViewportChange),a=d.useRef(0);return u.jsxs(u.Fragment,{children:[u.jsx("style",{dangerouslySetInnerHTML:{__html:"[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-select-viewport]::-webkit-scrollbar{display:none}"},nonce:r}),u.jsx(kl.Slot,{scope:n,children:u.jsx(G.div,{"data-radix-select-viewport":"",role:"presentation",...o,ref:l,style:{position:"relative",flex:1,overflow:"hidden auto",...o.style},onScroll:B(o.onScroll,c=>{const f=c.currentTarget,{contentWrapper:p,shouldExpandOnScrollRef:h}=s;if(h!=null&&h.current&&p){const w=Math.abs(a.current-f.scrollTop);if(w>0){const S=window.innerHeight-mt*2,v=parseFloat(p.style.minHeight),x=parseFloat(p.style.height),g=Math.max(v,x);if(g<S){const m=g+w,y=Math.min(S,m),C=m-y;p.style.height=y+"px",p.style.bottom==="0px"&&(f.scrollTop=C>0?C:0,p.style.justifyContent="flex-end")}}}a.current=f.scrollTop})})})]})});Hg.displayName=Tc;var Kg="SelectGroup",[sP,lP]=po(Kg),aP=d.forwardRef((e,t)=>{const{__scopeSelect:n,...r}=e,o=Mr();return u.jsx(sP,{scope:n,id:o,children:u.jsx(G.div,{role:"group","aria-labelledby":o,...r,ref:t})})});aP.displayName=Kg;var Qg="SelectLabel",Gg=d.forwardRef((e,t)=>{const{__scopeSelect:n,...r}=e,o=lP(Qg,n);return u.jsx(G.div,{id:o.id,...r,ref:t})});Gg.displayName=Qg;var Ks="SelectItem",[cP,Yg]=po(Ks),Xg=d.forwardRef((e,t)=>{const{__scopeSelect:n,value:r,disabled:o=!1,textValue:i,...s}=e,l=Bn(Ks,n),a=Wn(Ks,n),c=l.value===r,[f,p]=d.useState(i??""),[h,w]=d.useState(!1),S=ee(t,m=>{var y;return(y=a.itemRefCallback)==null?void 0:y.call(a,m,r,o)}),v=Mr(),x=d.useRef("touch"),g=()=>{o||(l.onValueChange(r),l.onOpenChange(!1))};if(r==="")throw new Error("A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.");return u.jsx(cP,{scope:n,value:r,disabled:o,textId:v,isSelected:c,onItemTextChange:d.useCallback(m=>{p(y=>y||((m==null?void 0:m.textContent)??"").trim())},[]),children:u.jsx(kl.ItemSlot,{scope:n,value:r,disabled:o,textValue:f,children:u.jsx(G.div,{role:"option","aria-labelledby":v,"data-highlighted":h?"":void 0,"aria-selected":c&&h,"data-state":c?"checked":"unchecked","aria-disabled":o||void 0,"data-disabled":o?"":void 0,tabIndex:o?void 0:-1,...s,ref:S,onFocus:B(s.onFocus,()=>w(!0)),onBlur:B(s.onBlur,()=>w(!1)),onClick:B(s.onClick,()=>{x.current!=="mouse"&&g()}),onPointerUp:B(s.onPointerUp,()=>{x.current==="mouse"&&g()}),onPointerDown:B(s.onPointerDown,m=>{x.current=m.pointerType}),onPointerMove:B(s.onPointerMove,m=>{var y;x.current=m.pointerType,o?(y=a.onItemLeave)==null||y.call(a):x.current==="mouse"&&m.currentTarget.focus({preventScroll:!0})}),onPointerLeave:B(s.onPointerLeave,m=>{var y;m.currentTarget===document.activeElement&&((y=a.onItemLeave)==null||y.call(a))}),onKeyDown:B(s.onKeyDown,m=>{var C;((C=a.searchRef)==null?void 0:C.current)!==""&&m.key===" "||(Gb.includes(m.key)&&g(),m.key===" "&&m.preventDefault())})})})})});Xg.displayName=Ks;var Ao="SelectItemText",qg=d.forwardRef((e,t)=>{const{__scopeSelect:n,className:r,style:o,...i}=e,s=Bn(Ao,n),l=Wn(Ao,n),a=Yg(Ao,n),c=Zb(Ao,n),[f,p]=d.useState(null),h=ee(t,g=>p(g),a.onItemTextChange,g=>{var m;return(m=l.itemTextRefCallback)==null?void 0:m.call(l,g,a.value,a.disabled)}),w=f==null?void 0:f.textContent,S=d.useMemo(()=>u.jsx("option",{value:a.value,disabled:a.disabled,children:w},a.value),[a.disabled,a.value,w]),{onNativeOptionAdd:v,onNativeOptionRemove:x}=c;return Oe(()=>(v(S),()=>x(S)),[v,x,S]),u.jsxs(u.Fragment,{children:[u.jsx(G.span,{id:a.textId,...i,ref:h}),a.isSelected&&s.valueNode&&!s.valueNodeHasChildren?fr.createPortal(i.children,s.valueNode):null]})});qg.displayName=Ao;var Zg="SelectItemIndicator",Jg=d.forwardRef((e,t)=>{const{__scopeSelect:n,...r}=e;return Yg(Zg,n).isSelected?u.jsx(G.span,{"aria-hidden":!0,...r,ref:t}):null});Jg.displayName=Zg;var Nc="SelectScrollUpButton",ey=d.forwardRef((e,t)=>{const n=Wn(Nc,e.__scopeSelect),r=Ku(Nc,e.__scopeSelect),[o,i]=d.useState(!1),s=ee(t,r.onScrollButtonChange);return Oe(()=>{if(n.viewport&&n.isPositioned){let l=function(){const c=a.scrollTop>0;i(c)};const a=n.viewport;return l(),a.addEventListener("scroll",l),()=>a.removeEventListener("scroll",l)}},[n.viewport,n.isPositioned]),o?u.jsx(ny,{...e,ref:s,onAutoScroll:()=>{const{viewport:l,selectedItem:a}=n;l&&a&&(l.scrollTop=l.scrollTop-a.offsetHeight)}}):null});ey.displayName=Nc;var Rc="SelectScrollDownButton",ty=d.forwardRef((e,t)=>{const n=Wn(Rc,e.__scopeSelect),r=Ku(Rc,e.__scopeSelect),[o,i]=d.useState(!1),s=ee(t,r.onScrollButtonChange);return Oe(()=>{if(n.viewport&&n.isPositioned){let l=function(){const c=a.scrollHeight-a.clientHeight,f=Math.ceil(a.scrollTop)<c;i(f)};const a=n.viewport;return l(),a.addEventListener("scroll",l),()=>a.removeEventListener("scroll",l)}},[n.viewport,n.isPositioned]),o?u.jsx(ny,{...e,ref:s,onAutoScroll:()=>{const{viewport:l,selectedItem:a}=n;l&&a&&(l.scrollTop=l.scrollTop+a.offsetHeight)}}):null});ty.displayName=Rc;var ny=d.forwardRef((e,t)=>{const{__scopeSelect:n,onAutoScroll:r,...o}=e,i=Wn("SelectScrollButton",n),s=d.useRef(null),l=Tl(n),a=d.useCallback(()=>{s.current!==null&&(window.clearInterval(s.current),s.current=null)},[]);return d.useEffect(()=>()=>a(),[a]),Oe(()=>{var f;const c=l().find(p=>p.ref.current===document.activeElement);(f=c==null?void 0:c.ref.current)==null||f.scrollIntoView({block:"nearest"})},[l]),u.jsx(G.div,{"aria-hidden":!0,...o,ref:t,style:{flexShrink:0,...o.style},onPointerDown:B(o.onPointerDown,()=>{s.current===null&&(s.current=window.setInterval(r,50))}),onPointerMove:B(o.onPointerMove,()=>{var c;(c=i.onItemLeave)==null||c.call(i),s.current===null&&(s.current=window.setInterval(r,50))}),onPointerLeave:B(o.onPointerLeave,()=>{a()})})}),uP="SelectSeparator",ry=d.forwardRef((e,t)=>{const{__scopeSelect:n,...r}=e;return u.jsx(G.div,{"aria-hidden":!0,...r,ref:t})});ry.displayName=uP;var jc="SelectArrow",dP=d.forwardRef((e,t)=>{const{__scopeSelect:n,...r}=e,o=Nl(n),i=Bn(jc,n),s=Wn(jc,n);return i.open&&s.position==="popper"?u.jsx(fg,{...o,...r,ref:t}):null});dP.displayName=jc;function oy(e){return e===""||e===void 0}var iy=d.forwardRef((e,t)=>{const{value:n,...r}=e,o=d.useRef(null),i=ee(t,o),s=bg(n);return d.useEffect(()=>{const l=o.current,a=window.HTMLSelectElement.prototype,f=Object.getOwnPropertyDescriptor(a,"value").set;if(s!==n&&f){const p=new Event("change",{bubbles:!0});f.call(l,n),l.dispatchEvent(p)}},[s,n]),u.jsx(wi,{asChild:!0,children:u.jsx("select",{...r,ref:i,defaultValue:n})})});iy.displayName="BubbleSelect";function sy(e){const t=xe(e),n=d.useRef(""),r=d.useRef(0),o=d.useCallback(s=>{const l=n.current+s;t(l),function a(c){n.current=c,window.clearTimeout(r.current),c!==""&&(r.current=window.setTimeout(()=>a(""),1e3))}(l)},[t]),i=d.useCallback(()=>{n.current="",window.clearTimeout(r.current)},[]);return d.useEffect(()=>()=>window.clearTimeout(r.current),[]),[n,o,i]}function ly(e,t,n){const o=t.length>1&&Array.from(t).every(c=>c===t[0])?t[0]:t,i=n?e.indexOf(n):-1;let s=fP(e,Math.max(i,0));o.length===1&&(s=s.filter(c=>c!==n));const a=s.find(c=>c.textValue.toLowerCase().startsWith(o.toLowerCase()));return a!==n?a:void 0}function fP(e,t){return e.map((n,r)=>e[(t+r)%e.length])}var pP=Ig,ay=Mg,hP=Fg,mP=zg,vP=$g,cy=Ug,gP=Hg,uy=Gg,dy=Xg,yP=qg,wP=Jg,fy=ey,py=ty,hy=ry;const xP=pP,SP=hP,my=d.forwardRef(({className:e,children:t,...n},r)=>u.jsxs(ay,{ref:r,className:X("flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",e),...n,children:[t,u.jsx(mP,{asChild:!0,children:u.jsx(Av,{className:"h-4 w-4 opacity-50"})})]}));my.displayName=ay.displayName;const vy=d.forwardRef(({className:e,...t},n)=>u.jsx(fy,{ref:n,className:X("flex cursor-default items-center justify-center py-1",e),...t,children:u.jsx(W1,{className:"h-4 w-4"})}));vy.displayName=fy.displayName;const gy=d.forwardRef(({className:e,...t},n)=>u.jsx(py,{ref:n,className:X("flex cursor-default items-center justify-center py-1",e),...t,children:u.jsx(Av,{className:"h-4 w-4"})}));gy.displayName=py.displayName;const yy=d.forwardRef(({className:e,children:t,position:n="popper",...r},o)=>u.jsx(vP,{children:u.jsxs(cy,{ref:o,className:X("relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",n==="popper"&&"data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",e),position:n,...r,children:[u.jsx(vy,{}),u.jsx(gP,{className:X("p-1",n==="popper"&&"h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"),children:t}),u.jsx(gy,{})]})}));yy.displayName=cy.displayName;const CP=d.forwardRef(({className:e,...t},n)=>u.jsx(uy,{ref:n,className:X("py-1.5 pl-8 pr-2 text-sm font-semibold",e),...t}));CP.displayName=uy.displayName;const Oo=d.forwardRef(({className:e,children:t,...n},r)=>u.jsxs(dy,{ref:r,className:X("relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",e),...n,children:[u.jsx("span",{className:"absolute left-2 flex h-3.5 w-3.5 items-center justify-center",children:u.jsx(wP,{children:u.jsx(jv,{className:"h-4 w-4"})})}),u.jsx(yP,{children:t})]}));Oo.displayName=dy.displayName;const EP=d.forwardRef(({className:e,...t},n)=>u.jsx(hy,{ref:n,className:X("-mx-1 my-1 h-px bg-muted",e),...t}));EP.displayName=hy.displayName;const bP=yl("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",{variants:{variant:{default:"bg-primary text-primary-foreground hover:bg-primary/90",destructive:"bg-destructive text-destructive-foreground hover:bg-destructive/90",outline:"border border-input bg-background hover:bg-accent hover:text-accent-foreground",secondary:"bg-secondary text-secondary-foreground hover:bg-secondary/80",ghost:"hover:bg-accent hover:text-accent-foreground",link:"text-primary underline-offset-4 hover:underline"},size:{default:"h-10 px-4 py-2",sm:"h-9 rounded-md px-3",lg:"h-11 rounded-md px-8",icon:"h-10 w-10"}},defaultVariants:{variant:"default",size:"default"}}),Pe=d.forwardRef(({className:e,variant:t,size:n,asChild:r=!1,...o},i)=>{const s=r?JS:"button";return u.jsx(s,{className:X(bP({variant:t,size:n,className:e})),ref:i,...o})});Pe.displayName="Button";function PP({provider:e,onProviderChange:t}){return u.jsx("header",{className:"fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-gray-200 z-40",children:u.jsx("div",{className:"max-w-full mx-auto px-6 py-4",children:u.jsxs("div",{className:"flex items-center justify-between",children:[u.jsxs("div",{className:"flex items-center space-x-4",children:[u.jsx("h1",{className:"text-2xl font-bold text-gray-900",children:"GPT Bypass"}),u.jsx("span",{className:"text-sm text-gray-500 font-medium",children:"AI Text Rewriter"})]}),u.jsxs("div",{className:"flex items-center space-x-4",children:[u.jsxs("div",{className:"flex items-center space-x-2",children:[u.jsx("label",{className:"text-sm font-medium text-gray-700",children:"LLM Provider:"}),u.jsxs(xP,{value:e,onValueChange:t,children:[u.jsx(my,{className:"w-40",children:u.jsx(SP,{placeholder:"Select provider"})}),u.jsxs(yy,{children:[u.jsx(Oo,{value:"openai",children:"OpenAI"}),u.jsx(Oo,{value:"anthropic",children:"Anthropic"}),u.jsx(Oo,{value:"deepseek",children:"DeepSeek"}),u.jsx(Oo,{value:"perplexity",children:"Perplexity"})]})]})]}),u.jsxs(Pe,{variant:"outline",size:"sm",children:[u.jsx("i",{className:"fas fa-cog mr-2"}),"Settings"]})]})]})})})}var Qu="Checkbox",[kP,Ok]=Un(Qu),[TP,NP]=kP(Qu),wy=d.forwardRef((e,t)=>{const{__scopeCheckbox:n,name:r,checked:o,defaultChecked:i,required:s,disabled:l,value:a="on",onCheckedChange:c,form:f,...p}=e,[h,w]=d.useState(null),S=ee(t,C=>w(C)),v=d.useRef(!1),x=h?f||!!h.closest("form"):!0,[g=!1,m]=li({prop:o,defaultProp:i,onChange:c}),y=d.useRef(g);return d.useEffect(()=>{const C=h==null?void 0:h.form;if(C){const E=()=>m(y.current);return C.addEventListener("reset",E),()=>C.removeEventListener("reset",E)}},[h,m]),u.jsxs(TP,{scope:n,state:g,disabled:l,children:[u.jsx(G.button,{type:"button",role:"checkbox","aria-checked":On(g)?"mixed":g,"aria-required":s,"data-state":Cy(g),"data-disabled":l?"":void 0,disabled:l,value:a,...p,ref:S,onKeyDown:B(e.onKeyDown,C=>{C.key==="Enter"&&C.preventDefault()}),onClick:B(e.onClick,C=>{m(E=>On(E)?!0:!E),x&&(v.current=C.isPropagationStopped(),v.current||C.stopPropagation())})}),x&&u.jsx(RP,{control:h,bubbles:!v.current,name:r,value:a,checked:g,required:s,disabled:l,form:f,style:{transform:"translateX(-100%)"},defaultChecked:On(i)?!1:i})]})});wy.displayName=Qu;var xy="CheckboxIndicator",Sy=d.forwardRef((e,t)=>{const{__scopeCheckbox:n,forceMount:r,...o}=e,i=NP(xy,n);return u.jsx(kt,{present:r||On(i.state)||i.state===!0,children:u.jsx(G.span,{"data-state":Cy(i.state),"data-disabled":i.disabled?"":void 0,...o,ref:t,style:{pointerEvents:"none",...e.style}})})});Sy.displayName=xy;var RP=e=>{const{control:t,checked:n,bubbles:r=!0,defaultChecked:o,...i}=e,s=d.useRef(null),l=bg(n),a=eg(t);d.useEffect(()=>{const f=s.current,p=window.HTMLInputElement.prototype,w=Object.getOwnPropertyDescriptor(p,"checked").set;if(l!==n&&w){const S=new Event("click",{bubbles:r});f.indeterminate=On(n),w.call(f,On(n)?!1:n),f.dispatchEvent(S)}},[l,n,r]);const c=d.useRef(On(n)?!1:n);return u.jsx("input",{type:"checkbox","aria-hidden":!0,defaultChecked:o??c.current,...i,tabIndex:-1,ref:s,style:{...e.style,...a,position:"absolute",pointerEvents:"none",opacity:0,margin:0}})};function On(e){return e==="indeterminate"}function Cy(e){return On(e)?"indeterminate":e?"checked":"unchecked"}var Ey=wy,jP=Sy;const Gu=d.forwardRef(({className:e,...t},n)=>u.jsx(Ey,{ref:n,className:X("peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",e),...t,children:u.jsx(jP,{className:X("flex items-center justify-center text-current"),children:u.jsx(jv,{className:"h-4 w-4"})})}));Gu.displayName=Ey.displayName;var AP="Label",by=d.forwardRef((e,t)=>u.jsx(G.label,{...e,ref:t,onMouseDown:n=>{var o;n.target.closest("button, input, select, textarea")||((o=e.onMouseDown)==null||o.call(e,n),!n.defaultPrevented&&n.detail>1&&n.preventDefault())}}));by.displayName=AP;var Py=by;const OP=yl("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"),ky=d.forwardRef(({className:e,...t},n)=>u.jsx(Py,{ref:n,className:X(OP(),e),...t}));ky.displayName=Py.displayName;function _P(e,t){return d.useReducer((n,r)=>t[n][r]??n,e)}var Yu="ScrollArea",[Ty,_k]=Un(Yu),[IP,pt]=Ty(Yu),Ny=d.forwardRef((e,t)=>{const{__scopeScrollArea:n,type:r="hover",dir:o,scrollHideDelay:i=600,...s}=e,[l,a]=d.useState(null),[c,f]=d.useState(null),[p,h]=d.useState(null),[w,S]=d.useState(null),[v,x]=d.useState(null),[g,m]=d.useState(0),[y,C]=d.useState(0),[E,P]=d.useState(!1),[b,k]=d.useState(!1),R=ee(t,L=>a(L)),j=Sg(o);return u.jsx(IP,{scope:n,type:r,dir:j,scrollHideDelay:i,scrollArea:l,viewport:c,onViewportChange:f,content:p,onContentChange:h,scrollbarX:w,onScrollbarXChange:S,scrollbarXEnabled:E,onScrollbarXEnabledChange:P,scrollbarY:v,onScrollbarYChange:x,scrollbarYEnabled:b,onScrollbarYEnabledChange:k,onCornerWidthChange:m,onCornerHeightChange:C,children:u.jsx(G.div,{dir:j,...s,ref:R,style:{position:"relative","--radix-scroll-area-corner-width":g+"px","--radix-scroll-area-corner-height":y+"px",...e.style}})})});Ny.displayName=Yu;var Ry="ScrollAreaViewport",jy=d.forwardRef((e,t)=>{const{__scopeScrollArea:n,children:r,nonce:o,...i}=e,s=pt(Ry,n),l=d.useRef(null),a=ee(t,l,s.onViewportChange);return u.jsxs(u.Fragment,{children:[u.jsx("style",{dangerouslySetInnerHTML:{__html:"[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}"},nonce:o}),u.jsx(G.div,{"data-radix-scroll-area-viewport":"",...i,ref:a,style:{overflowX:s.scrollbarXEnabled?"scroll":"hidden",overflowY:s.scrollbarYEnabled?"scroll":"hidden",...e.style},children:u.jsx("div",{ref:s.onContentChange,style:{minWidth:"100%",display:"table"},children:r})})]})});jy.displayName=Ry;var Ut="ScrollAreaScrollbar",Xu=d.forwardRef((e,t)=>{const{forceMount:n,...r}=e,o=pt(Ut,e.__scopeScrollArea),{onScrollbarXEnabledChange:i,onScrollbarYEnabledChange:s}=o,l=e.orientation==="horizontal";return d.useEffect(()=>(l?i(!0):s(!0),()=>{l?i(!1):s(!1)}),[l,i,s]),o.type==="hover"?u.jsx(DP,{...r,ref:t,forceMount:n}):o.type==="scroll"?u.jsx(MP,{...r,ref:t,forceMount:n}):o.type==="auto"?u.jsx(Ay,{...r,ref:t,forceMount:n}):o.type==="always"?u.jsx(qu,{...r,ref:t}):null});Xu.displayName=Ut;var DP=d.forwardRef((e,t)=>{const{forceMount:n,...r}=e,o=pt(Ut,e.__scopeScrollArea),[i,s]=d.useState(!1);return d.useEffect(()=>{const l=o.scrollArea;let a=0;if(l){const c=()=>{window.clearTimeout(a),s(!0)},f=()=>{a=window.setTimeout(()=>s(!1),o.scrollHideDelay)};return l.addEventListener("pointerenter",c),l.addEventListener("pointerleave",f),()=>{window.clearTimeout(a),l.removeEventListener("pointerenter",c),l.removeEventListener("pointerleave",f)}}},[o.scrollArea,o.scrollHideDelay]),u.jsx(kt,{present:n||i,children:u.jsx(Ay,{"data-state":i?"visible":"hidden",...r,ref:t})})}),MP=d.forwardRef((e,t)=>{const{forceMount:n,...r}=e,o=pt(Ut,e.__scopeScrollArea),i=e.orientation==="horizontal",s=jl(()=>a("SCROLL_END"),100),[l,a]=_P("hidden",{hidden:{SCROLL:"scrolling"},scrolling:{SCROLL_END:"idle",POINTER_ENTER:"interacting"},interacting:{SCROLL:"interacting",POINTER_LEAVE:"idle"},idle:{HIDE:"hidden",SCROLL:"scrolling",POINTER_ENTER:"interacting"}});return d.useEffect(()=>{if(l==="idle"){const c=window.setTimeout(()=>a("HIDE"),o.scrollHideDelay);return()=>window.clearTimeout(c)}},[l,o.scrollHideDelay,a]),d.useEffect(()=>{const c=o.viewport,f=i?"scrollLeft":"scrollTop";if(c){let p=c[f];const h=()=>{const w=c[f];p!==w&&(a("SCROLL"),s()),p=w};return c.addEventListener("scroll",h),()=>c.removeEventListener("scroll",h)}},[o.viewport,i,a,s]),u.jsx(kt,{present:n||l!=="hidden",children:u.jsx(qu,{"data-state":l==="hidden"?"hidden":"visible",...r,ref:t,onPointerEnter:B(e.onPointerEnter,()=>a("POINTER_ENTER")),onPointerLeave:B(e.onPointerLeave,()=>a("POINTER_LEAVE"))})})}),Ay=d.forwardRef((e,t)=>{const n=pt(Ut,e.__scopeScrollArea),{forceMount:r,...o}=e,[i,s]=d.useState(!1),l=e.orientation==="horizontal",a=jl(()=>{if(n.viewport){const c=n.viewport.offsetWidth<n.viewport.scrollWidth,f=n.viewport.offsetHeight<n.viewport.scrollHeight;s(l?c:f)}},10);return io(n.viewport,a),io(n.content,a),u.jsx(kt,{present:r||i,children:u.jsx(qu,{"data-state":i?"visible":"hidden",...o,ref:t})})}),qu=d.forwardRef((e,t)=>{const{orientation:n="vertical",...r}=e,o=pt(Ut,e.__scopeScrollArea),i=d.useRef(null),s=d.useRef(0),[l,a]=d.useState({content:0,viewport:0,scrollbar:{size:0,paddingStart:0,paddingEnd:0}}),c=My(l.viewport,l.content),f={...r,sizes:l,onSizesChange:a,hasThumb:c>0&&c<1,onThumbChange:h=>i.current=h,onThumbPointerUp:()=>s.current=0,onThumbPointerDown:h=>s.current=h};function p(h,w){return BP(h,s.current,l,w)}return n==="horizontal"?u.jsx(LP,{...f,ref:t,onThumbPositionChange:()=>{if(o.viewport&&i.current){const h=o.viewport.scrollLeft,w=ap(h,l,o.dir);i.current.style.transform=`translate3d(${w}px, 0, 0)`}},onWheelScroll:h=>{o.viewport&&(o.viewport.scrollLeft=h)},onDragScroll:h=>{o.viewport&&(o.viewport.scrollLeft=p(h,o.dir))}}):n==="vertical"?u.jsx(FP,{...f,ref:t,onThumbPositionChange:()=>{if(o.viewport&&i.current){const h=o.viewport.scrollTop,w=ap(h,l);i.current.style.transform=`translate3d(0, ${w}px, 0)`}},onWheelScroll:h=>{o.viewport&&(o.viewport.scrollTop=h)},onDragScroll:h=>{o.viewport&&(o.viewport.scrollTop=p(h))}}):null}),LP=d.forwardRef((e,t)=>{const{sizes:n,onSizesChange:r,...o}=e,i=pt(Ut,e.__scopeScrollArea),[s,l]=d.useState(),a=d.useRef(null),c=ee(t,a,i.onScrollbarXChange);return d.useEffect(()=>{a.current&&l(getComputedStyle(a.current))},[a]),u.jsx(_y,{"data-orientation":"horizontal",...o,ref:c,sizes:n,style:{bottom:0,left:i.dir==="rtl"?"var(--radix-scroll-area-corner-width)":0,right:i.dir==="ltr"?"var(--radix-scroll-area-corner-width)":0,"--radix-scroll-area-thumb-width":Rl(n)+"px",...e.style},onThumbPointerDown:f=>e.onThumbPointerDown(f.x),onDragScroll:f=>e.onDragScroll(f.x),onWheelScroll:(f,p)=>{if(i.viewport){const h=i.viewport.scrollLeft+f.deltaX;e.onWheelScroll(h),Fy(h,p)&&f.preventDefault()}},onResize:()=>{a.current&&i.viewport&&s&&r({content:i.viewport.scrollWidth,viewport:i.viewport.offsetWidth,scrollbar:{size:a.current.clientWidth,paddingStart:Gs(s.paddingLeft),paddingEnd:Gs(s.paddingRight)}})}})}),FP=d.forwardRef((e,t)=>{const{sizes:n,onSizesChange:r,...o}=e,i=pt(Ut,e.__scopeScrollArea),[s,l]=d.useState(),a=d.useRef(null),c=ee(t,a,i.onScrollbarYChange);return d.useEffect(()=>{a.current&&l(getComputedStyle(a.current))},[a]),u.jsx(_y,{"data-orientation":"vertical",...o,ref:c,sizes:n,style:{top:0,right:i.dir==="ltr"?0:void 0,left:i.dir==="rtl"?0:void 0,bottom:"var(--radix-scroll-area-corner-height)","--radix-scroll-area-thumb-height":Rl(n)+"px",...e.style},onThumbPointerDown:f=>e.onThumbPointerDown(f.y),onDragScroll:f=>e.onDragScroll(f.y),onWheelScroll:(f,p)=>{if(i.viewport){const h=i.viewport.scrollTop+f.deltaY;e.onWheelScroll(h),Fy(h,p)&&f.preventDefault()}},onResize:()=>{a.current&&i.viewport&&s&&r({content:i.viewport.scrollHeight,viewport:i.viewport.offsetHeight,scrollbar:{size:a.current.clientHeight,paddingStart:Gs(s.paddingTop),paddingEnd:Gs(s.paddingBottom)}})}})}),[zP,Oy]=Ty(Ut),_y=d.forwardRef((e,t)=>{const{__scopeScrollArea:n,sizes:r,hasThumb:o,onThumbChange:i,onThumbPointerUp:s,onThumbPointerDown:l,onThumbPositionChange:a,onDragScroll:c,onWheelScroll:f,onResize:p,...h}=e,w=pt(Ut,n),[S,v]=d.useState(null),x=ee(t,R=>v(R)),g=d.useRef(null),m=d.useRef(""),y=w.viewport,C=r.content-r.viewport,E=xe(f),P=xe(a),b=jl(p,10);function k(R){if(g.current){const j=R.clientX-g.current.left,L=R.clientY-g.current.top;c({x:j,y:L})}}return d.useEffect(()=>{const R=j=>{const L=j.target;(S==null?void 0:S.contains(L))&&E(j,C)};return document.addEventListener("wheel",R,{passive:!1}),()=>document.removeEventListener("wheel",R,{passive:!1})},[y,S,C,E]),d.useEffect(P,[r,P]),io(S,b),io(w.content,b),u.jsx(zP,{scope:n,scrollbar:S,hasThumb:o,onThumbChange:xe(i),onThumbPointerUp:xe(s),onThumbPositionChange:P,onThumbPointerDown:xe(l),children:u.jsx(G.div,{...h,ref:x,style:{position:"absolute",...h.style},onPointerDown:B(e.onPointerDown,R=>{R.button===0&&(R.target.setPointerCapture(R.pointerId),g.current=S.getBoundingClientRect(),m.current=document.body.style.webkitUserSelect,document.body.style.webkitUserSelect="none",w.viewport&&(w.viewport.style.scrollBehavior="auto"),k(R))}),onPointerMove:B(e.onPointerMove,k),onPointerUp:B(e.onPointerUp,R=>{const j=R.target;j.hasPointerCapture(R.pointerId)&&j.releasePointerCapture(R.pointerId),document.body.style.webkitUserSelect=m.current,w.viewport&&(w.viewport.style.scrollBehavior=""),g.current=null})})})}),Qs="ScrollAreaThumb",Iy=d.forwardRef((e,t)=>{const{forceMount:n,...r}=e,o=Oy(Qs,e.__scopeScrollArea);return u.jsx(kt,{present:n||o.hasThumb,children:u.jsx($P,{ref:t,...r})})}),$P=d.forwardRef((e,t)=>{const{__scopeScrollArea:n,style:r,...o}=e,i=pt(Qs,n),s=Oy(Qs,n),{onThumbPositionChange:l}=s,a=ee(t,p=>s.onThumbChange(p)),c=d.useRef(void 0),f=jl(()=>{c.current&&(c.current(),c.current=void 0)},100);return d.useEffect(()=>{const p=i.viewport;if(p){const h=()=>{if(f(),!c.current){const w=WP(p,l);c.current=w,l()}};return l(),p.addEventListener("scroll",h),()=>p.removeEventListener("scroll",h)}},[i.viewport,f,l]),u.jsx(G.div,{"data-state":s.hasThumb?"visible":"hidden",...o,ref:a,style:{width:"var(--radix-scroll-area-thumb-width)",height:"var(--radix-scroll-area-thumb-height)",...r},onPointerDownCapture:B(e.onPointerDownCapture,p=>{const w=p.target.getBoundingClientRect(),S=p.clientX-w.left,v=p.clientY-w.top;s.onThumbPointerDown({x:S,y:v})}),onPointerUp:B(e.onPointerUp,s.onThumbPointerUp)})});Iy.displayName=Qs;var Zu="ScrollAreaCorner",Dy=d.forwardRef((e,t)=>{const n=pt(Zu,e.__scopeScrollArea),r=!!(n.scrollbarX&&n.scrollbarY);return n.type!=="scroll"&&r?u.jsx(UP,{...e,ref:t}):null});Dy.displayName=Zu;var UP=d.forwardRef((e,t)=>{const{__scopeScrollArea:n,...r}=e,o=pt(Zu,n),[i,s]=d.useState(0),[l,a]=d.useState(0),c=!!(i&&l);return io(o.scrollbarX,()=>{var p;const f=((p=o.scrollbarX)==null?void 0:p.offsetHeight)||0;o.onCornerHeightChange(f),a(f)}),io(o.scrollbarY,()=>{var p;const f=((p=o.scrollbarY)==null?void 0:p.offsetWidth)||0;o.onCornerWidthChange(f),s(f)}),c?u.jsx(G.div,{...r,ref:t,style:{width:i,height:l,position:"absolute",right:o.dir==="ltr"?0:void 0,left:o.dir==="rtl"?0:void 0,bottom:0,...e.style}}):null});function Gs(e){return e?parseInt(e,10):0}function My(e,t){const n=e/t;return isNaN(n)?0:n}function Rl(e){const t=My(e.viewport,e.content),n=e.scrollbar.paddingStart+e.scrollbar.paddingEnd,r=(e.scrollbar.size-n)*t;return Math.max(r,18)}function BP(e,t,n,r="ltr"){const o=Rl(n),i=o/2,s=t||i,l=o-s,a=n.scrollbar.paddingStart+s,c=n.scrollbar.size-n.scrollbar.paddingEnd-l,f=n.content-n.viewport,p=r==="ltr"?[0,f]:[f*-1,0];return Ly([a,c],p)(e)}function ap(e,t,n="ltr"){const r=Rl(t),o=t.scrollbar.paddingStart+t.scrollbar.paddingEnd,i=t.scrollbar.size-o,s=t.content-t.viewport,l=i-r,a=n==="ltr"?[0,s]:[s*-1,0],c=bc(e,a);return Ly([0,s],[0,l])(c)}function Ly(e,t){return n=>{if(e[0]===e[1]||t[0]===t[1])return t[0];const r=(t[1]-t[0])/(e[1]-e[0]);return t[0]+r*(n-e[0])}}function Fy(e,t){return e>0&&e<t}var WP=(e,t=()=>{})=>{let n={left:e.scrollLeft,top:e.scrollTop},r=0;return function o(){const i={left:e.scrollLeft,top:e.scrollTop},s=n.left!==i.left,l=n.top!==i.top;(s||l)&&t(),n=i,r=window.requestAnimationFrame(o)}(),()=>window.cancelAnimationFrame(r)};function jl(e,t){const n=xe(e),r=d.useRef(0);return d.useEffect(()=>()=>window.clearTimeout(r.current),[]),d.useCallback(()=>{window.clearTimeout(r.current),r.current=window.setTimeout(n,t)},[n,t])}function io(e,t){const n=xe(t);Oe(()=>{let r=0;if(e){const o=new ResizeObserver(()=>{cancelAnimationFrame(r),r=window.requestAnimationFrame(n)});return o.observe(e),()=>{window.cancelAnimationFrame(r),o.unobserve(e)}}},[e,n])}var zy=Ny,VP=jy,HP=Dy;const Ju=d.forwardRef(({className:e,children:t,...n},r)=>u.jsxs(zy,{ref:r,className:X("relative overflow-hidden",e),...n,children:[u.jsx(VP,{className:"h-full w-full rounded-[inherit]",children:t}),u.jsx($y,{}),u.jsx(HP,{})]}));Ju.displayName=zy.displayName;const $y=d.forwardRef(({className:e,orientation:t="vertical",...n},r)=>u.jsx(Xu,{ref:r,orientation:t,className:X("flex touch-none select-none transition-colors",t==="vertical"&&"h-full w-2.5 border-l border-l-transparent p-[1px]",t==="horizontal"&&"h-2.5 flex-col border-t border-t-transparent p-[1px]",e),...n,children:u.jsx(Iy,{className:"relative flex-1 rounded-full bg-border"})}));$y.displayName=Xu.displayName;var KP="Separator",cp="horizontal",QP=["horizontal","vertical"],Uy=d.forwardRef((e,t)=>{const{decorative:n,orientation:r=cp,...o}=e,i=GP(r)?r:cp,l=n?{role:"none"}:{"aria-orientation":i==="vertical"?i:void 0,role:"separator"};return u.jsx(G.div,{"data-orientation":i,...l,...o,ref:t})});Uy.displayName=KP;function GP(e){return QP.includes(e)}var By=Uy;const Wy=d.forwardRef(({className:e,orientation:t="horizontal",decorative:n=!0,...r},o)=>u.jsx(By,{ref:o,decorative:n,orientation:t,className:X("shrink-0 bg-border",t==="horizontal"?"h-[1px] w-full":"h-full w-[1px]",e),...r}));Wy.displayName=By.displayName;const YP=[{id:"compression-light",name:"Compression — light (-15%)",description:"Cut filler; merge short clauses; keep meaning.",category:"Structure & Cadence",instruction:"Cut filler; merge short clauses; keep meaning."},{id:"compression-medium",name:"Compression — medium (-30%)",description:"Trim hard; delete throat-clearing; tighten syntax.",category:"Structure & Cadence",instruction:"Trim hard; delete throat-clearing; tighten syntax."},{id:"compression-heavy",name:"Compression — heavy (-45%)",description:"Sever redundancies; collapse repeats; keep core claims.",category:"Structure & Cadence",instruction:"Sever redundancies; collapse repeats; keep core claims."},{id:"mixed-cadence",name:"Mixed cadence",description:"Alternate 5–35-word sentences; no uniform rhythm.",category:"Structure & Cadence",instruction:"Alternate 5–35-word sentences; no uniform rhythm."},{id:"clause-surgery",name:"Clause surgery",description:"Reorder main/subordinate clauses in 30% of sentences.",category:"Structure & Cadence",instruction:"Reorder main/subordinate clauses in 30% of sentences."},{id:"front-load",name:"Front-load claim",description:"Put the main conclusion in sentence 1; support follows.",category:"Structure & Cadence",instruction:"Put the main conclusion in sentence 1; support follows."},{id:"back-load",name:"Back-load claim",description:"Delay the conclusion to the final 2–3 sentences.",category:"Structure & Cadence",instruction:"Delay the conclusion to the final 2–3 sentences."},{id:"seam-pivot",name:"Seam/pivot",description:"Drop smooth connectors once; abrupt turn is fine.",category:"Structure & Cadence",instruction:"Drop smooth connectors once; abrupt turn is fine."},{id:"imply-step",name:"Imply one step",description:"Omit an obvious inferential step; leave it implicit.",category:"Framing & Inference",instruction:"Omit an obvious inferential step; leave it implicit."},{id:"conditional-framing",name:"Conditional framing",description:'Recast one key sentence as "If/Unless …, then …".',category:"Framing & Inference",instruction:'Recast one key sentence as "If/Unless …, then …".'},{id:"local-contrast",name:"Local contrast",description:'Use "but/except/aside" once to mark a boundary—no new facts.',category:"Framing & Inference",instruction:'Use "but/except/aside" once to mark a boundary—no new facts.'},{id:"scope-check",name:"Scope check",description:'Replace one absolute with a bounded form ("in cases like these").',category:"Framing & Inference",instruction:'Replace one absolute with a bounded form ("in cases like these").'},{id:"deflate-jargon",name:"Deflate jargon",description:'Swap nominalizations for verbs where safe (e.g., "utilization" → "use").',category:"Diction & Tone",instruction:'Swap nominalizations for verbs where safe (e.g., "utilization" → "use").'},{id:"kill-transitions",name:"Kill stock transitions",description:'Delete "Moreover/Furthermore/In conclusion" everywhere.',category:"Diction & Tone",instruction:'Delete "Moreover/Furthermore/In conclusion" everywhere.'},{id:"hedge-once",name:"Hedge once",description:'Use exactly one: "probably/roughly/more or less."',category:"Diction & Tone",instruction:'Use exactly one: "probably/roughly/more or less."'},{id:"drop-intensifiers",name:"Drop intensifiers",description:'Remove "very/clearly/obviously/significantly."',category:"Diction & Tone",instruction:'Remove "very/clearly/obviously/significantly."'},{id:"low-heat-voice",name:"Low-heat voice",description:"Prefer plain verbs; avoid showy synonyms.",category:"Diction & Tone",instruction:"Prefer plain verbs; avoid showy synonyms."},{id:"one-aside",name:"One aside",description:"One short parenthetical or em-dash aside; keep it factual.",category:"Diction & Tone",instruction:"One short parenthetical or em-dash aside; keep it factual."},{id:"concrete-benchmark",name:"Concrete benchmark",description:'Replace one vague scale with a testable one (e.g., "enough to X").',category:"Concreteness & Benchmarks",instruction:'Replace one vague scale with a testable one (e.g., "enough to X").'},{id:"swap-example",name:"Swap generic example",description:"If the source has an example, make it slightly more specific; else skip.",category:"Concreteness & Benchmarks",instruction:"If the source has an example, make it slightly more specific; else skip."},{id:"metric-nudge",name:"Metric nudge",description:'Replace "more/better" with a minimal, source-safe comparator ("more than last case").',category:"Concreteness & Benchmarks",instruction:'Replace "more/better" with a minimal, source-safe comparator ("more than last case").'},{id:"asymmetric-emphasis",name:"Asymmetric emphasis",description:"Linger on the main claim; compress secondary points sharply.",category:"Asymmetry & Focus",instruction:"Linger on the main claim; compress secondary points sharply."},{id:"cull-repeats",name:"Cull repeats",description:"Delete duplicated sentences/ideas; keep the strongest instance.",category:"Asymmetry & Focus",instruction:"Delete duplicated sentences/ideas; keep the strongest instance."},{id:"topic-snap",name:"Topic snap",description:"Change focus abruptly once; no recap.",category:"Asymmetry & Focus",instruction:"Change focus abruptly once; no recap."},{id:"no-lists",name:"No lists",description:"Force continuous prose; remove bullets/numbering.",category:"Formatting & Output Hygiene",instruction:"Force continuous prose; remove bullets/numbering."},{id:"no-meta",name:"No meta",description:'No prefaces, apologies, or "as requested" scaffolding.',category:"Formatting & Output Hygiene",instruction:'No prefaces, apologies, or "as requested" scaffolding.'},{id:"exact-nouns",name:"Exact nouns",description:"Replace vague pronouns where antecedent is ambiguous.",category:"Formatting & Output Hygiene",instruction:"Replace vague pronouns where antecedent is ambiguous."},{id:"quote-once",name:"Quote once",description:"If the source contains a strong phrase, quote it once; else skip.",category:"Formatting & Output Hygiene",instruction:"If the source contains a strong phrase, quote it once; else skip."},{id:"claim-lock",name:"Claim lock",description:"Do not add examples, scenarios, or data not present in the source.",category:"Safety / Guardrails",instruction:"Do not add examples, scenarios, or data not present in the source."},{id:"entity-lock",name:"Entity lock",description:"Keep names, counts, and attributions exactly as given.",category:"Safety / Guardrails",instruction:"Keep names, counts, and attributions exactly as given."}],XP=[{id:"loser-paradox",name:"The Loser Paradox",preview:"People at the bottom of hierarchies...",content:"People who are the bottom of a hierarchy are far less likely to spurn that hierarchy than they are to use it against people who are trying to climb the ranks of that hierarchy. The person who never graduates from college may in some contexts claim that a college degree is worthless, but he is unlikely to act accordingly. When he comes across someone without a college degree who is trying to make something of himself, he is likely to pounce on that person, claiming he is an uncredentialed fraud. Explanation: Losers want others to share their coffin, and if that involves hyper-valuing the very people or institutions that put them in that coffin, then so be it."},{id:"sour-secretary-paradox",name:"Sour Secretary Paradox",preview:"The more useless an employee is...",content:"The more useless a given employee is to the organization that employs her, the more unstintingly she will toe that organization's line. This is a corollary of the loser paradox."},{id:"indie-writer-paradox",name:"Indie Writer's Paradox",preview:"People don't give good reviews...",content:"People don't give good reviews to writers who do not already have positive reviews. Analysis: This is a veridical paradox, in the sense that it describes an actual vicious circle and does not represent a logical blunder. An independent writer is by definition one who does not have a marketing apparatus behind him, and such a writer depends on uncoerced positive reviews. But people are extremely reluctant to give good reviews to writers who are not popular already or who do not have the weight of some institution behind them. This circle can be broken by writers who mass-produce schlock, but there is no real way for other writers to break it. This is a special form of the Grass Roots Movement Paradox."},{id:"connectedness-paradox",name:"Paradox of Connectedness",preview:"Communications technology separates us...",content:"Communications technology is supposed to connect us but separates us into self-contained, non-interacting units. Solution: Communications technology is not supposed to connect us emotionally. On the contrary, it is supposed to connect us in such a way that we can transact without having to bond emotionally. And that is what it does. It connects us logically while disconnecting us emotionally."},{id:"arrow-information-paradox",name:"Arrow's Information Paradox",preview:"If you don't know what it is...",content:"If you don't know what it is, you don't buy it. Therefore, you don't buy information unless you know what it is. But if you know what it is, you don't need to buy it. But information is bought. Solution: The obvious solution is that information can be described without being disclosed. I can tell you that I have the so and so's phone number without giving you that number, and the circumstances may give you reason to believe me. But oftentimes it isn't until a given person discloses what he says he knows that he there is any reason to believe him to know it. There are a lot of people who make a living charging others for insights into the market, even they have no such insight, as their customers eventually find out."},{id:"buridans-ass",name:"Buridan's Ass",preview:"An ass that has to choose...",content:"An ass that has to choose between food and water and is exactly as hungry as it is thirsty cannot make a choice and will therefore be paralyzed by indecision. But such an ass would in fact be able to make a decision. Explanation: This isn't exactly a paradox. There is nothing absurd in the supposition that a creature in such a situation might simply 'halt', and we don't know that actual biological creatures would not in fact halt in such a situation, since it seldom if ever happens that a creature is confronted with options that are exactly equally appealing."},{id:"analysis-paralysis-paradox",name:"Analysis Paralysis Paradox",preview:"The ability to identify rational courses...",content:"Given that there is almost always a more rational course of action, the ability to identify rational courses of action may lead to a failure to act. Solution: There is a difference between intelligence and rationality. Intelligence answers the question: What is it objectively possible to do? Rationality answers the question: What do my limited resources of time, energy and intelligence make it incumbent on me to do? And the second answer breaks any deadlocks created by the first."},{id:"rule-following-paradox",name:"Wittgenstein's Rule-following Paradox",preview:"Default style reference...",content:'Any given course of conduct complies with many different rules, and there is therefore no good reason to say of a given act that it is an act of following this as opposed to that rule. So any putative case of following a given rule might equally reasonably be seen as a case of following some other, incompatible rule, and there is therefore no good reason to regard any act as a case of following any given rule. The solution: Taken in isolation, a given action can be interpreted as an act of compliance with any given one of a plurality of incompatible rules. If you say "4" when I ask you "what is 2+2?", I cannot on the basis alone rule out the possibility that you took "what is 2+2?" and "4" to mean, respectively, "I want to play chess" and "I do not have time for childish pastimes." But if that is what you meant, there will be independent evidence for it, meaning that there will be some reason independently of this context to believe that you take those words to have those meanings.'},{id:"soft-communism-paradox",name:"Soft Communism and the Paradox of American Education",preview:"The more money that the US invests in education...",content:"The more money that the United States invests in education, the worse American education is. Explanation: In the US, when money is poured into education, it is not to improve education but is rather to provide incompetent people with fake employment as educational administrators or teachers. So with each new wave of educational funding, a bloated, entrenched and incompetent cadre of educational bureaucrats becomes even more bloated, entrenched and incompetent, with predictably adverse effects on student-learning. In the US, when money is poured into public schools, it isn't about improving education. It is about creating straw government jobs at the expense of real private sector jobs."},{id:"obsessive-compulsive-paradox",name:"Obsessive-compulsive's Paradox",preview:"If the obsessive-compulsive doesn't give in...",content:"If the obsessive-compulsive doesn't give in to his compulsions, he suffers. If he does give into them, they get worse. Solution: If the obsessive-compulsive fights his compulsions, they wither and go away."},{id:"primerica-paradox",name:"The Primerica Paradox",preview:"In order to work for Primerica...",content:"In order to work for Primerica, you need to have money, since you don't make any money working there. But if you have money you won't work for Primerica, because there is no reason to do so. And yet people work for Primerica. Explanation: Primerica is a multi-level insurance company. Its representatives have to pay to work there. They do not make a salary and only make money off of commissions. But they don't make money off of commissions since they almost never make sales, and they don't make sales because nobody wants Primerica insurance since it's bad and definitely don't want to buy it from some sleazy Primerica sales representative."}];function qP({selectedPresets:e,onPresetsChange:t,selectedStyleSample:n,onStyleSampleSelect:r}){const[o,i]=d.useState(""),s=(f,p)=>{t(p?[...e,f]:e.filter(h=>h!==f))},l=f=>{t(f)},a=f=>{i(f.id),r(f.content)},c=YP.reduce((f,p)=>(f[p.category]||(f[p.category]=[]),f[p.category].push(p),f),{});return u.jsx("aside",{className:"w-80 bg-white shadow-sm border-r border-gray-200 overflow-y-auto",children:u.jsx(Ju,{className:"h-full",children:u.jsxs("div",{className:"p-4",children:[u.jsxs("div",{className:"mb-6",children:[u.jsxs("h3",{className:"text-lg font-semibold text-gray-900 mb-4 flex items-center",children:[u.jsx("i",{className:"fas fa-sliders-h mr-2 text-primary"}),"Instruction Presets"]}),Object.entries(c).map(([f,p])=>u.jsxs("div",{className:"mb-4",children:[u.jsx("h4",{className:"text-sm font-medium text-gray-700 mb-2 uppercase tracking-wide",children:f}),u.jsx("div",{className:"space-y-2",children:p.map(h=>u.jsxs("div",{className:"instruction-checkbox",children:[u.jsx(Gu,{id:h.id,checked:e.includes(h.id),onCheckedChange:w=>s(h.id,!!w),className:"mt-1"}),u.jsxs("div",{className:"flex-1",children:[u.jsx(ky,{htmlFor:h.id,className:"text-sm font-medium text-gray-900 cursor-pointer",children:h.name}),u.jsx("p",{className:"text-xs text-gray-600 mt-1",children:h.description})]})]},h.id))})]},f)),u.jsxs("div",{className:"mb-6",children:[u.jsx("h4",{className:"text-sm font-medium text-gray-700 mb-2 uppercase tracking-wide",children:"Combo Presets"}),u.jsxs("div",{className:"space-y-2",children:[u.jsx(Pe,{variant:"outline",className:"w-full text-left justify-start h-auto p-3 bg-primary-50 border-primary-200 hover:bg-primary-100",onClick:()=>l(["compression-medium","mixed-cadence","imply-step","kill-transitions"]),children:u.jsxs("div",{children:[u.jsx("span",{className:"text-sm font-medium text-primary-700 block",children:"Lean & Sharp"}),u.jsx("p",{className:"text-xs text-primary-600 mt-1",children:"Compression-medium + mixed cadence + imply one step"})]})}),u.jsx(Pe,{variant:"outline",className:"w-full text-left justify-start h-auto p-3 bg-primary-50 border-primary-200 hover:bg-primary-100",onClick:()=>l(["clause-surgery","front-load","scope-check","exact-nouns","no-lists"]),children:u.jsxs("div",{children:[u.jsx("span",{className:"text-sm font-medium text-primary-700 block",children:"Analytic"}),u.jsx("p",{className:"text-xs text-primary-600 mt-1",children:"Clause surgery + front-load claim + scope check"})]})})]})]})]}),u.jsx(Wy,{className:"my-6"}),u.jsxs("div",{children:[u.jsxs("h3",{className:"text-lg font-semibold text-gray-900 mb-4 flex items-center",children:[u.jsx("i",{className:"fas fa-book mr-2 text-primary"}),"Writing Samples"]}),u.jsx("div",{className:"space-y-2",children:XP.map(f=>u.jsx(Pe,{variant:"outline",className:`preset-button ${o===f.id?"active":""}`,onClick:()=>a(f),children:u.jsxs("div",{children:[u.jsx("span",{className:"text-sm font-medium text-gray-900 block",children:f.name}),u.jsx("p",{className:"text-xs text-gray-600 mt-1",children:f.preview})]})},f.id))})]})]})})})}const ed=d.forwardRef(({className:e,...t},n)=>u.jsx("textarea",{className:X("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",e),ref:n,...t}));ed.displayName="Textarea";function Xi({className:e,...t}){return u.jsx("div",{className:X("animate-pulse rounded-md bg-muted",e),...t})}function ZP(){const[e,t]=d.useState(!1),n=ds({mutationFn:async o=>{const i=new FormData;i.append("file",o);const s=await fetch("/api/upload",{method:"POST",body:i});if(!s.ok){const l=await s.json();throw new Error(l.message||"Upload failed")}return s.json()},onMutate:()=>{t(!0)},onSettled:()=>{t(!1)}});return{uploadFile:async o=>n.mutateAsync(o),isUploading:e,error:n.error}}function qi({title:e,icon:t,placeholder:n,value:r,onChange:o,aiScore:i,isLoading:s=!1,supportFileUpload:l=!1,readOnly:a=!1,showChunking:c=!1,chunkCount:f=0,selectedChunkCount:p=0,wordCount:h=0,onSelectChunks:w,showReRewrite:S=!1,onReRewrite:v,canReRewrite:x=!1,onDownload:g,onClear:m,onEnterSubmit:y,canSubmit:C=!1}){const E=d.useRef(null),{toast:P}=hl(),{uploadFile:b,isUploading:k}=ZP(),R=async A=>{var z;const V=(z=A.target.files)==null?void 0:z[0];if(V){try{const $=await b(V);o($.document.content),P({title:"File Uploaded",description:`${$.document.filename} processed successfully`})}catch($){P({title:"Upload Error",description:$.message,variant:"destructive"})}E.current&&(E.current.value="")}},j=()=>{navigator.clipboard.writeText(r),P({title:"Copied",description:"Text copied to clipboard"})},L=A=>A<=30?"bg-green-500":A<=60?"bg-yellow-500":"bg-red-500",D=A=>`${A}% AI`,W=A=>{A.key==="Enter"&&(A.ctrlKey||A.metaKey)&&y&&C&&(A.preventDefault(),y())};return u.jsxs("div",{className:"text-box-container",children:[u.jsxs("div",{className:"text-box-header",children:[u.jsxs("div",{className:"flex items-center justify-between mb-2",children:[u.jsxs("h2",{className:"text-lg font-semibold text-gray-900 flex items-center",children:[u.jsx("i",{className:`${t} mr-2 text-primary`}),e]}),u.jsxs("div",{className:"flex items-center space-x-2",children:[m&&r&&u.jsxs(Pe,{variant:"outline",size:"sm",onClick:m,className:"text-red-600 hover:text-red-700 hover:bg-red-50",children:[u.jsx("i",{className:"fas fa-trash mr-1"}),"Clear"]}),l&&u.jsxs(u.Fragment,{children:[u.jsxs(Pe,{variant:"outline",size:"sm",onClick:()=>{var A;return(A=E.current)==null?void 0:A.click()},disabled:k,children:[u.jsx("i",{className:"fas fa-file-upload mr-1"}),k?"Uploading...":"Upload File"]}),u.jsx("input",{ref:E,type:"file",className:"hidden",accept:".pdf,.doc,.docx,.txt",onChange:R})]}),a&&r&&u.jsxs(u.Fragment,{children:[u.jsxs(Pe,{variant:"outline",size:"sm",onClick:j,children:[u.jsx("i",{className:"fas fa-copy mr-1"}),"Copy"]}),g&&u.jsxs(Pe,{variant:"outline",size:"sm",onClick:g,children:[u.jsx("i",{className:"fas fa-download mr-1"}),"Download"]})]})]})]}),u.jsxs("div",{className:"flex items-center justify-between",children:[u.jsx("span",{className:"text-sm text-gray-600",children:"GPTZero AI Detection:"}),u.jsx("div",{className:"flex items-center space-x-2",children:s?u.jsx(Xi,{className:"w-24 h-2"}):i!==null?u.jsxs(u.Fragment,{children:[u.jsx("div",{className:"ai-score-bar",children:u.jsx("div",{className:`h-2 rounded-full ${L(i)}`,style:{width:`${i}%`}})}),u.jsx("span",{className:`text-sm font-medium ${i<=30?"text-green-600":i<=60?"text-yellow-600":"text-red-600"}`,children:D(i)})]}):u.jsx("span",{className:"text-sm text-gray-400",children:"Not analyzed"})})]})]}),u.jsx("div",{className:"text-box-content",children:s&&!r?u.jsxs("div",{className:"space-y-2",children:[u.jsx(Xi,{className:"h-4 w-full"}),u.jsx(Xi,{className:"h-4 w-5/6"}),u.jsx(Xi,{className:"h-4 w-4/6"})]}):u.jsx(ed,{className:"w-full h-full resize-none border-0 focus:ring-0 text-sm text-gray-900 placeholder-gray-500 p-0",placeholder:n,value:r,onChange:A=>o(A.target.value),onKeyDown:W,readOnly:a})}),(c||S)&&u.jsxs("div",{className:"text-box-footer",children:[c&&u.jsxs("div",{className:"flex items-center justify-between",children:[u.jsxs("span",{className:"text-sm text-gray-600",children:["Document Length: ",h.toLocaleString()," words"]}),u.jsxs(Pe,{variant:"outline",size:"sm",onClick:w,className:"bg-primary text-primary-foreground hover:bg-primary/90",children:[u.jsx("i",{className:"fas fa-puzzle-piece mr-1"}),"Select Chunks (",p,"/",f,")"]})]}),S&&u.jsxs(Pe,{className:"w-full",onClick:v,disabled:!x,children:[u.jsx("i",{className:"fas fa-redo mr-2"}),"Re-rewrite Output"]})]})]})}const td=d.forwardRef(({className:e,...t},n)=>u.jsx("div",{ref:n,className:X("rounded-lg border bg-card text-card-foreground shadow-sm",e),...t}));td.displayName="Card";const JP=d.forwardRef(({className:e,...t},n)=>u.jsx("div",{ref:n,className:X("flex flex-col space-y-1.5 p-6",e),...t}));JP.displayName="CardHeader";const ek=d.forwardRef(({className:e,...t},n)=>u.jsx("div",{ref:n,className:X("text-2xl font-semibold leading-none tracking-tight",e),...t}));ek.displayName="CardTitle";const tk=d.forwardRef(({className:e,...t},n)=>u.jsx("div",{ref:n,className:X("text-sm text-muted-foreground",e),...t}));tk.displayName="CardDescription";const Vy=d.forwardRef(({className:e,...t},n)=>u.jsx("div",{ref:n,className:X("p-6 pt-0",e),...t}));Vy.displayName="CardContent";const nk=d.forwardRef(({className:e,...t},n)=>u.jsx("div",{ref:n,className:X("flex items-center p-6 pt-0",e),...t}));nk.displayName="CardFooter";const rk=yl("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",{variants:{variant:{default:"border-transparent bg-primary text-primary-foreground hover:bg-primary/80",secondary:"border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",destructive:"border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",outline:"text-foreground"}},defaultVariants:{variant:"default"}});function xa({className:e,variant:t,...n}){return u.jsx("div",{className:X(rk({variant:t}),e),...n})}function ok({value:e,onChange:t,onGenerate:n,isGenerating:r,canGenerate:o,selectedPresets:i=[],hasStyleSample:s=!1,hasContentMix:l=!1,onClearAll:a}){return u.jsx(td,{className:"mt-6 bg-white border border-gray-200",children:u.jsxs("div",{className:"p-6",children:[u.jsxs("div",{className:"flex items-center justify-between mb-4",children:[u.jsxs("div",{children:[u.jsxs("h3",{className:"text-xl font-semibold text-gray-900 flex items-center",children:[u.jsx("i",{className:"fas fa-magic mr-2 text-primary"}),"AI Text Rewriter"]}),u.jsx("p",{className:"text-sm text-gray-600 mt-1",children:"Transform your text with AI detection bypass and style customization"})]}),u.jsxs("div",{className:"flex space-x-2",children:[i.length>0&&u.jsxs(xa,{variant:"secondary",className:"bg-blue-100 text-blue-700",children:[u.jsx("i",{className:"fas fa-cog mr-1"}),i.length," Preset",i.length>1?"s":""]}),s&&u.jsxs(xa,{variant:"secondary",className:"bg-purple-100 text-purple-700",children:[u.jsx("i",{className:"fas fa-palette mr-1"}),"Style Sample"]}),l&&u.jsxs(xa,{variant:"secondary",className:"bg-green-100 text-green-700",children:[u.jsx("i",{className:"fas fa-layer-group mr-1"}),"Content Mix"]})]})]}),u.jsxs("div",{className:"mb-6",children:[u.jsx("label",{className:"block text-sm font-medium text-gray-700 mb-2",children:"Custom Instructions (Optional)"}),u.jsx(ed,{className:"w-full h-20 resize-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm text-gray-900 placeholder-gray-500 p-3",placeholder:"Add specific instructions for the rewrite: tone, style, complexity, target audience, etc...",value:e,onChange:c=>t(c.target.value)}),u.jsx("p",{className:"text-xs text-gray-500 mt-1",children:'Example: "Make it more casual and conversational" or "Use academic language with technical terms"'})]}),u.jsx("div",{className:"bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4",children:u.jsxs("div",{className:"flex items-center justify-between",children:[u.jsxs("div",{className:"flex-1",children:[u.jsxs("div",{className:"flex items-center space-x-3 mb-2",children:[u.jsx("span",{className:"text-sm font-medium text-gray-700",children:"Ready to Rewrite:"}),u.jsx("span",{className:`text-sm font-semibold px-2 py-1 rounded-full ${r?"bg-yellow-100 text-yellow-700":o?"bg-green-100 text-green-700":"bg-gray-100 text-gray-500"}`,children:r?"Processing...":o?"Ready":"Add Input Text"})]}),u.jsx("p",{className:"text-xs text-gray-600",children:o?"Your text will be rewritten to reduce AI detection while maintaining meaning":"Please enter text in Box A to start the rewriting process"})]}),u.jsxs("div",{className:"flex space-x-3",children:[a&&u.jsxs(Pe,{onClick:a,variant:"outline",size:"lg",className:"font-semibold px-6 py-3 text-base text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400",children:[u.jsx("i",{className:"fas fa-trash-alt mr-2"}),"Delete All"]}),u.jsx(Pe,{onClick:n,disabled:!o||r,size:"lg",className:"font-semibold px-8 py-3 text-base bg-primary hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl",children:r?u.jsxs(u.Fragment,{children:[u.jsx("i",{className:"fas fa-spinner fa-spin mr-2"}),"Rewriting..."]}):u.jsxs(u.Fragment,{children:[u.jsx("i",{className:"fas fa-wand-magic-sparkles mr-2"}),"Start Rewrite"]})})]})]})}),!r&&u.jsxs("div",{className:"mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200",children:[u.jsx("h4",{className:"text-sm font-medium text-blue-900 mb-1",children:"💡 Quick Tips:"}),u.jsxs("ul",{className:"text-xs text-blue-700 space-y-1",children:[u.jsx("li",{children:"• Use Clear buttons (🗑️) to remove content from individual boxes"}),u.jsx("li",{children:"• Press Ctrl+Enter in any text box to start rewrite instantly"}),u.jsx("li",{children:"• Try different AI providers for varied rewriting approaches"}),u.jsx("li",{children:'• Use "Delete All" to start completely fresh'})]})]})]})})}var nd="Dialog",[Hy,Ik]=Un(nd),[ik,Tt]=Hy(nd),Ky=e=>{const{__scopeDialog:t,children:n,open:r,defaultOpen:o,onOpenChange:i,modal:s=!0}=e,l=d.useRef(null),a=d.useRef(null),[c=!1,f]=li({prop:r,defaultProp:o,onChange:i});return u.jsx(ik,{scope:t,triggerRef:l,contentRef:a,contentId:Mr(),titleId:Mr(),descriptionId:Mr(),open:c,onOpenChange:f,onOpenToggle:d.useCallback(()=>f(p=>!p),[f]),modal:s,children:n})};Ky.displayName=nd;var Qy="DialogTrigger",sk=d.forwardRef((e,t)=>{const{__scopeDialog:n,...r}=e,o=Tt(Qy,n),i=ee(t,o.triggerRef);return u.jsx(G.button,{type:"button","aria-haspopup":"dialog","aria-expanded":o.open,"aria-controls":o.contentId,"data-state":id(o.open),...r,ref:i,onClick:B(e.onClick,o.onOpenToggle)})});sk.displayName=Qy;var rd="DialogPortal",[lk,Gy]=Hy(rd,{forceMount:void 0}),Yy=e=>{const{__scopeDialog:t,forceMount:n,children:r,container:o}=e,i=Tt(rd,t);return u.jsx(lk,{scope:t,forceMount:n,children:d.Children.map(r,s=>u.jsx(kt,{present:n||i.open,children:u.jsx(ml,{asChild:!0,container:o,children:s})}))})};Yy.displayName=rd;var Ys="DialogOverlay",Xy=d.forwardRef((e,t)=>{const n=Gy(Ys,e.__scopeDialog),{forceMount:r=n.forceMount,...o}=e,i=Tt(Ys,e.__scopeDialog);return i.modal?u.jsx(kt,{present:r||i.open,children:u.jsx(ck,{...o,ref:t})}):null});Xy.displayName=Ys;var ak=no("DialogOverlay.RemoveScroll"),ck=d.forwardRef((e,t)=>{const{__scopeDialog:n,...r}=e,o=Tt(Ys,n);return u.jsx(Hu,{as:ak,allowPinchZoom:!0,shards:[o.contentRef],children:u.jsx(G.div,{"data-state":id(o.open),...r,ref:t,style:{pointerEvents:"auto",...r.style}})})}),cr="DialogContent",qy=d.forwardRef((e,t)=>{const n=Gy(cr,e.__scopeDialog),{forceMount:r=n.forceMount,...o}=e,i=Tt(cr,e.__scopeDialog);return u.jsx(kt,{present:r||i.open,children:i.modal?u.jsx(uk,{...o,ref:t}):u.jsx(dk,{...o,ref:t})})});qy.displayName=cr;var uk=d.forwardRef((e,t)=>{const n=Tt(cr,e.__scopeDialog),r=d.useRef(null),o=ee(t,n.contentRef,r);return d.useEffect(()=>{const i=r.current;if(i)return kg(i)},[]),u.jsx(Zy,{...e,ref:o,trapFocus:n.open,disableOutsidePointerEvents:!0,onCloseAutoFocus:B(e.onCloseAutoFocus,i=>{var s;i.preventDefault(),(s=n.triggerRef.current)==null||s.focus()}),onPointerDownOutside:B(e.onPointerDownOutside,i=>{const s=i.detail.originalEvent,l=s.button===0&&s.ctrlKey===!0;(s.button===2||l)&&i.preventDefault()}),onFocusOutside:B(e.onFocusOutside,i=>i.preventDefault())})}),dk=d.forwardRef((e,t)=>{const n=Tt(cr,e.__scopeDialog),r=d.useRef(!1),o=d.useRef(!1);return u.jsx(Zy,{...e,ref:t,trapFocus:!1,disableOutsidePointerEvents:!1,onCloseAutoFocus:i=>{var s,l;(s=e.onCloseAutoFocus)==null||s.call(e,i),i.defaultPrevented||(r.current||(l=n.triggerRef.current)==null||l.focus(),i.preventDefault()),r.current=!1,o.current=!1},onInteractOutside:i=>{var a,c;(a=e.onInteractOutside)==null||a.call(e,i),i.defaultPrevented||(r.current=!0,i.detail.originalEvent.type==="pointerdown"&&(o.current=!0));const s=i.target;((c=n.triggerRef.current)==null?void 0:c.contains(s))&&i.preventDefault(),i.detail.originalEvent.type==="focusin"&&o.current&&i.preventDefault()}})}),Zy=d.forwardRef((e,t)=>{const{__scopeDialog:n,trapFocus:r,onOpenAutoFocus:o,onCloseAutoFocus:i,...s}=e,l=Tt(cr,n),a=d.useRef(null),c=ee(t,a);return Cg(),u.jsxs(u.Fragment,{children:[u.jsx(Vu,{asChild:!0,loop:!0,trapped:r,onMountAutoFocus:o,onUnmountAutoFocus:i,children:u.jsx(yi,{role:"dialog",id:l.contentId,"aria-describedby":l.descriptionId,"aria-labelledby":l.titleId,"data-state":id(l.open),...s,ref:c,onDismiss:()=>l.onOpenChange(!1)})}),u.jsxs(u.Fragment,{children:[u.jsx(fk,{titleId:l.titleId}),u.jsx(hk,{contentRef:a,descriptionId:l.descriptionId})]})]})}),od="DialogTitle",Jy=d.forwardRef((e,t)=>{const{__scopeDialog:n,...r}=e,o=Tt(od,n);return u.jsx(G.h2,{id:o.titleId,...r,ref:t})});Jy.displayName=od;var ew="DialogDescription",tw=d.forwardRef((e,t)=>{const{__scopeDialog:n,...r}=e,o=Tt(ew,n);return u.jsx(G.p,{id:o.descriptionId,...r,ref:t})});tw.displayName=ew;var nw="DialogClose",rw=d.forwardRef((e,t)=>{const{__scopeDialog:n,...r}=e,o=Tt(nw,n);return u.jsx(G.button,{type:"button",...r,ref:t,onClick:B(e.onClick,()=>o.onOpenChange(!1))})});rw.displayName=nw;function id(e){return e?"open":"closed"}var ow="DialogTitleWarning",[Dk,iw]=qS(ow,{contentName:cr,titleName:od,docsSlug:"dialog"}),fk=({titleId:e})=>{const t=iw(ow),n=`\`${t.contentName}\` requires a \`${t.titleName}\` for the component to be accessible for screen reader users.
+134-
+135-If you want to hide the \`${t.titleName}\`, you can wrap it with our VisuallyHidden component.
+136-
+
+client/src/components/gpt-bypass/GPTBypassSection.tsx
+20-  { id: 'Local disfluency', name: 'Local disfluency', category: 'Advanced', description: 'Keep one redundant or slightly awkward phrase that still makes sense.' },
+21-  { id: 'Analogy injection', name: 'Analogy injection', category: 'Advanced', description: 'Insert a short, concrete comparison to something unrelated but illustrative.' },
+22-  { id: 'Topic snap', name: 'Topic snap', category: 'Advanced', description: 'Abruptly shift focus once, then return.' },
+23:  { id: 'Friction detail', name: 'Friction detail', category: 'Advanced', description: 'Drop in a small, seemingly unnecessary but real-world-plausible detail.' },
+24:  { id: 'Compression — light (−15%)', name: 'Compression — light (−15%)', category: 'Core', description: 'Cut filler; merge short clauses; keep meaning. Target ≈15% shorter.' },
+25:  { id: 'Compression — medium (−30%)', name: 'Compression — medium (−30%)', category: 'Core', description: 'Trim hard; delete throat-clearing; tighten syntax. Target ≈30% shorter.' },
+26:  { id: 'Compression — heavy (−45%)', name: 'Compression — heavy (−45%)', category: 'Core', description: 'Sever redundancies; collapse repeats; keep core claims. Target ≈45% shorter.' },
+27-  { id: 'Mixed cadence', name: 'Mixed cadence', category: 'Core', description: 'Alternate short (5–12 words) and long (20–35 words) sentences; avoid uniform rhythm.' },
+28-  { id: 'Clause surgery', name: 'Clause surgery', category: 'Core', description: 'Reorder main/subordinate clauses in ~30% of sentences without changing meaning.' },
+29-  { id: 'Front-load claim', name: 'Front-load claim', category: 'Core', description: 'Put the main conclusion in sentence 1; evidence follows.' },
+--
+48-  { id: 'Quote once', name: 'Quote once', category: 'Core', description: 'If the source has a strong phrase, quote it once; otherwise skip.' },
+49-  { id: 'Claim lock', name: 'Claim lock', category: 'Core', description: 'Do not add examples, scenarios, or data not present in the source.' },
+50-  { id: 'Entity lock', name: 'Entity lock', category: 'Core', description: 'Keep names, counts, and attributions exactly as given.' },
+51:  { id: 'Lean & Sharp', name: 'Lean & Sharp', category: 'Combo', description: 'Compression — medium (−30%); Mixed cadence; Imply one step; Kill stock transitions' },
+52-  { id: 'Analytic', name: 'Analytic', category: 'Combo', description: 'Clause surgery; Front-load claim; Scope check; Exact nouns; No lists' },
+53-];
+54-
+
+attached_assets/GPT BYPASS_1755354673742.txt
+50-
+51-AI DETECTION HAS TO HAPPEN AUTOMATICALLY (NO BUTTON PUSH NEEDED) IN BOTH INPUT/OUTPUT BOXES 
+52-
+53:HERE ARE THEY ARE (CATEGORIZED...with the ones numbered 1-8 being the most important and should be at the top of the list and also flagged as the most important for humanizing): 
+54-
+55-1. Mixed cadence + clause sprawl
+56-Alternate short and long sentences; allow some long sentences to wander with extra clauses.
+--
+73-7. Topic snap
+74-Abruptly shift focus once, then return.
+75-
+76:8. Friction detail
+77-Drop in a small, seemingly unnecessary but real-world-plausible detail.
+78-
+79-Structure & Cadence
+80:Compression — light (−15%): Cut filler; merge short clauses; keep meaning.
+81-
+82:Compression — medium (−30%): Trim hard; delete throat-clearing; tighten syntax.
+83-
+84:Compression — heavy (−45%): Sever redundancies; collapse repeats; keep core claims.
+85-
+86-DECREASE BY 50%: REDUCE THE LENGTH BY HALF WHILE PRESERVING MEANING 
+87-
+--
+126-
+127-Metric nudge: Replace “more/better” with a minimal, source-safe comparator (“more than last case”).
+128-
+129:Asymmetry & Focus
+130-Asymmetric emphasis: Linger on the main claim; compress secondary points sharply.
+131-
+132-Cull repeats: Delete duplicated sentences/ideas; keep the strongest instance.
+--
+148-Entity lock: Keep names, counts, and attributions exactly as given.
+149-
+150-Combo presets (one-liners)
+151:Lean & Sharp: Compression-medium + mixed cadence + imply one step + kill stock transitions.
+152-
+153-Analytic: Clause surgery + front-load claim + scope check + exact nouns + no lists.
+154-
+--
+622-
+623-Ross’s Paradox
+624-
+625:If your room is clean, it follows that either your room is clean or the house has burned down. The strong entails the weak. But if I order you to clean your room, you are not complying if you either clean your room or burn down the house. Where ‘imperatival logic’ is concerned, the strong appears not to entail the weak. This asymmetry between alethic and imperatival logic is known as Ross’s Paradox. 
+626:Why this asymmetry? Because whereas statements have a word-to-world direction of fit, meaning that the speech-act must conform to the world, imperatives have a world-to-word direction of fit, meaning that the world must conform to the speech-act. A consequence is that in the logic of imperatives, validity flows from the general to the specific, not from the specific to the general, as with statement-logic. If I tell you “either clean your room or burn down the house”, you are complying with my command if you burn down the house, since you have thereby created a state of affairs that validates the proposition expressed in my command (namely, you either you clean your room or burn down the house). Not so if I tell you, “clean your room” and you burn down the house. But if I correctly say “your room is clean”, the world has already supplied us with a state of affairs that validates “either your room is clean or the house has burned down.” 
+627-To sum up: When direction-of-fit is from word-to-world, the general follows from the specific, but when direction-of-fit is from world-to-word, the specific follows from the general. 
+628-
+629-The Lottery Paradox 
+
+client/src/components/gpt-bypass/GPTBypassSectionNew.tsx
+20-  { id: 'Local disfluency', name: 'Local disfluency', category: 'Advanced', description: 'Keep one redundant or slightly awkward phrase that still makes sense.' },
+21-  { id: 'Analogy injection', name: 'Analogy injection', category: 'Advanced', description: 'Insert a short, concrete comparison to something unrelated but illustrative.' },
+22-  { id: 'Topic snap', name: 'Topic snap', category: 'Advanced', description: 'Abruptly shift focus once, then return.' },
+23:  { id: 'Friction detail', name: 'Friction detail', category: 'Advanced', description: 'Drop in a small, seemingly unnecessary but real-world-plausible detail.' },
+24:  { id: 'Compression — light (−15%)', name: 'Compression — light (−15%)', category: 'Core', description: 'Cut filler; merge short clauses; keep meaning. Target ≈15% shorter.' },
+25:  { id: 'Compression — medium (−30%)', name: 'Compression — medium (−30%)', category: 'Core', description: 'Trim hard; delete throat-clearing; tighten syntax. Target ≈30% shorter.' },
+26:  { id: 'Compression — heavy (−45%)', name: 'Compression — heavy (−45%)', category: 'Core', description: 'Sever redundancies; collapse repeats; keep core claims. Target ≈45% shorter.' },
+27-  { id: 'Mixed cadence', name: 'Mixed cadence', category: 'Core', description: 'Alternate short (5–12 words) and long (20–35 words) sentences; avoid uniform rhythm.' },
+28-  { id: 'Clause surgery', name: 'Clause surgery', category: 'Core', description: 'Reorder main/subordinate clauses in ~30% of sentences without changing meaning.' },
+29-  { id: 'Front-load claim', name: 'Front-load claim', category: 'Core', description: 'Put the main conclusion in sentence 1; evidence follows.' },
+--
+48-  { id: 'Quote once', name: 'Quote once', category: 'Core', description: 'If the source has a strong phrase, quote it once; otherwise skip.' },
+49-  { id: 'Claim lock', name: 'Claim lock', category: 'Core', description: 'Do not add examples, scenarios, or data not present in the source.' },
+50-  { id: 'Entity lock', name: 'Entity lock', category: 'Core', description: 'Keep names, counts, and attributions exactly as given.' },
+51:  { id: 'Lean & Sharp', name: 'Lean & Sharp', category: 'Combo', description: 'Compression — medium (−30%); Mixed cadence; Imply one step; Kill stock transitions' },
+52-  { id: 'Analytic', name: 'Analytic', category: 'Combo', description: 'Clause surgery; Front-load claim; Scope check; Exact nouns; No lists' },
+53-];
+54-
+--
+568-          </CardContent>
+569-        </Card>
+570-
+571:        {/* BOX C: Humanized Output */}
+572-        <Card className="border-2">
+573-          <CardHeader className="pb-3">
+574-            <CardTitle className="text-lg font-semibold text-purple-600 flex items-center justify-between">
+575:              <span>BOX C: Humanized Output</span>
+576-              {outputAiScore !== null && (
+577-                <Badge variant={outputAiScore > 50 ? "destructive" : "secondary"} className="text-sm">
+578-                  {outputAiScore}% AI
+--
+603-          </CardHeader>
+604-          <CardContent>
+605-            <Textarea
+606:              placeholder="Humanized text will appear here..."
+607-              value={outputText}
+608-              onChange={(e) => {
+609-                setOutputText(e.target.value);
+--
+727-            </Select>
+728-          </div>
+729-
+730:          {/* Humanize Button */}
+731-          <Button
+732-            onClick={handleRewrite}
+733-            disabled={!inputText.trim() || isLoading}
+--
+736-            {isLoading ? (
+737-              <>
+738-                <div className="animate-spin mr-2 h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+739:                HUMANIZING...
+740-              </>
+741-            ) : (
+742-              <>
+743-                <Zap className="w-5 h-5 mr-2" />
+744:                HUMANIZE TEXT
+745-              </>
+746-            )}
+747-          </Button>

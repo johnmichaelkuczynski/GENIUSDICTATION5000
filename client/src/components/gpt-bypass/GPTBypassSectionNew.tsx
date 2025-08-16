@@ -52,70 +52,65 @@ const INSTRUCTION_PRESETS = [
   { id: 'Analytic', name: 'Analytic', category: 'Combo', description: 'Clause surgery; Front-load claim; Scope check; Exact nouns; No lists' },
 ];
 
-// Complete writing sample library
+// Complete writing sample library with ALL samples from the provided file
 const WRITING_SAMPLES = {
   academic: [
     {
       id: 'formal-functional',
-      name: 'Formal & Functional Relationships',
+      name: 'FORMAL AND FUNCTIONAL RELATIONSHIPS (Content-Neutral)',
       preview: 'There are two broad types of relationships: formal and functional...',
-      content: `There are two broad types of relationships: formal and functional. Formal relationships hold between descriptions. A description is any statement that can be true or false. Example of a formal relationship: The description that a shape is a square cannot be true unless the description that it has four equal sides is true. Therefore, a shape's being a square depends on its having four equal sides. Functional relationships hold between events or conditions. (An event is anything that happens at a specific time; a condition is anything that can change over time.) Example of a functional relationship: A switch's being in the on position causes the light bulb connected to it to be lit. Therefore, the light bulb's being lit depends on the switch's being in the on position.`,
-      category: 'academic'
-    },
-    {
-      id: 'hume-argument',
-      name: 'Hume\'s Argument Analysis',
-      preview: 'We haven\'t yet refuted Hume\'s argument; we\'ve only taken the first step...',
-      content: `We haven't yet refuted Hume's argument; we've only taken the first step towards doing so. Hume could still respond by saying that even if we accept that there are necessary connections in nature, we still can't know what they are just by examining individual instances. The problem is that when we observe correlations between events, we can't tell which correlations reflect genuine causal connections and which are merely accidental. This is a deeper problem than the one we've been addressing.`,
-      category: 'academic'
-    },
-    {
-      id: 'knowledge-awareness',
-      name: 'Knowledge vs Awareness',
-      preview: 'Knowledge is conceptually articulated awareness...',
-      content: `Knowledge is conceptually articulated awareness. In order for me to know that there is a book on the table, I must be aware that there is a book on the table, and I must be able to articulate this awareness conceptually (i.e., I must possess the concepts book, table, spatial relation, etc.). But knowledge requires more than just conceptually articulated awareness. It also requires that my conceptually articulated awareness be accurate or true.`,
-      category: 'academic'
-    },
-    {
-      id: 'raven-paradox',
-      name: 'The Raven Paradox',
-      preview: 'Presumably, logically equivalent statements are confirmationally equivalent...',
-      content: `Presumably, logically equivalent statements are confirmationally equivalent. In other words, if two statements entail each other, then anything that one confirms the one statement to a given degree also confirms the other statement to that degree. But this actually seems false when consider statement-pairs such as: (i) All ravens are black, and (ii) All non-black things are non-ravens, which, though logically equivalent, seem to confirmationally equivalent, in that a non-black non-raven confirms (ii) to a high degree but confirms (i) to no degree or at most to a low degree.`,
+      content: `CONTENT-NEUTRAL 
+
+FORMAL AND FUNCTIONAL RELATIONSHIPS 
+
+There are two broad types of relationships: formal and functional.
+Formal relationships hold between descriptions. A description is any statement that can be true or false.
+Example of a formal relationship: The description that a shape is a square cannot be true unless the description that it has four equal sides is true. Therefore, a shape's being a square depends on its having four equal sides.
+
+Functional relationships hold between events or conditions. (An event is anything that happens in time.)
+Example of a functional relationship: A plant cannot grow without water. Therefore, a plant's growth depends on its receiving water.
+
+The first type is structural, i.e., it holds between statements about features.
+The second is operational, i.e., it holds between things in the world as they act or change.
+
+Descriptions as objects of consideration
+The objects of evaluation are descriptions. Something is not evaluated unless it is described, and it is not described unless it can be stated. One can notice non-descriptions — sounds, objects, movements — but in the relevant sense one evaluates descriptions of them.
+
+Relationships not known through direct observation
+Some relationships are known, not through direct observation, but through reasoning. Such relationships are structural, as opposed to observational. Examples of structural relationships are:
+
+If A, then A or B.
+
+All tools require some form of use.
+
+Nothing can be both moving and perfectly still.
+
+There are no rules without conditions.
+
+1 obviously expresses a relationship; 2–4 do so less obviously, as their meanings are:
+
+2*. A tool's being functional depends on its being usable.
+3*. An object's being both moving and still depends on contradictory conditions, which cannot occur together.
+4*. The existence of rules depends on the existence of conditions to which they apply.
+
+Structural truth and structural understanding
+Structural understanding is always understanding of relationships. Observational understanding can be either direct or indirect; the same is true of structural understanding.
+
+
+ALTERNATIVE ACCOUNT OF EXPLANATORY EFFICIENCY 
+
+A continuation of the earlier case will make it clear what this means and why it matters. Why doesn't the outcome change under the given conditions? Because, says the standard account, the key factor remained in place. But, the skeptic will counter, perhaps we can discard that account; perhaps there's an alternative that fits the observations equally well. But, I would respond, even granting for argument's sake that such an alternative exists, it doesn't follow that it avoids more gaps than the one it replaces. It doesn't follow that it is comparable from a trade-off standpoint to the original—that it reduces as many issues as the old view while introducing no more new ones. In fact, the opposite often holds. Consider the alternative mentioned earlier. The cost of that account—meaning what new puzzles it creates—is vastly greater than its value—meaning what old puzzles it removes. It would be difficult to devise an account inconsistent with the conventional one that, while still matching the relevant evidence, is equally efficient in explanatory terms. You can test this for yourself. If there is reason to think even one such account exists, it is not because it has ever been produced. That reason, if it exists, must be purely theoretical. And for reasons soon to be made clear, no such purely theoretical reason can justify accepting it. But there is a further difficulty for this—or, by a similar line of thought, for any non-standard—replacement of the conventional view. It is not at all clear that, once the relevant details are considered, the replacement is even logically possible. Taken on its own, a substitute account may describe a situation that seems coherent. It may not be contradictory in the strict sense. But that alone is not enough for it to serve as a viable model of the relevant information. Think of the range of underlying principles that would have to be set aside. Setting them aside, if possible at all, would create ripple effects. Consider the various interactions that would be altered, the balances disrupted, the exchanges prevented. Those interactions do not only sustain the single feature in question. Removing them would have many other consequences—events unrelated to the specific aim of the new model. And there is no assurance that these other consequences would be compatible, even in a purely formal sense, with the data the new account is supposed to capture as well as the conventional one it seeks to replace.
+
+EPISTEMOLOGY 
+
+RATIONAL BELIEF AND UNDERLYING STRUCTURE 
+
+When would it become rational to believe that, next time, you're more likely than not to roll this as opposed to that number—that, for example, you're especially likely to roll a 27? This belief becomes rational when, and only when, you have reason to believe that a 27-roll is favored by the structures involved in the game. And that belief, in its turn, is rational if you know that circumstances at all like the following obtain: *The dice are magnetically attracted to the 27-slot. *On any given occasion, you have an unconscious intention to roll a 27 (even though you have no conscious intention of doing this), and you're such a talented dice-thrower that, if you can roll a 27 if it is your (subconscious) intention to do so. *The 27-slot is much bigger than any of the other slots. In fact, it takes up so much space on the roulette wheel that the remaining spaces are too small for the ball to fit into them. You are rational to believe that you'll continue to roll 27s to the extent that your having thus far rolled multiple 27s in a row gives you reason to believe there to be some underlying structure favoring that outcome. And to the extent that a long run of 27-rolls doesn't give you such a reason, you are irrational to believe that you're any more (or any less) likely to roll a 27 than you are any other number. So, no matter how many consecutive 27s you roll, if you know with certainty that there is no underlying structure that would favor such an outcome, then you have no more reason to expect a 27 than you are a 5 or a 32. Put pedantically, it is only insofar as you have reason to believe in such a structure that you have reason to expect something that has the property of being a die thrown by you to have the property of landing in the 27-slot. Your knowing of many phi's that are psi's and of none that are not doesn't necessarily give you any reason to believe that the next phi you encounter will be a psi; it gives you such a reason only insofar as it gives you a reason to believe in some structure or mechanism that disposes phi's to be psi's. If you know on independent grounds that there is no such mechanism, no run of phi's that are psi's, no matter how long, gives you a reason to think that the next phi will be a psi. Thus, any case of induction by enumeration that isn't an instance of the gambler's fallacy involves the positing some mechanism or law that, were it to exist, would explain a certain concomitance—it involves, in other words, a case of inference to the best explanation. The best explanation of the fact that all known phi's are psi's is that, thanks to some mechanism or, in any case, principled connection of some kind or other, a thing's being a phi disposes it to be a psi. Hume's argument assumes that it is only through induction by enumeration that the past is any guide to the future. It assumes that, so far as we have any reason to believe that future phi's will be psi's, it is that past phi's have been psi's. But this assumption is dead wrong. The fact that past phi's were psi's, is not, in and of itself, reason to hold that future phi's will be psi's; it is such a reason only to the extent that it suggests some mechanism that disposes phi's to be psi's.`,
       category: 'academic'
     }
   ],
-  professional: [
-    {
-      id: 'business-report',
-      name: 'Executive Summary',
-      preview: 'The quarterly analysis reveals significant market trends...',
-      content: `The quarterly analysis reveals significant market trends that warrant immediate strategic consideration. Our primary metrics indicate a 23% increase in customer acquisition costs while retention rates have improved by 8% over the previous quarter. This divergence suggests that while we're attracting higher-quality customers, our acquisition channels may require optimization. The competitive landscape has shifted notably with three new entrants targeting our core demographic, necessitating a reassessment of our value proposition and pricing strategy.`,
-      category: 'professional'
-    },
-    {
-      id: 'technical-memo',
-      name: 'Technical Memorandum',
-      preview: 'Following our evaluation of the proposed system...',
-      content: `Following our evaluation of the proposed system architecture, we recommend proceeding with the microservices approach for the following reasons: scalability requirements exceed current monolithic capacity, team structure aligns with service boundaries, and deployment flexibility will reduce risk during updates. However, we must address service discovery complexity and implement robust monitoring before migration. The estimated timeline is 6 months with current resources.`,
-      category: 'professional'
-    }
-  ],
-  creative: [
-    {
-      id: 'narrative-essay',
-      name: 'Personal Narrative',
-      preview: 'The morning light filtered through the venetian blinds...',
-      content: `The morning light filtered through the venetian blinds, casting parallel shadows across the hardwood floor. I had been awake for hours, listening to the city wake up outside my window. First the delivery trucks, then the early commuters, and finally the steady hum of rush hour that would continue until evening. There was something oddly comforting about this routine, this predictable symphony of urban life that had become the soundtrack to my daily existence.`,
-      category: 'creative'
-    },
-    {
-      id: 'descriptive-piece',
-      name: 'Descriptive Writing',
-      preview: 'The marketplace buzzed with an energy that seemed almost electric...',
-      content: `The marketplace buzzed with an energy that seemed almost electric. Vendors called out their wares in melodious Arabic, their voices weaving together into a tapestry of commerce and community. The air was thick with the scent of cardamom and cinnamon, turmeric and fresh bread. Colorful fabrics hung from every stall, creating a canopy of silk and cotton that filtered the harsh desert sun into something warm and welcoming.`,
-      category: 'creative'
-    }
-  ]
+  professional: [],
+  creative: []
 };
 
 interface GPTBypassSectionNewProps {

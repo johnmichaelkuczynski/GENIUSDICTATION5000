@@ -1,0 +1,52 @@
+I pulled apart the upload (CANNED CONTENT.txt) and here’s what showed up:
+
+🔴 Confirmed “canned” / hard-coded returns
+
+Multiple spots in server/routes.ts, server/services/directAssessment.ts, server/services/textAssessment.ts, client/src/components/*AssessmentDialog.tsx have static `return "This text appears mostly human-written..." boilerplate strings
+.
+→ These are not LLM calls; they just return stock messages.
+
+server/services/azureSpeech.ts is hardcoding a list of voices instead of hitting the Azure API
+.
+
+🟢 Real LLM call scaffolds
+
+In server/services/anthropicAssessment.ts, perplexityAssessment.ts, and directAssessment.ts there are prompts with requirements like:
+“3. Deep-level analysis (conceptual depth, inferential continuity, semantic compression, logical architecture, originality) with supporting quotations”
+.
+→ These are genuine instruction payloads for Anthropic / Perplexity / OpenAI calls.
+
+server/services/aiProviders.ts and aiProviders_1755355694301.ts define metric-based rewrites (friction, compression, asymmetry, etc.)
+. These are transformation presets, not canned text.
+
+🚩 Where your app is being short-circuited
+
+Assessment layer: Instead of always calling Anthropic / Perplexity etc., some components (ManualAssessmentDialog, PreliminaryAssessmentDialog) just spit out canned strings.
+
+Speech layer: Voice list is hardwired, not fetched.
+
+UI hooks: useTransformation.ts is wired to check which model is selected, but may fall back to canned messages if no key is present.
+
+✅ How to verify live (at runtime)
+
+Run in your Replit shell:
+
+# Check if any "return" statements are longer than 50 chars (likely canned text)
+rg -n 'return\s\+"[^"]{50,}"' server client
+
+# Confirm actual API call code exists
+rg -n 'chat.completions|responses.create|/v1/chat/completions' server
+
+# Trace azureSpeech
+rg -n 'hardcod' server/services/azureSpeech.ts
+
+
+Then test:
+
+Temporarily comment out the canned return "This text appears mostly human-written..." lines.
+
+Rerun and confirm responses now come from the selected LLM instead of a stock phrase.
+
+👉 Bottom line: your suspicions are correct. Parts of the pipeline are bypassing the LLM with canned boilerplate. The hard-coded returns in the assessment and dialog components are the culprits. If you want everything to route through your “humanizer” logic, those static returns need to be removed or replaced with actual LLM calls.
+
+Do you want me to give you a clean, line-targeted removal list (file + line numbers) so you can strip out every canned return in one pass?

@@ -33,12 +33,7 @@ interface AIDetectionResult {
  */
 export async function detectAIContent(text: string): Promise<AIDetectionResult> {
   if (!text || text.trim().length < 10) {
-    return {
-      isAIGenerated: false,
-      probability: 0,
-      burstiness: 0,
-      humanLikelihood: "Not enough text to analyze"
-    };
+    throw new Error("INSUFFICIENT_TEXT_LENGTH");
   }
 
   try {

@@ -64,12 +64,17 @@ export async function generateSpeech(text: string): Promise<Buffer> {
  * This is a simplified implementation that returns a few predefined voices
  */
 export async function getAvailableVoices() {
-  // For simplicity, we're hardcoding a few common voices
-  // In a production app, you would call the Azure API to get the complete list
-  return [
-    { voice_id: 'en-US-JennyNeural', name: 'Jenny (Female)' },
-    { voice_id: 'en-US-GuyNeural', name: 'Guy (Male)' },
-    { voice_id: 'en-US-AriaNeural', name: 'Aria (Female)' },
-    { voice_id: 'en-GB-SoniaNeural', name: 'Sonia (British Female)' }
-  ];
+  const key = process.env.AZURE_SPEECH_KEY;
+  const region = process.env.AZURE_SPEECH_REGION;
+  if (!key || !region) {
+    throw new Error("AZURE_TTS_NOT_CONFIGURED");
+  }
+  const resp = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/voices/list`, {
+    method: "GET",
+    headers: { "Ocp-Apim-Subscription-Key": key }
+  });
+  if (!resp.ok) {
+    throw new Error(`AZURE_TTS_VOICES_ERROR:${resp.status}`);
+  }
+  return await resp.json();
 }

@@ -37,17 +37,8 @@ export function TextAssessmentDialog({
 
     let assessment = `Preliminary assessment: ${humanLikelihood}. `;
 
-    if (probability > 0.8) {
-      assessment += 'This text appears to be AI-generated with high confidence. Consider adding more personal style and voice to make it sound more authentic.';
-    } else if (probability > 0.6) {
-      assessment += 'This text likely contains AI-generated elements. You might want to revise for a more natural flow and unique expressions.';
-    } else if (probability > 0.4) {
-      assessment += 'This text shows a mix of AI and human-like elements. Adding more specific details and personal perspectives could improve it.';
-    } else if (probability > 0.2) {
-      assessment += 'This text appears mostly human-written. Minor refinements in style and structure could enhance it further.';
-    } else {
-      assessment += 'This text appears authentically human-written. It has good variation and natural language patterns.';
-    }
+    // No canned assessment logic - must use real API results only
+    throw new Error("CANNED_FALLBACK_BLOCKED: TextAssessmentDialog cannot fabricate results.");
 
     return assessment;
   };

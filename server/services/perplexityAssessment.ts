@@ -27,15 +27,13 @@ interface AssessmentResult {
  * @param text The text to analyze
  * @returns Assessment result with probability and human-readable assessment
  */
+export async function perplexityAssess(opts: { inputText: string; styleText?: string; params?: Record<string, unknown> }): Promise<AssessmentResult> {
+  return await assessWithPerplexity(opts.inputText);
+}
+
 export async function assessWithPerplexity(text: string): Promise<AssessmentResult> {
   if (!text || text.trim().length < 50) {
-    return {
-      isAIGenerated: false,
-      probability: 0,
-      burstiness: 0.5,
-      humanLikelihood: "Not enough text to analyze",
-      assessment: "The text is too short to provide a meaningful assessment."
-    };
+    throw new Error("INSUFFICIENT_TEXT_LENGTH");
   }
 
   try {

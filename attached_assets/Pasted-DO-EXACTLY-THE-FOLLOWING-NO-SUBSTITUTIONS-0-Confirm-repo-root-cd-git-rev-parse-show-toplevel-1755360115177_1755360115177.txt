@@ -1,0 +1,227 @@
+DO EXACTLY THE FOLLOWING — NO SUBSTITUTIONS
+0) Confirm repo root
+cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+1) KILL ALL CANNED RETURNS (they’re short-circuiting the LLM)
+1.1 Remove boilerplate “human-written” strings in server
+
+These exact strings appear in multiple files and must be deleted. They are returning stock text instead of calling an LLM, e.g. in server/routes.ts and server/services/*Assessment.ts
+.
+
+Edit server/services/directAssessment.ts:
+
+Find the final if/else that returns:
+
+This text appears mostly human-written...
+
+This text demonstrates characteristics of authentic human writing...
+
+Delete that entire conditional block.
+
+Replace it with:
+
+throw new Error("CANNED_FALLBACK_BLOCKED: directAssessment must route to provider call.");
+
+
+Edit server/services/textAssessment.ts:
+
+Same edit: remove the two canned return lines and replace with the same throw new Error(...)
+.
+
+Edit server/routes.ts:
+
+Locate the same two canned return lines and remove them, replace with:
+
+throw new Error("CANNED_FALLBACK_BLOCKED: route must not short-circuit assessment.");
+
+
+(These are near lines ~889–906 in your tree)
+.
+
+1.2 Remove boilerplate strings in client dialogs
+
+Edit client/src/components/ManualAssessmentDialog.tsx:
+
+Find the function that returns those same two boilerplate strings.
+
+Delete that function entirely or replace its body with:
+
+throw new Error("CANNED_FALLBACK_BLOCKED: ManualAssessmentDialog cannot fabricate results.");
+
+
+Edit client/src/components/PreliminaryAssessmentDialog.tsx:
+
+Do the same replacement as above
+.
+
+Rationale note (do not alter code for this): these canned returns are visible in your project and are the exact boilerplate lines cited above. They must not exist anywhere in the runtime path.
+
+2) FORCE ALL ASSESSMENTS THROUGH A SINGLE PROVIDER ROUTER
+
+Edit server/services/aiProviders.ts and append the following exact implementation to the bottom of the file (do not rename anything else in this file). This centralizes calls to Anthropic / Perplexity / OpenAI (direct) and prevents future shortcut returns.
+
+// ===== HARD-ROUTED PROVIDER GATEWAY (do not modify) =====
+import { anthropicAssess } from "./anthropicAssessment";
+import { perplexityAssess } from "./perplexityAssessment";
+import { directAssess } from "./directAssessment";
+
+type ProviderName = "Anthropic" | "Perplexity" | "OpenAI";
+
+export async function runAssessmentViaProvider(opts: {
+  provider: ProviderName;
+  inputText: string;
+  styleText?: string;
+  params?: Record<string, unknown>;
+}) {
+  const { provider, inputText, styleText, params } = opts;
+
+  if (!inputText || inputText.trim().length === 0) {
+    throw new Error("ASSESSMENT_INPUT_EMPTY");
+  }
+
+  switch (provider) {
+    case "Anthropic":
+      return await anthropicAssess({ inputText, styleText, params });
+    case "Perplexity":
+      return await perplexityAssess({ inputText, styleText, params });
+    case "OpenAI":
+      return await directAssess({ inputText, styleText, params });
+    default:
+      throw new Error(`UNSUPPORTED_PROVIDER:${String(provider)}`);
+  }
+}
+
+
+Edit server/services/directAssessment.ts:
+
+Ensure the file exports directAssess(...) with the exact signature used above (if not present, add a thin wrapper that performs the LLM call and returns the model’s content).
+
+Do not include any canned fallback text in this file after step 1.
+
+Edit any server handler that previously returned canned text (e.g., server/routes.ts where assessment endpoints are handled):
+
+Replace the now-deleted canned return with a call to:
+
+const provider = detectProviderFromRequest(req); // existing logic that inspects selected model
+const result = await runAssessmentViaProvider({
+  provider,
+  inputText: payload.input,
+  styleText: payload.styleText,
+  params: payload.params
+});
+return res.json(result);
+
+
+If detectProviderFromRequest doesn’t exist, inline a simple mapping from your selected model string to "Anthropic" | "Perplexity" | "OpenAI" (no defaults; missing => 400 error).
+
+3) DELETE AZURE VOICE HARDCODING
+
+Edit server/services/azureSpeech.ts:
+
+In getAvailableVoices(), remove the comment and the hardcoded array (“For simplicity, we’re hardcoding a few common voices…”) and replace with:
+
+export async function getAvailableVoices() {
+  const key = process.env.AZURE_SPEECH_KEY;
+  const region = process.env.AZURE_SPEECH_REGION;
+  if (!key || !region) {
+    throw new Error("AZURE_TTS_NOT_CONFIGURED");
+  }
+  const resp = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/voices/list`, {
+    method: "GET",
+    headers: { "Ocp-Apim-Subscription-Key": key }
+  });
+  if (!resp.ok) {
+    throw new Error(`AZURE_TTS_VOICES_ERROR:${resp.status}`);
+  }
+  return await resp.json();
+}
+
+
+This removes the “demo hardcode” and forces real API usage
+.
+
+4) BLOCK ANY OTHER “OFFLINE/MOCK/PREVIEW” BYPASSES
+
+Run these sweeps and fail the build if any matches remain:
+
+# Any mock/offline/cache preview traps
+rg -n --hidden -S -i -g '!.git' -g '!node_modules' \
+'canned|hardcod|static_response|__mocks__|responses\.json|useMock|offline|fallbackMode|preview|truncate|\.slice\(\s*0\s*,\s*2\d{2}\s*\)|maxChars' \
+server client
+
+# Any moderation/guardrail straightjackets inserted into prompts
+rg -n --hidden -S -i -g '!.git' -g '!node_modules' \
+'moderation|safe(ty)?|filter|sanitize|redact|blocklist|refuse|comply|policy' server/services
+
+
+If any of the above return hits inside the assessment path, delete the bypass or throw new Error("BYPASS_BLOCKED").
+(You already saw the canned strings in the files cited above; they must be gone
+.)
+
+5) ENFORCE “NO CANNED” AT RUNTIME
+
+Edit client/src/hooks/useTransformation.ts:
+
+Where model selection occurs (look for selectedAIModel.includes('Claude') / 'Perplexity')
+, add a guard:
+
+if (!apiKeyPresentForSelectedModel) {
+  throw new Error("NO_API_KEY_FOR_SELECTED_MODEL");
+}
+
+
+Do not insert any fallback text. If the key is missing, the UI should show a clear error card, not a fabricated result.
+
+6) INTEGRATION WIRES (server → client)
+
+Ensure assessment endpoints only return provider outputs or explicit errors. No strings like “This text appears mostly human-written…” anywhere in the request path.
+
+Ensure dialogs (ManualAssessmentDialog.tsx, PreliminaryAssessmentDialog.tsx) render server results or render the error; they must not synthesize content locally.
+
+7) QUICK AUDIT & TEST
+# 7.1 Verify no canned strings remain
+rg -n --hidden -S -i -g '!.git' -g '!node_modules' \
+'This text appears mostly human-written|This text demonstrates characteristics of authentic human writing'
+
+# 7.2 Verify router exists and is imported
+rg -n 'runAssessmentViaProvider' server
+
+# 7.3 Start app and run a real assessment (Anthropic / Perplexity / OpenAI)
+npm run dev
+
+
+Expected:
+
+If model + key are valid → you get full LLM output (with deep-level analysis requirements the prompts already specify)
+.
+
+If keys are missing → explicit error surfaced to UI.
+
+No more stock, feel-good boilerplate anywhere.
+
+8) COMMIT
+git add -A
+git commit -m "Purge canned logic, hard-route assessments to providers, require real Azure voices"
+git push
+
+Notes to the agent (do not soften or deviate):
+
+Do not reintroduce any placeholder “demo” returns.
+
+Do not add “safe” summaries or moderation wraps to the prompts.
+
+Do not create new client-side fallbacks. All assessment content must originate from the provider call.
+
+If any file still contains those two boilerplate sentences, delete them immediately. They were explicitly identified in:
+
+server/routes.ts (~889–906)
+
+server/services/directAssessment.ts (final return)
+
+server/services/textAssessment.ts (final return)
+
+client/src/components/ManualAssessmentDialog.tsx (local fallback)
+
+client/src/components/PreliminaryAssessmentDialog.tsx (local fallback)
+
+Replace every such occurrence with either a call to runAssessmentViaProvider(...) or an explicit thrown error that the UI surfaces verbatim.
