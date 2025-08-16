@@ -49,13 +49,10 @@ const PRESET_TEXT: Record<string,string> = {
   "Hedge once": "Use exactly one hedge: probably/roughly/more or less.",
   "Drop intensifiers": "Remove 'very/clearly/obviously/significantly'.",
   "Low-heat voice": "Prefer plain verbs; avoid showy synonyms.",
-  "One aside": "Allow one short parenthetical or em-dash aside; strictly factual.",
   "Concrete benchmark": "Replace one vague scale with a testable one (e.g., 'enough to X').",
   "Swap generic example": "If the source has an example, make it slightly more specific; else skip.",
   "Metric nudge": "Replace 'more/better' with a minimal, source-safe comparator (e.g., 'more than last case').",
-  "Asymmetric emphasis": "Linger on the main claim; compress secondary points sharply.",
   "Cull repeats": "Delete duplicated sentences/ideas; keep the strongest instance.",
-  "Topic snap": "Allow one abrupt focus change; no recap.",
   "No lists": "Output as continuous prose; remove bullets/numbering.",
   "No meta": "No prefaces/apologies/phrases like 'as requested'.",
   "Exact nouns": "Replace ambiguous pronouns with exact nouns.",
@@ -103,7 +100,7 @@ function buildRewritePrompt(params: {
 }): string {
   const hasStyle = !!(params.styleText && params.styleText.trim() !== "");
   const hasContent = !!(params.contentMixText && params.contentMixText.trim() !== "");
-  const defaultStyleSample = "DEFAULT STYLE SAMPLE (The Raven Paradox):\n\nPresumably, logically equivalent statements are confirmationally equivalent. In other words, if two statements entail each other, then anything that one confirms the one statement to a given degree also confirms the other statement to that degree. But this actually seems false when consider statement-pairs such as: \n\n(i) All ravens are black, \nand \n(ii) All non-black things are non-ravens, \n\nwhich, though logically equivalent, seem to confirmationally equivalent, in that a non-black non-raven confirms (ii) to a high degree but confirms (i) to no degree or at most to a low degree. \nA number of very contrived solutions to this paradox have been proposed, all of which either deny that there is a paradox or invent ad hoc systems of logic to validate the 'solution' in question. \nBut the real solution is clear. First of all, it is only principled generalizations that can be confirmed. Supposing that you assert (i) with the intention of affirming a principled as opposed to an accidental generalization, you are saying that instances of the property of being a raven grounds or causes instances of blackness. Read thus, (i) is most certainly not equivalent with (ii) or with any variation thereof.";
+  const defaultStyleSample = "There are two broad types of relationships: formal and functional. Formal relationships hold between descriptions. A description is any statement that can be true or false. Example of a formal relationship: The description that a shape is a square cannot be true unless the description that it has four equal sides is true. Therefore, a shape's being a square depends on its having four equal sides. Functional relationships hold between events or conditions. (An event is anything that happens at a specific time; a condition is anything that can change over time.) Example of a functional relationship: A switch's being in the on position causes the light bulb connected to it to be lit. Therefore, the light bulb's being lit depends on the switch's being in the on position.";
   
   const styleSample = hasStyle ? params.styleText! : defaultStyleSample;
 
@@ -182,8 +179,9 @@ export class AIProviderService {
         temperature: 0.7,
       });
 
-      console.log("🔥 Anthropic response received, length:", response.content[0].text?.length || 0);
-      return this.cleanMarkup(response.content[0].text || "");
+      const textContent = response.content.find(block => block.type === 'text')?.text || "";
+      console.log("🔥 Anthropic response received, length:", textContent.length);
+      return this.cleanMarkup(textContent);
     } catch (error: any) {
       console.error("🔥 ANTHROPIC API ERROR:", error);
       throw new Error(`Anthropic API error: ${error.message}`);
@@ -223,7 +221,7 @@ export class AIProviderService {
 
       const data = await response.json();
       return this.cleanMarkup(data.choices[0].message.content || "");
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Perplexity API error: ${error.message}`);
     }
   }
@@ -261,7 +259,7 @@ export class AIProviderService {
 
       const data = await response.json();
       return this.cleanMarkup(data.choices[0].message.content || "");
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`DeepSeek API error: ${error.message}`);
     }
   }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,16 @@ const countWords = (text: string): number => {
   return text.trim().split(/\s+/).filter(word => word.length > 0).length;
 };
 
-const DictationSection = () => {
+interface DictationSectionProps {
+  onSendToGPTBypass?: (text: string) => void;
+  receivedText?: string;
+}
+
+interface DictationSectionRef {
+  receiveText: (text: string) => void;
+}
+
+const DictationSection = forwardRef<DictationSectionRef, DictationSectionProps>(({ onSendToGPTBypass, receivedText }, ref) => {
   const {
     originalText,
     setOriginalText,
@@ -150,6 +159,39 @@ const DictationSection = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [showMathPreview, setShowMathPreview] = useState(false);
   const [isDictatingInstructions, setIsDictatingInstructions] = useState(false);
+  
+  // Handle received text from GPT Bypass
+  useEffect(() => {
+    if (receivedText) {
+      setOriginalText(receivedText);
+      toast({
+        title: "Text received from GPT Bypass",
+        description: "Text has been added to the input field.",
+      });
+    }
+  }, [receivedText, setOriginalText, toast]);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    receiveText: (text: string) => {
+      setOriginalText(text);
+      toast({
+        title: "Text received from GPT Bypass",
+        description: "Text has been added to the input field.",
+      });
+    }
+  }), [setOriginalText, toast]);
+
+  // Function to send text to GPT Bypass
+  const sendToGPTBypass = useCallback((text: string) => {
+    if (onSendToGPTBypass) {
+      onSendToGPTBypass(text);
+      toast({
+        title: "Text sent to GPT Bypass",
+        description: "Text has been transferred for humanization.",
+      });
+    }
+  }, [onSendToGPTBypass, toast]);
   
   // Extract graphs from processed text
   const extractedGraphs = useMemo(() => {
@@ -1352,6 +1394,17 @@ const DictationSection = () => {
                     >
                       <i className="ri-file-copy-line mr-1"></i> Copy
                     </Button>
+                    {onSendToGPTBypass && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
+                        onClick={() => sendToGPTBypass(originalText)}
+                        disabled={!originalText?.trim()}
+                      >
+                        <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
+                      </Button>
+                    )}
                   </div>
                 </div>
                 {/* AI Detection Button */}
@@ -1643,6 +1696,17 @@ const DictationSection = () => {
                       >
                         <i className="ri-file-pdf-line mr-1"></i> Download PDF
                       </Button>
+                      {onSendToGPTBypass && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
+                          onClick={() => sendToGPTBypass(processedText)}
+                          disabled={!processedText?.trim()}
+                        >
+                          <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
+                        </Button>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -2451,6 +2515,8 @@ const DictationSection = () => {
       />
     </section>
   );
-};
+});
+
+DictationSection.displayName = "DictationSection";
 
 export default DictationSection;
