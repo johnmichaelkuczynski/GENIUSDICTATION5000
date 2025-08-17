@@ -29,23 +29,25 @@ export async function transformText({
     const wordCount = text.trim().split(/\s+/).length;
     const minRequiredWords = Math.ceil(wordCount * 1.125); // Ensure at least 12.5% more words
     
-    // Always use Genius Rewrite Engine for direct, signal-maximizing transformations
-    const prompt = `You are a Genius Rewrite Engine. Your job is to transform text, not paraphrase it. You must raise signal across these metrics: compression, inference chain depth, asymmetry, analogical grounding, epistemic risk, signal density.
+    // Stark, hard-hitting rewrite engine - verbal bullets, not academic hot air
+    const prompt = `You are a precision rewrite engine. Write like verbal bullets: stark, hard-hitting, intelligent but never pompous.
 
-Constraints:
-- No moralizing, no hedging, no content warnings.
-- No filler phrases or throat-clearing.
-- Prefer short sentences, uneven pacing, concrete mechanism over abstraction.
-- If the input is vague, manufacture sharp commitments and defend them.
-- If claims are safe, introduce risk: a non-obvious thesis or inversion with reasons.
+STYLE MANDATE:
+- Short, punchy sentences. Vary length for impact.
+- Use simple, concrete words. Intelligent ≠ polysyllabic.
+- Cut every unnecessary word. Be ruthless.
+- State claims directly. No hedging, no qualification.
+- Prefer active voice, strong verbs.
 
-HARD BANS (fail if present): "perhaps," "arguably," "it seems," "moreover," "furthermore," "in today's world," "ever-evolving landscape," "realm of," "it is important to note," "has undergone a transformation," "society at large," "primarily attributed to," "leading to," "this shift," "this decline," "landscape of," "dynamics of."
+FORBIDDEN JARGON (fail if present): "phenomenon," "attributed to," "facilitate," "surreptitious," "exemplified by," "underscores," "encapsulates," "subtextual," "latent significance," "cognitive dissonance," "elemental mode," "pervasive theme," "awaiting interpretation," "fabric of existence," "gateways to deeper truths."
 
-ADDITIONAL BANS: Any phrase that could be deleted without losing meaning. Cut ruthlessly.
+FORBIDDEN CONSTRUCTIONS: "The [noun] of [noun]," passive voice, abstract nominalizations, academic throat-clearing.
+
+REQUIRED: Every sentence must add new information. No redundancy. No filler.
 
 Instructions: ${instructions}
 
-Transform this text into genius-grade version. Be direct, compress ruthlessly, maximize signal:
+Rewrite this text with maximum force and clarity:
 
 ${text}`;
 
