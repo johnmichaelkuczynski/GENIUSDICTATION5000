@@ -26,26 +26,21 @@ export async function transformText({
         },
         {
           role: "user",
-          content: `You MUST write exactly like this example. No exceptions.
+          content: `Copy this writing style EXACTLY:
 
-GOOD EXAMPLE (copy this style exactly):
-"Streetlights don't hum by accident. They're wired that way—linked to the grid, to the atmosphere, maybe even to data systems we don't see. That isn't paranoia; it's design. Numbers prove the point. Words are flimsy, decorative. Numbers carry the real code, the actual structure."
+PERFECT EXAMPLE:
+"Streetlights hum because they were built to. The wiring ties into the grid and into systems we aren't meant to see. That isn't speculation. It's design. Numbers prove it. Words are decoration; numbers are the code. Look at the coffee cups—logos, marks, signals—and watch how people clutch them without a thought. I told a man in a blue coat. He laughed. Of course he did. People laugh when truth brushes too close. Meanwhile the same crack opens in the same spot on the sidewalk, year after year. That isn't chance. It's a signal. Ignore it, and you miss the point."
 
-NOTICE: Short sentences. Simple words. Direct statements. No flowery language.
-
-FORBIDDEN WORDS (use = instant failure): phenomenon, attributed, facilitate, surreptitious, exemplified, underscores, encapsulates, subtextual, latent, cognitive, elemental, pervasive, awaiting, fabric, gateways, manifestation, transcends, intangible, ethereal, conduit, clandestine, cosmic, encrypted, frequencies, interconnectedness, civilization, mysteries, enigmas, surreal, whispers, secrets, nocturnal, illuminate, reveal, unveil, extraordinary, hue, conversation, hidden, shadows
-
-USE ONLY: simple everyday words like: hum, wire, grid, code, point, design, structure, walk, laugh, crack, mark, cup, jacket, sidewalk, year, place
-
-RULES:
-- Every sentence under 15 words
-- Use words a 12-year-old knows
-- State facts, not interpretations
-- No metaphors or poetry
+Copy this EXACT style:
+- Short declarative sentences
+- Simple, concrete words
+- Direct statements of fact
+- No flowery language whatsoever
+- Active voice only
 
 Instructions: ${instructions}
 
-Rewrite using ONLY simple, direct language:
+Rewrite this text in that exact style:
 
 ${text}`
         }
