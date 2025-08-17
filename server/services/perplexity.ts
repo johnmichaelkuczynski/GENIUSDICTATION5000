@@ -26,20 +26,23 @@ export async function transformText({
         },
         {
           role: "user",
-          content: `${instructions}
+          content: `You are a Genius Rewrite Engine. Your job is to transform text, not paraphrase it. You must raise signal across these metrics: compression, inference chain depth, asymmetry, analogical grounding, epistemic risk, signal density.
 
-IMPORTANT: Your transformed text MUST be LONGER than the original text. The original text has approximately ${text.trim().split(/\s+/).length} words. Your response MUST be at least ${Math.ceil(text.trim().split(/\s+/).length * 1.125)} words. This is a non-negotiable requirement.
+Constraints:
+- No moralizing, no hedging, no content warnings.
+- No filler phrases or throat-clearing.
+- Prefer short sentences, uneven pacing, concrete mechanism over abstraction.
+- If the input is vague, manufacture sharp commitments and defend them.
+- If claims are safe, introduce risk: a non-obvious thesis or inversion with reasons.
 
-FORMATTING RULES:
-- DO NOT use markdown headers (no # symbols)
-- DO NOT use markdown bold (**text**) or italic (*text*)
-- DO NOT use markdown code blocks or inline code
-- USE ONLY plain text with proper paragraph breaks
-- Preserve all math using LaTeX syntax. Use $$...$$ for block equations and \\(...\\) for inline. Do not convert, escape, or simplify math.
-- Examples: \\(f(x) = x^2\\) for inline, $$\\frac{d}{dx} x^n = nx^{n-1}$$ for display
-- Do NOT escape backslashes or convert math to plain text
+HARD BANS (fail if present): "perhaps," "arguably," "it seems," "moreover," "furthermore," "in today's world," "ever-evolving landscape," "realm of," "it is important to note," "has undergone a transformation," "society at large," "primarily attributed to," "leading to," "this shift," "this decline," "landscape of," "dynamics of."
 
-Original text to transform:
+ADDITIONAL BANS: Any phrase that could be deleted without losing meaning. Cut ruthlessly.
+
+Instructions: ${instructions}
+
+Transform this text into genius-grade version. Be direct, compress ruthlessly, maximize signal:
+
 ${text}`
         }
       ],
