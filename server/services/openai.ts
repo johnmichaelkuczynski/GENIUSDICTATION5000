@@ -29,25 +29,27 @@ export async function transformText({
     const wordCount = text.trim().split(/\s+/).length;
     const minRequiredWords = Math.ceil(wordCount * 1.125); // Ensure at least 12.5% more words
     
-    // Stark, hard-hitting rewrite engine - verbal bullets, not academic hot air
-    const prompt = `You are a precision rewrite engine. Write like verbal bullets: stark, hard-hitting, intelligent but never pompous.
+    // FORCE HEMINGWAY STYLE: Give concrete example, demand exact imitation
+    const prompt = `You MUST write exactly like this example. No exceptions.
 
-STYLE MANDATE:
-- Short, punchy sentences. Vary length for impact.
-- Use simple, concrete words. Intelligent ≠ polysyllabic.
-- Cut every unnecessary word. Be ruthless.
-- State claims directly. No hedging, no qualification.
-- Prefer active voice, strong verbs.
+GOOD EXAMPLE (copy this style exactly):
+"Streetlights don't hum by accident. They're wired that way—linked to the grid, to the atmosphere, maybe even to data systems we don't see. That isn't paranoia; it's design. Numbers prove the point. Words are flimsy, decorative. Numbers carry the real code, the actual structure."
 
-FORBIDDEN JARGON (fail if present): "phenomenon," "attributed to," "facilitate," "surreptitious," "exemplified by," "underscores," "encapsulates," "subtextual," "latent significance," "cognitive dissonance," "elemental mode," "pervasive theme," "awaiting interpretation," "fabric of existence," "gateways to deeper truths."
+NOTICE: Short sentences. Simple words. Direct statements. No flowery language.
 
-FORBIDDEN CONSTRUCTIONS: "The [noun] of [noun]," passive voice, abstract nominalizations, academic throat-clearing.
+FORBIDDEN WORDS (use = instant failure): phenomenon, attributed, facilitate, surreptitious, exemplified, underscores, encapsulates, subtextual, latent, cognitive, elemental, pervasive, awaiting, fabric, gateways, manifestation, transcends, intangible, ethereal, conduit, clandestine, cosmic, encrypted, frequencies, interconnectedness, civilization, mysteries, enigmas, surreal, whispers, secrets, nocturnal, illuminate, reveal, unveil, extraordinary, hue, conversation, hidden, shadows
 
-REQUIRED: Every sentence must add new information. No redundancy. No filler.
+USE ONLY: simple everyday words like: hum, wire, grid, code, point, design, structure, walk, laugh, crack, mark, cup, jacket, sidewalk, year, place
+
+RULES:
+- Every sentence under 15 words
+- Use words a 12-year-old knows
+- State facts, not interpretations
+- No metaphors or poetry
 
 Instructions: ${instructions}
 
-Rewrite this text with maximum force and clarity:
+Rewrite using ONLY simple, direct language:
 
 ${text}`;
 
