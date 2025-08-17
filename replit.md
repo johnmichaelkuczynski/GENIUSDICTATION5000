@@ -13,6 +13,8 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - Math graphing capabilities with SVG visualization
 
 ## Recent Changes
+- 2025-08-17: COMPLETED - Changed default instruction from academic puffery to clear, forceful, assertive writing
+- 2025-08-17: COMPLETED - New default: "MAKE IT CLEAR, FORCEFUL, CONCISE, AND WELL-REASONED. AVOID PUFFERY."
 - 2025-08-17: COMPLETED - Replaced terrible puffery-filled transformation logic with Genius Rewrite Engine system
 - 2025-08-17: COMPLETED - Eliminated banned phrases: "in the realm of," "has undergone a transformation," etc.
 - 2025-08-17: COMPLETED - Implemented direct, signal-maximizing writing approach across all AI providers

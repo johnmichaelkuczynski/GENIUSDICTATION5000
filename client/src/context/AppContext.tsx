@@ -69,7 +69,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dictationActive, setDictationActive] = useState(false);
   const [originalText, setOriginalText] = useState("");
   const [processedText, setProcessedText] = useState("");
-  const [customInstructions, setCustomInstructions] = useState("Rewrite in the style of an academic paper with a focus on theoretical frameworks. Expand on the implications for human-AI collaboration.");
+  const [customInstructions, setCustomInstructions] = useState("MAKE IT CLEAR, FORCEFUL, CONCISE, AND WELL-REASONED (BUT NOT PEDANTIC). ERR ON THE SIDE OF BEING OVERLY ASSERTIVE. IMPROVE LOGICAL STRUCTURE EXPLICITLY STATE HIDDEN PREMISES, WRITE ACCESSIBLY BUT NOT INFORMALLY. AVOID PUFFERY AND INDIRECT CONSTRUCTIONS.");
   const [useStyleReference, setUseStyleReference] = useState(true);
   const [useContentReference, setUseContentReference] = useState(true);
   const [selectedSpeechEngine, setSelectedSpeechEngine] = useState<SpeechEngine>(SpeechEngine.GLADIA);
