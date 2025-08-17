@@ -21,8 +21,19 @@ export enum AIModel {
 // Request/response schemas for API endpoints
 export const transformRequestSchema = z.object({
   text: z.string().min(1, "Text is required"),
-  engine: z.nativeEnum(AIModel),
-  userInstruction: z.string().optional(),
+  instructions: z.string().optional(),
+  model: z.nativeEnum(AIModel).default(AIModel.GPT_4O),
+  preset: z.string().optional(),
+  useStyleReference: z.boolean().optional(),
+  styleReferences: z.array(z.object({
+    name: z.string(),
+    active: z.boolean()
+  })).optional(),
+  useContentReference: z.boolean().optional(),
+  contentReferences: z.array(z.object({
+    name: z.string(),
+    active: z.boolean()
+  })).optional(),
   retainFormatting: z.boolean().default(false),
   includeGraphs: z.boolean().default(false),
 });

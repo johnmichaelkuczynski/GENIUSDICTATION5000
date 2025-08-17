@@ -37,7 +37,6 @@ import {
   generateSpeech,
   getAvailableVoices
 } from "./services/azureSpeech";
-import { detectAIContent } from "./services/gptzero";
 import { assessText } from "./services/textAssessment";
 import { directAssessText } from "./services/directAssessment";
 import { assessWithAnthropic } from "./services/anthropicAssessment";
@@ -51,7 +50,27 @@ import { sendProcessedText } from "./services/sendgrid";
 // GPT Bypass imports
 import { fileProcessorService } from "./services/fileProcessor";
 import { textChunkerService } from "./services/textChunker";
-import { gptZeroService } from "./services/gptZero";
+import { detectAIContent as detectAIContentFn } from "./services/gptzero";
+
+// Create a simple service wrapper for consistency
+const gptZeroService = {
+  analyzeText: async (text: string) => {
+    const result = await detectAIContentFn(text);
+    return {
+      aiScore: Math.round(result.probability * 100),
+      isAIGenerated: result.isAIGenerated,
+      humanLikelihood: result.humanLikelihood
+    };
+  },
+  analyzeBatch: async (texts: string[]) => {
+    const results = await Promise.all(texts.map(text => detectAIContentFn(text)));
+    return results.map(result => ({
+      aiScore: Math.round(result.probability * 100),
+      isAIGenerated: result.isAIGenerated,
+      humanLikelihood: result.humanLikelihood
+    }));
+  }
+};
 import { aiProviderService } from "./services/aiProviders";
 
 // Set up multer for file uploads
@@ -169,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { 
         text,
         instructions,
-        model = AIModel.GPT4O,
+        model = AIModel.GPT_4O,
         preset,
         useStyleReference,
         styleReferences,
@@ -766,7 +785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { text, voiceId } = result.data;
+      const { text, voice, speed } = result.data;
 
       // Check if Azure Speech credentials are available
       if (!process.env.AZURE_SPEECH_KEY || !process.env.AZURE_SPEECH_ENDPOINT) {
@@ -815,7 +834,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { text, provider = 'openai' } = result.data;
+      const { text } = result.data;
 
       // First, try using GPTZero if it's available
       if (process.env.GPTZERO_API_KEY) {
@@ -880,7 +899,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { gladiaKey, openaiKey, deepgramKey, elevenLabsKey, anthropicKey, perplexityKey, gptzeroKey } = result.data;
+      const { keys } = result.data;
+      const { gladiaKey, openaiKey, deepgramKey, elevenLabsKey, anthropicKey, perplexityKey, gptzeroKey } = keys;
 
       // In a real application, these would be stored in Replit Secrets
       // For the purposes of this demo, we're setting them in process.env
@@ -1124,14 +1144,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create new rewrite job using the previous output as input
       const rewriteJob = await storage.createRewriteJob({
         inputText: originalJob.outputText,
-        styleText: originalJob.styleText,
-        contentMixText: originalJob.contentMixText,
+        styleText: originalJob.styleText || undefined,
+        contentMixText: originalJob.contentMixText || undefined,
         customInstructions: customInstructions || originalJob.customInstructions,
         selectedPresets: selectedPresets || originalJob.selectedPresets,
         provider: provider || originalJob.provider,
         chunks: [],
         selectedChunkIds: [],
-        mixingMode: originalJob.mixingMode,
+        mixingMode: originalJob.mixingMode || undefined,
         inputAiScore: originalJob.outputAiScore,
         status: "processing",
       });
@@ -1144,7 +1164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           contentMixText: originalJob.contentMixText,
           customInstructions: customInstructions || originalJob.customInstructions,
           selectedPresets: selectedPresets || originalJob.selectedPresets,
-          mixingMode: originalJob.mixingMode,
+          mixingMode: originalJob.mixingMode || undefined,
         });
 
         // Analyze new output
@@ -1297,7 +1317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Chat error:', error);
       res.status(500).json({ 
-        error: `${provider.toUpperCase()} API Error: ${error.message}`,
+        error: `API Error: ${error.message}`,
         details: error.toString()
       });
     }
