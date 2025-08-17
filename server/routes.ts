@@ -821,7 +821,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ voices });
     } catch (error) {
       console.error("Error fetching voices:", error);
-      res.status(500).json({ error: "Failed to fetch voices" });
+      console.error("Error details:", error.message, error.stack);
+      res.status(500).json({ error: "Failed to fetch voices", details: error.message });
     }
   });
 

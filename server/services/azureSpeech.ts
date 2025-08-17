@@ -64,17 +64,43 @@ export async function generateSpeech(text: string): Promise<Buffer> {
  * This is a simplified implementation that returns a few predefined voices
  */
 export async function getAvailableVoices() {
-  const key = process.env.AZURE_SPEECH_KEY;
-  const region = process.env.AZURE_SPEECH_REGION;
-  if (!key || !region) {
-    throw new Error("AZURE_TTS_NOT_CONFIGURED");
+  try {
+    const key = process.env.AZURE_SPEECH_KEY;
+    const endpoint = process.env.AZURE_SPEECH_ENDPOINT;
+    
+    console.log("Azure credentials check:", { hasKey: !!key, hasEndpoint: !!endpoint, endpoint });
+    
+    if (!key || !endpoint) {
+      throw new Error("AZURE_TTS_NOT_CONFIGURED");
+    }
+    
+    // Extract region from endpoint URL (e.g., https://eastus.tts.speech.microsoft.com -> eastus)
+    const region = endpoint.match(/https:\/\/([^.]+)\.tts\.speech\.microsoft\.com/)?.[1];
+    console.log("Extracted region:", region);
+    
+    if (!region) {
+      throw new Error("INVALID_AZURE_SPEECH_ENDPOINT");
+    }
+    
+    const url = `https://${region}.tts.speech.microsoft.com/cognitiveservices/voices/list`;
+    console.log("Fetching voices from:", url);
+    
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: { "Ocp-Apim-Subscription-Key": key }
+    });
+    
+    console.log("Response status:", resp.status);
+    
+    if (!resp.ok) {
+      throw new Error(`AZURE_TTS_VOICES_ERROR:${resp.status}`);
+    }
+    
+    const voices = await resp.json();
+    console.log("Successfully fetched voices count:", voices.length);
+    return voices;
+  } catch (error) {
+    console.error("getAvailableVoices error:", error);
+    throw error;
   }
-  const resp = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/voices/list`, {
-    method: "GET",
-    headers: { "Ocp-Apim-Subscription-Key": key }
-  });
-  if (!resp.ok) {
-    throw new Error(`AZURE_TTS_VOICES_ERROR:${resp.status}`);
-  }
-  return await resp.json();
 }
