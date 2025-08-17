@@ -13,6 +13,10 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - Math graphing capabilities with SVG visualization
 
 ## Recent Changes
+- 2025-08-17: COMPLETED - Fixed TTS "Failed to fetch voices" error by resolving Azure Speech API format mismatch
+- 2025-08-17: COMPLETED - Added ElevenLabsVoice interface and transformed Azure voices for frontend compatibility
+- 2025-08-17: COMPLETED - Restored main text transformation functionality after schema validation fixes
+- 2025-08-17: COMPLETED - All core features now operational: text transformation, GPT Bypass, and TTS voices
 - 2025-08-16: COMPLETED - GPT Bypass functionality fixed with correct style transfer logic
 - 2025-08-16: COMPLETED - Replaced complex prompts with simple "rewrite in style of Box B" instruction
 - 2025-08-16: COMPLETED - Removed all preset/humanization filters that were blocking success
@@ -28,7 +32,7 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - 2025-06-18: COMPLETED - OCR with AI-powered extraction for superior accuracy
 
 ## Current Issues
-- None - all major features working correctly including GPT Bypass
+- None - all major features working correctly including GPT Bypass, main transformation, and TTS voices
 
 ## User Preferences
 - Focus on clean, readable text extraction without markup or code
