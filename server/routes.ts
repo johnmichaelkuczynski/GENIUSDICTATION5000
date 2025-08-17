@@ -815,8 +815,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Azure Speech credentials are not configured" });
       }
 
-      // Get available voices
-      const voices = await getAvailableVoices();
+      // Get available voices from Azure Speech
+      const azureVoices = await getAvailableVoices();
+      
+      // Transform Azure voices to ElevenLabs format for frontend compatibility
+      const voices = azureVoices.slice(0, 10).map((voice: any, index: number) => ({
+        voice_id: voice.ShortName || `azure-voice-${index}`,
+        name: voice.DisplayName || voice.LocalName || voice.Name || `Voice ${index + 1}`,
+        category: voice.Locale || 'General',
+        settings: {
+          stability: 0.5,
+          similarity_boost: 0.8,
+          style: 0.0,
+          use_speaker_boost: true
+        }
+      }));
       
       res.json({ voices });
     } catch (error) {

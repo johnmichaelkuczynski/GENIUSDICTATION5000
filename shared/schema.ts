@@ -171,3 +171,15 @@ export interface RewriteResponse {
   outputAiScore: number;
   jobId: string;
 }
+
+export interface ElevenLabsVoice {
+  voice_id: string;
+  name: string;
+  category?: string;
+  settings?: {
+    stability?: number;
+    similarity_boost?: number;
+    style?: number;
+    use_speaker_boost?: boolean;
+  };
+}
