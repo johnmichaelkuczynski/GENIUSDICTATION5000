@@ -50,9 +50,10 @@ export function ManualAssessmentDialog({
     psychologicalProfile?: string;
     rawResponse?: any;
   } | null>(null);
-  const [selectedModel, setSelectedModel] = useState<AssessmentModel>('openai');
+  const [selectedModel, setSelectedModel] = useState<AssessmentModel>('deepseek');
   const [expandedReport, setExpandedReport] = useState(false);
   const [availableModels, setAvailableModels] = useState({
+    deepseek: false,
     openai: false,
     anthropic: false,
     perplexity: false
@@ -68,13 +69,16 @@ export function ManualAssessmentDialog({
           const data = await response.json();
           
           setAvailableModels({
+            deepseek: data.services.deepseek,
             openai: data.services.openai,
             anthropic: data.services.anthropic,
             perplexity: data.services.perplexity
           });
           
-          // Set default model based on availability
-          if (data.services.openai) {
+          // Set default model based on availability - DeepSeek first
+          if (data.services.deepseek) {
+            setSelectedModel('deepseek');
+          } else if (data.services.openai) {
             setSelectedModel('openai');
           } else if (data.services.anthropic) {
             setSelectedModel('anthropic');

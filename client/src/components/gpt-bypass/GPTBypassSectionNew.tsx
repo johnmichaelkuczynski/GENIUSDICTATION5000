@@ -130,7 +130,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
   const [customInstructions, setCustomInstructions] = useState('');
   const [selectedPresets, setSelectedPresets] = useState<string[]>([]);
   const [selectedWritingSample, setSelectedWritingSample] = useState<string>('formal-functional');
-  const [provider, setProvider] = useState('anthropic');
+  const [provider, setProvider] = useState('deepseek');
   const [isLoading, setIsLoading] = useState(false);
   const [inputAiScore, setInputAiScore] = useState<number | null>(null);
   const [outputAiScore, setOutputAiScore] = useState<number | null>(null);

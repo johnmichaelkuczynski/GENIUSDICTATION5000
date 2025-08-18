@@ -29,6 +29,7 @@ const Settings = () => {
   const [elevenLabsKey, setElevenLabsKey] = useState("");
   const [anthropicKey, setAnthropicKey] = useState("");
   const [perplexityKey, setPerplexityKey] = useState("");
+  const [deepseekKey, setDeepseekKey] = useState("");
   const [isSavingKeys, setIsSavingKeys] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
   const [continuousDictation, setContinuousDictation] = useState(true);
@@ -50,6 +51,7 @@ const Settings = () => {
           elevenLabsKey: elevenLabsKey || undefined,
           anthropicKey: anthropicKey || undefined,
           perplexityKey: perplexityKey || undefined,
+          deepseekKey: deepseekKey || undefined,
         }),
       });
       
@@ -71,6 +73,7 @@ const Settings = () => {
       setElevenLabsKey("");
       setAnthropicKey("");
       setPerplexityKey("");
+      setDeepseekKey("");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -203,6 +206,16 @@ const Settings = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
+                        <SelectLabel>DeepSeek Models</SelectLabel>
+                        <SelectItem 
+                          value={AIModel.DEEPSEEK} 
+                          disabled={!apisConnected || !availableServices.deepseek}
+                        >
+                          {AIModel.DEEPSEEK} {!availableServices.deepseek && "(API Key Required)"}
+                        </SelectItem>
+                      </SelectGroup>
+                      
+                      <SelectGroup>
                         <SelectLabel>OpenAI Models</SelectLabel>
                         <SelectItem 
                           value={AIModel.GPT4O} 
@@ -263,6 +276,20 @@ const Settings = () => {
                 </div>
                 
                 <div className="grid gap-4 mt-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="deepseek-key">DeepSeek API Key (for DeepSeek models)</Label>
+                    <Input
+                      id="deepseek-key"
+                      type="password"
+                      placeholder="Enter your DeepSeek API key"
+                      value={deepseekKey}
+                      onChange={(e) => setDeepseekKey(e.target.value)}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Required for using DeepSeek models. Get a key at <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">platform.deepseek.com</a>.
+                    </p>
+                  </div>
+                
                   <div className="grid gap-2">
                     <Label htmlFor="anthropic-key">Anthropic API Key (for Claude models)</Label>
                     <Input

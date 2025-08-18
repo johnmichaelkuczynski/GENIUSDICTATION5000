@@ -2,12 +2,13 @@ import React from 'react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-export type AssessmentModel = 'openai' | 'anthropic' | 'perplexity';
+export type AssessmentModel = 'deepseek' | 'openai' | 'anthropic' | 'perplexity';
 
 interface AssessmentModelSelectorProps {
   selectedModel: AssessmentModel;
   onChange: (model: AssessmentModel) => void;
   availableModels: {
+    deepseek: boolean;
     openai: boolean;
     anthropic: boolean;
     perplexity: boolean;
@@ -35,6 +36,9 @@ export function AssessmentModelSelector({
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
+            <SelectItem value="deepseek" disabled={!availableModels.deepseek} className="font-medium">
+              DeepSeek (Chat)
+            </SelectItem>
             <SelectItem value="openai" disabled={!availableModels.openai} className="font-medium">
               OpenAI (GPT-4o)
             </SelectItem>

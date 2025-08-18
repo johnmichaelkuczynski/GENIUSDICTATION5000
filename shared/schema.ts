@@ -13,16 +13,17 @@ export enum SpeechEngine {
 
 // Enum for AI models
 export enum AIModel {
-  GPT_4O = "gpt-4o",
+  GPT4O = "gpt-4o",
   CLAUDE_SONNET = "claude-3-5-sonnet-20241022",
-  PERPLEXITY = "llama-3.1-sonar-small-128k-online"
+  PERPLEXITY = "llama-3.1-sonar-small-128k-online",
+  DEEPSEEK = "deepseek-chat"
 }
 
 // Request/response schemas for API endpoints
 export const transformRequestSchema = z.object({
   text: z.string().min(1, "Text is required"),
   instructions: z.string().optional(),
-  model: z.nativeEnum(AIModel).default(AIModel.GPT_4O),
+  model: z.nativeEnum(AIModel).default(AIModel.DEEPSEEK),
   preset: z.string().optional(),
   useStyleReference: z.boolean().optional(),
   styleReferences: z.array(z.object({

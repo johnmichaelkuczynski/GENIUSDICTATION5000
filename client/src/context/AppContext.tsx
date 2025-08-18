@@ -24,6 +24,7 @@ interface ApiServices {
   elevenLabs: boolean;
   anthropic: boolean;
   perplexity: boolean;
+  deepseek: boolean;
   mathpix: boolean;
   tesseract: boolean;
   texify: boolean;
@@ -73,7 +74,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [useStyleReference, setUseStyleReference] = useState(true);
   const [useContentReference, setUseContentReference] = useState(true);
   const [selectedSpeechEngine, setSelectedSpeechEngine] = useState<SpeechEngine>(SpeechEngine.GLADIA);
-  const [selectedAIModel, setSelectedAIModel] = useState<AIModel>(AIModel.GPT4O);
+  const [selectedAIModel, setSelectedAIModel] = useState<AIModel>(AIModel.DEEPSEEK);
   const [styleReferences, setStyleReferences] = useState<StyleReference[]>(defaultStyleReferences);
   const [contentReferences, setContentReferences] = useState<ContentReference[]>(defaultContentReferences);
   const [apisConnected, setApisConnected] = useState(false);
@@ -86,6 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     elevenLabs: false,
     anthropic: false,
     perplexity: false,
+    deepseek: false,
     mathpix: false,
     tesseract: false,
     texify: false
