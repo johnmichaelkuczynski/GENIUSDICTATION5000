@@ -5,7 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Mic, FileText, Trash2, CheckCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Upload, Mic, FileText, Trash2, CheckCircle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AnalysisResult {
@@ -26,6 +27,9 @@ export function IntelligenceAnalysisTool() {
   const [isDictating, setIsDictating] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [rewriteInstructions, setRewriteInstructions] = useState('');
+  const [showComparison, setShowComparison] = useState(false);
+  const [originalText, setOriginalText] = useState('');
+  const [rewrittenText, setRewrittenText] = useState('');
   const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, docType: 'A' | 'B') => {
@@ -213,9 +217,33 @@ export function IntelligenceAnalysisTool() {
     setDocumentBText('');
     setAnalysisResult(null);
     setRewriteInstructions('');
+    setShowComparison(false);
+    setOriginalText('');
+    setRewrittenText('');
     toast({
       title: "Reset complete",
       description: "All documents and results have been cleared.",
+    });
+  };
+
+  const acceptRewrite = () => {
+    setDocumentAText(rewrittenText);
+    setShowComparison(false);
+    setOriginalText('');
+    setRewrittenText('');
+    toast({
+      title: "Rewrite accepted",
+      description: "Document A has been updated with the rewritten text.",
+    });
+  };
+
+  const rejectRewrite = () => {
+    setShowComparison(false);
+    setOriginalText('');
+    setRewrittenText('');
+    toast({
+      title: "Rewrite rejected",
+      description: "Original text has been kept.",
     });
   };
 
@@ -249,11 +277,15 @@ export function IntelligenceAnalysisTool() {
       }
 
       const result = await response.json();
-      setDocumentAText(result.rewrittenText);
+      
+      // Store both texts for comparison
+      setOriginalText(documentAText);
+      setRewrittenText(result.rewrittenText);
+      setShowComparison(true);
       
       toast({
         title: "Rewrite complete",
-        description: "Text has been optimized for higher intelligence evaluation scores.",
+        description: "View the side-by-side comparison and choose which version to keep.",
       });
     } catch (error) {
       toast({
@@ -542,14 +574,80 @@ export function IntelligenceAnalysisTool() {
                     </div>
                   </TabsContent>
                 </Tabs>
-                <div className="mt-4 p-3 bg-green-900 text-green-100 rounded-lg text-sm border-2 border-green-600">
-                  <strong className="text-green-300">Debug Info:</strong> {JSON.stringify(analysisResult, null, 2)}
-                </div>
+
               </CardContent>
             </Card>
           )}
         </CardContent>
       </Card>
+
+      {/* Comparison Dialog */}
+      <Dialog open={showComparison} onOpenChange={setShowComparison}>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] w-full h-full">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Rewrite Comparison</DialogTitle>
+            <DialogDescription>
+              Review the original text and the optimized rewrite side by side. Choose which version to keep.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 grid grid-cols-2 gap-6 overflow-hidden">
+            {/* Original Text */}
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-slate-700">Original Text</h3>
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                  {originalText.split(/\s+/).filter(word => word.length > 0).length} words
+                </Badge>
+              </div>
+              <div className="flex-1 bg-slate-50 border-2 border-slate-200 rounded-lg p-4 overflow-y-auto">
+                <div className="whitespace-pre-wrap text-slate-800 leading-relaxed">
+                  {originalText}
+                </div>
+              </div>
+            </div>
+
+            {/* Rewritten Text */}
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-slate-700">Optimized Rewrite</h3>
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                  {rewrittenText.split(/\s+/).filter(word => word.length > 0).length} words
+                </Badge>
+              </div>
+              <div className="flex-1 bg-green-50 border-2 border-green-200 rounded-lg p-4 overflow-y-auto">
+                <div className="whitespace-pre-wrap text-slate-800 leading-relaxed">
+                  {rewrittenText}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4 pt-4 border-t">
+            <Button 
+              onClick={acceptRewrite}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            >
+              Accept Rewrite
+            </Button>
+            <Button 
+              onClick={rejectRewrite}
+              variant="outline"
+              className="flex-1 border-slate-300 hover:bg-slate-50"
+            >
+              Keep Original
+            </Button>
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowComparison(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

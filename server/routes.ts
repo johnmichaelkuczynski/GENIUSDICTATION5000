@@ -1510,7 +1510,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         provider
       });
       
-      res.json({ rewrittenText });
+      // Clean markup from rewritten text
+      const cleanedRewrittenText = cleanMarkup(rewrittenText);
+      
+      res.json({ rewrittenText: cleanedRewrittenText });
     } catch (error: any) {
       console.error('Intelligent rewrite error:', error);
       res.status(500).json({ error: error.message });

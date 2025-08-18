@@ -17,6 +17,8 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - 2025-08-18: COMPLETED - Made DeepSeek the default AI provider across entire application
 - 2025-08-18: COMPLETED - Updated all AI provider dropdowns and interfaces to include DeepSeek
 - 2025-08-18: COMPLETED - Intelligence Analysis Tool now fully functional with visible results
+- 2025-08-18: COMPLETED - Intelligent rewrite functionality with side-by-side comparison popup
+- 2025-08-18: COMPLETED - Removed debug info display and cleaned markup from rewrite output
 - 2025-08-17: COMPLETED - Implemented intelligence evaluation protocol with exact four-phase process
 - 2025-08-17: COMPLETED - Added originality evaluation using specified question sets
 - 2025-08-17: COMPLETED - Created /api/evaluate-intelligence and /api/evaluate-originality endpoints
