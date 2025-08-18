@@ -583,24 +583,24 @@ export function IntelligenceAnalysisTool() {
 
       {/* Comparison Dialog */}
       <Dialog open={showComparison} onOpenChange={setShowComparison}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] w-full h-full">
-          <DialogHeader>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] w-full h-full flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-2xl font-bold">Rewrite Comparison</DialogTitle>
             <DialogDescription>
               Review the original text and the optimized rewrite side by side. Choose which version to keep.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 grid grid-cols-2 gap-6 overflow-hidden">
+          <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
             {/* Original Text */}
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col min-h-0">
+              <div className="flex items-center justify-between mb-3 flex-shrink-0">
                 <h3 className="text-lg font-semibold text-slate-700">Original Text</h3>
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
                   {originalText.split(/\s+/).filter(word => word.length > 0).length} words
                 </Badge>
               </div>
-              <div className="flex-1 bg-slate-50 border-2 border-slate-200 rounded-lg p-4 overflow-y-auto">
+              <div className="flex-1 bg-slate-50 border-2 border-slate-200 rounded-lg p-4 overflow-y-auto min-h-0">
                 <div className="whitespace-pre-wrap text-slate-800 leading-relaxed">
                   {originalText}
                 </div>
@@ -608,14 +608,14 @@ export function IntelligenceAnalysisTool() {
             </div>
 
             {/* Rewritten Text */}
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col min-h-0">
+              <div className="flex items-center justify-between mb-3 flex-shrink-0">
                 <h3 className="text-lg font-semibold text-slate-700">Optimized Rewrite</h3>
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
                   {rewrittenText.split(/\s+/).filter(word => word.length > 0).length} words
                 </Badge>
               </div>
-              <div className="flex-1 bg-green-50 border-2 border-green-200 rounded-lg p-4 overflow-y-auto">
+              <div className="flex-1 bg-green-50 border-2 border-green-200 rounded-lg p-4 overflow-y-auto min-h-0">
                 <div className="whitespace-pre-wrap text-slate-800 leading-relaxed">
                   {rewrittenText}
                 </div>
@@ -624,7 +624,7 @@ export function IntelligenceAnalysisTool() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-4 border-t">
+          <div className="flex gap-4 pt-4 border-t flex-shrink-0">
             <Button 
               onClick={acceptRewrite}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white"
