@@ -72,6 +72,7 @@ const gptZeroService = {
   }
 };
 import { aiProviderService } from "./services/aiProviders";
+import { intelligentRewriteService } from "./services/intelligentRewrite";
 
 // Set up multer for file uploads
 const upload = multer({ 
@@ -130,6 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       azureSpeech: !!(azureSpeechKey && azureSpeechEndpoint),
       anthropic: !!anthropicKey,
       perplexity: !!perplexityKey,
+      deepseek: !!process.env.DEEPSEEK_API_KEY,
       gptzero: !!gptzeroKey,
       mathpix: mathpixConfigured,
       tesseract: tesseractAvailable
@@ -138,8 +140,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // At least one service must be available
     const connected = services.gladia || services.openai || services.deepgram;
     
-    // We need at least one AI service (OpenAI, Anthropic, or Perplexity) for text transformation
-    const aiConnected = services.openai || services.anthropic || services.perplexity;
+    // We need at least one AI service (OpenAI, Anthropic, Perplexity, or DeepSeek) for text transformation
+    const aiConnected = services.openai || services.anthropic || services.perplexity || services.deepseek;
     
     res.json({ connected: connected && aiConnected, services });
   });
@@ -1488,6 +1490,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result);
     } catch (error: any) {
       console.error('Originality evaluation error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Intelligent rewrite endpoint
+  app.post("/api/intelligent-rewrite", async (req, res) => {
+    try {
+      const { text, customInstructions, provider = 'deepseek' } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      console.log("Starting intelligent rewrite via API");
+      const rewrittenText = await intelligentRewriteService.rewrite({
+        text,
+        customInstructions,
+        provider
+      });
+      
+      res.json({ rewrittenText });
+    } catch (error: any) {
+      console.error('Intelligent rewrite error:', error);
       res.status(500).json({ error: error.message });
     }
   });

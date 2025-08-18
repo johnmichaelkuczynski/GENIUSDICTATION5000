@@ -24,6 +24,8 @@ export function IntelligenceAnalysisTool() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [isDictating, setIsDictating] = useState(false);
+  const [isRewriting, setIsRewriting] = useState(false);
+  const [rewriteInstructions, setRewriteInstructions] = useState('');
   const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, docType: 'A' | 'B') => {
@@ -210,10 +212,58 @@ export function IntelligenceAnalysisTool() {
     setDocumentAText('');
     setDocumentBText('');
     setAnalysisResult(null);
+    setRewriteInstructions('');
     toast({
       title: "Reset complete",
       description: "All documents and results have been cleared.",
     });
+  };
+
+  const runIntelligentRewrite = async () => {
+    if (!documentAText.trim()) {
+      toast({
+        title: "No text to rewrite",
+        description: "Please add text to Document A before running rewrite.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsRewriting(true);
+
+    try {
+      const response = await fetch('/api/intelligent-rewrite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: documentAText,
+          customInstructions: rewriteInstructions.trim() || undefined,
+          provider: selectedProvider,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Rewrite failed');
+      }
+
+      const result = await response.json();
+      setDocumentAText(result.rewrittenText);
+      
+      toast({
+        title: "Rewrite complete",
+        description: "Text has been optimized for higher intelligence evaluation scores.",
+      });
+    } catch (error) {
+      toast({
+        title: "Rewrite failed",
+        description: "There was an error rewriting the text.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRewriting(false);
+    }
   };
 
   return (
@@ -380,23 +430,41 @@ export function IntelligenceAnalysisTool() {
             </div>
           )}
 
+          {/* Rewrite Instructions */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-slate-600 mb-2 block">
+                Custom Rewrite Instructions (Optional)
+              </label>
+              <Textarea
+                placeholder="Leave empty for default intelligence optimization, or enter custom instructions..."
+                value={rewriteInstructions}
+                onChange={(e) => setRewriteInstructions(e.target.value)}
+                className="min-h-20"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Default: Optimize text for higher intelligence evaluation scores while preserving content.
+              </p>
+            </div>
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <Button 
               onClick={runIntelligenceAnalysis}
-              disabled={isAnalyzing}
+              disabled={isAnalyzing || isRewriting}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isAnalyzing ? 'Analyzing...' : 'Analyze Document'}
             </Button>
             <Button 
               onClick={runOriginalityAnalysis}
-              disabled={isAnalyzing}
+              disabled={isAnalyzing || isRewriting}
               className="bg-green-600 hover:bg-green-700"
             >
               How Well Does It Make Its Case?
             </Button>
-            <Button variant="outline" disabled={isAnalyzing}>
+            <Button variant="outline" disabled={isAnalyzing || isRewriting}>
               Assess Fiction
             </Button>
             <Select defaultValue="chunk-rewrite">
@@ -408,12 +476,17 @@ export function IntelligenceAnalysisTool() {
                 <SelectItem value="full-rewrite">Full Document Rewrite</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-green-600 hover:bg-green-700">
-              Rewrite
+            <Button 
+              onClick={runIntelligentRewrite}
+              disabled={isAnalyzing || isRewriting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isRewriting ? 'Rewriting...' : 'Rewrite'}
             </Button>
             <Button 
               variant="destructive"
               onClick={resetEverything}
+              disabled={isAnalyzing || isRewriting}
             >
               Reset Everything
             </Button>
