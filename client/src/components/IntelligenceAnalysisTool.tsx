@@ -140,6 +140,7 @@ export function IntelligenceAnalysisTool() {
       }
 
       const result = await response.json();
+      console.log('Analysis result received:', result);
       setAnalysisResult(result);
       toast({
         title: "Analysis complete",
@@ -435,35 +436,42 @@ export function IntelligenceAnalysisTool() {
                   </TabsList>
                   <TabsContent value="phase1">
                     <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
-                      {analysisResult.phase1Response}
+                      {analysisResult.phase1Response || 'No Phase 1 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="phase2">
                     <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
-                      {analysisResult.phase2Response}
+                      {analysisResult.phase2Response || 'No Phase 2 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="phase3">
                     <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
-                      {analysisResult.phase3Response}
+                      {analysisResult.phase3Response || 'No Phase 3 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="final">
                     <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
-                      {analysisResult.finalResult}
+                      {analysisResult.finalResult || 'No final result available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="scores">
                     <div className="grid grid-cols-2 gap-4">
-                      {Object.entries(analysisResult.scores).map(([key, score]) => (
-                        <div key={key} className="bg-slate-50 p-3 rounded-lg">
-                          <div className="font-medium">{key.replace('_', ' ').toUpperCase()}</div>
-                          <div className="text-2xl font-bold text-blue-600">{score}/100</div>
-                        </div>
-                      ))}
+                      {analysisResult.scores && Object.keys(analysisResult.scores).length > 0 ? (
+                        Object.entries(analysisResult.scores).map(([key, score]) => (
+                          <div key={key} className="bg-slate-50 p-3 rounded-lg">
+                            <div className="font-medium">{key.replace(/_/g, ' ').toUpperCase()}</div>
+                            <div className="text-2xl font-bold text-blue-600">{score}/100</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-2 text-slate-500">No scores available</div>
+                      )}
                     </div>
                   </TabsContent>
                 </Tabs>
+                <div className="mt-4 p-3 bg-slate-100 rounded-lg text-sm">
+                  <strong>Debug Info:</strong> {JSON.stringify(analysisResult, null, 2)}
+                </div>
               </CardContent>
             </Card>
           )}
