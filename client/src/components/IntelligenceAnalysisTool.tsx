@@ -435,22 +435,22 @@ export function IntelligenceAnalysisTool() {
                     <TabsTrigger value="scores">Scores</TabsTrigger>
                   </TabsList>
                   <TabsContent value="phase1">
-                    <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
+                    <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg text-black dark:text-black">
                       {analysisResult.phase1Response || 'No Phase 1 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="phase2">
-                    <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
+                    <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg text-black dark:text-black">
                       {analysisResult.phase2Response || 'No Phase 2 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="phase3">
-                    <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
+                    <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg text-black dark:text-black">
                       {analysisResult.phase3Response || 'No Phase 3 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="final">
-                    <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
+                    <div className="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg text-black dark:text-black">
                       {analysisResult.finalResult || 'No final result available'}
                     </div>
                   </TabsContent>
@@ -459,7 +459,7 @@ export function IntelligenceAnalysisTool() {
                       {analysisResult.scores && Object.keys(analysisResult.scores).length > 0 ? (
                         Object.entries(analysisResult.scores).map(([key, score]) => (
                           <div key={key} className="bg-slate-50 p-3 rounded-lg">
-                            <div className="font-medium">{key.replace(/_/g, ' ').toUpperCase()}</div>
+                            <div className="font-medium text-black dark:text-black">{key.replace(/_/g, ' ').toUpperCase()}</div>
                             <div className="text-2xl font-bold text-blue-600">{score}/100</div>
                           </div>
                         ))
@@ -469,7 +469,7 @@ export function IntelligenceAnalysisTool() {
                     </div>
                   </TabsContent>
                 </Tabs>
-                <div className="mt-4 p-3 bg-slate-100 rounded-lg text-sm">
+                <div className="mt-4 p-3 bg-slate-100 rounded-lg text-sm text-black dark:text-black">
                   <strong>Debug Info:</strong> {JSON.stringify(analysisResult, null, 2)}
                 </div>
               </CardContent>
