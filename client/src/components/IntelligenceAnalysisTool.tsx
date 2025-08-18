@@ -435,22 +435,22 @@ export function IntelligenceAnalysisTool() {
                     <TabsTrigger value="scores">Scores</TabsTrigger>
                   </TabsList>
                   <TabsContent value="phase1">
-                    <div className="whitespace-pre-wrap bg-gray-900 text-white p-4 rounded-lg border-2 border-gray-700">
+                    <div className="whitespace-pre-wrap bg-black text-green-400 p-6 rounded-lg border-4 border-green-500 font-mono text-lg">
                       {analysisResult.phase1Response || 'No Phase 1 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="phase2">
-                    <div className="whitespace-pre-wrap bg-gray-900 text-white p-4 rounded-lg border-2 border-gray-700">
+                    <div className="whitespace-pre-wrap bg-black text-cyan-400 p-6 rounded-lg border-4 border-cyan-500 font-mono text-lg">
                       {analysisResult.phase2Response || 'No Phase 2 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="phase3">
-                    <div className="whitespace-pre-wrap bg-gray-900 text-white p-4 rounded-lg border-2 border-gray-700">
+                    <div className="whitespace-pre-wrap bg-black text-yellow-400 p-6 rounded-lg border-4 border-yellow-500 font-mono text-lg">
                       {analysisResult.phase3Response || 'No Phase 3 response available'}
                     </div>
                   </TabsContent>
                   <TabsContent value="final">
-                    <div className="whitespace-pre-wrap bg-gray-900 text-white p-4 rounded-lg border-2 border-gray-700">
+                    <div className="whitespace-pre-wrap bg-black text-red-400 p-6 rounded-lg border-4 border-red-500 font-mono text-lg">
                       {analysisResult.finalResult || 'No final result available'}
                     </div>
                   </TabsContent>
@@ -458,9 +458,9 @@ export function IntelligenceAnalysisTool() {
                     <div className="grid grid-cols-2 gap-4">
                       {analysisResult.scores && Object.keys(analysisResult.scores).length > 0 ? (
                         Object.entries(analysisResult.scores).map(([key, score]) => (
-                          <div key={key} className="bg-blue-900 text-white p-3 rounded-lg border-2 border-blue-600">
-                            <div className="font-medium text-blue-200">{key.replace(/_/g, ' ').toUpperCase()}</div>
-                            <div className="text-2xl font-bold text-yellow-300">{score}/100</div>
+                          <div key={key} className="bg-purple-900 text-white p-4 rounded-lg border-4 border-purple-500">
+                            <div className="font-bold text-purple-200 text-xl">{key.replace(/_/g, ' ').toUpperCase()}</div>
+                            <div className="text-4xl font-black text-yellow-300">{score}/100</div>
                           </div>
                         ))
                       ) : (
