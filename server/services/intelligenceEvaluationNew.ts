@@ -48,9 +48,64 @@ WOULD SOMEBODY WHO HAD NOT READ IT, BUT WAS OTHERWISE EDUCATED AND INFORMED, COM
 WOULD SOMEBODY READING IT COME AWAY FROM THE EXPERIENCE WITH INSIGHTS THAT WOULD OTHERWISE BE HARD TO ACQUIRE THAT HOLD UP IN GENERAL? 
 OR WOULD WHATEVER HIS TAKEAWAY WAS HAVE VALIDITY ONLY RELATIVE TO VALIDITIES THAT ARE SPECIFIC TO SOME AUTHOR OR SYSTEM AND PROBABLY DO NOT HAVE MUCH OBJECTIVE LEGITIMACY?`;
 
+type AIProvider = 'openai' | 'anthropic' | 'deepseek' | 'perplexity';
+
 export class IntelligenceEvaluationService {
   
-  async evaluateIntelligence(text: string, provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity' = 'deepseek'): Promise<EvaluationResult> {
+  private async callAIProvider(provider: AIProvider, prompt: string): Promise<string> {
+    if (provider === 'openai') {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+      return response.choices[0].message.content || "";
+    } 
+    
+    if (provider === 'anthropic') {
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 4000,
+        temperature: 0.3,
+      });
+      const textContent = response.content.find(block => block.type === 'text')?.text || "";
+      return textContent;
+    }
+    
+    if (provider === 'deepseek') {
+      const deepseekOpenai = new OpenAI({
+        apiKey: process.env.DEEPSEEK_API_KEY || "default_key",
+        baseURL: "https://api.deepseek.com",
+      });
+      const response = await deepseekOpenai.chat.completions.create({
+        model: "deepseek-chat",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+      return response.choices[0].message.content || "";
+    }
+    
+    if (provider === 'perplexity') {
+      const perplexityOpenai = new OpenAI({
+        apiKey: process.env.PERPLEXITY_API_KEY || "default_key",
+        baseURL: "https://api.perplexity.ai",
+      });
+      const response = await perplexityOpenai.chat.completions.create({
+        model: "llama-3.1-sonar-small-128k-online",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+      return response.choices[0].message.content || "";
+    }
+    
+    throw new Error(`Unsupported AI provider: ${provider}`);
+  }
+  
+  async evaluateIntelligence(text: string, provider: AIProvider = 'deepseek'): Promise<EvaluationResult> {
     console.log("Starting intelligence evaluation for text of length:", text.length);
     
     // PHASE 1: Ask the questions
@@ -81,7 +136,7 @@ export class IntelligenceEvaluationService {
     };
   }
   
-  async evaluateOriginality(text: string, provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity' = 'deepseek'): Promise<EvaluationResult> {
+  async evaluateOriginality(text: string, provider: AIProvider = 'deepseek'): Promise<EvaluationResult> {
     console.log("Starting originality evaluation for text of length:", text.length);
     
     // PHASE 1: Ask the questions
@@ -112,7 +167,7 @@ export class IntelligenceEvaluationService {
     };
   }
 
-  private async phase1Evaluation(text: string, questions: string, provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity'): Promise<string> {
+  private async phase1Evaluation(text: string, questions: string, provider: AIProvider): Promise<string> {
     const prompt = `Answer these questions in connection with this text.
 
 ${questions}
@@ -128,27 +183,10 @@ Text to analyze:
 
 Provide a numerical score out of 100 for your overall assessment and also give a score out of 100.`;
 
-    if (provider === 'openai') {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-        max_tokens: 4000,
-      });
-      return response.choices[0].message.content || "";
-    } else {
-      const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 4000,
-        temperature: 0.3,
-      });
-      const textContent = response.content.find(block => block.type === 'text')?.text || "";
-      return textContent;
-    }
+    return await this.callAIProvider(provider, prompt);
   }
 
-  private async phase2Pushback(text: string, phase1Response: string, scores: Record<string, number>, questions: string, provider: 'openai' | 'anthropic'): Promise<string> {
+  private async phase2Pushback(text: string, phase1Response: string, scores: Record<string, number>, questions: string, provider: AIProvider): Promise<string> {
     const hasLowScores = Object.values(scores).some(score => score < 95);
     
     if (!hasLowScores) {
@@ -174,27 +212,10 @@ Text to analyze:
 
 Provide a numerical score out of 100 for your overall assessment.`;
 
-    if (provider === 'openai') {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-        max_tokens: 4000,
-      });
-      return response.choices[0].message.content || "";
-    } else {
-      const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 4000,
-        temperature: 0.3,
-      });
-      const textContent = response.content.find(block => block.type === 'text')?.text || "";
-      return textContent;
-    }
+    return await this.callAIProvider(provider, prompt);
   }
 
-  private async phase3VerifyScoring(phase2Response: string, provider: 'openai' | 'anthropic'): Promise<string> {
+  private async phase3VerifyScoring(phase2Response: string, provider: AIProvider): Promise<string> {
     const scores = this.extractScores(phase2Response);
     
     let verificationText = "Are your numerical scores consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? ";
@@ -211,24 +232,7 @@ Given this context, are you confident in your scores? Please provide your final 
 Previous response to consider:
 ${phase2Response}`;
 
-    if (provider === 'openai') {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-        max_tokens: 4000,
-      });
-      return response.choices[0].message.content || "";
-    } else {
-      const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 4000,
-        temperature: 0.3,
-      });
-      const textContent = response.content.find(block => block.type === 'text')?.text || "";
-      return textContent;
-    }
+    return await this.callAIProvider(provider, prompt);
   }
 
   private extractScores(response: string): Record<string, number> {

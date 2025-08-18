@@ -1463,7 +1463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("Starting intelligence evaluation via API");
-      const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluation.js');
+      const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluationNew.js');
       const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider);
       
       res.json(result);
@@ -1482,7 +1482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("Starting originality evaluation via API");
-      const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluation.js');
+      const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluationNew.js');
       const result = await intelligenceEvaluationService.evaluateOriginality(text, provider);
       
       res.json(result);

@@ -19,7 +19,7 @@ interface AnalysisResult {
 export function IntelligenceAnalysisTool() {
   const [documentAText, setDocumentAText] = useState('');
   const [documentBText, setDocumentBText] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState('openai');
+  const [selectedProvider, setSelectedProvider] = useState('deepseek');
   const [analysisMode, setAnalysisMode] = useState<'single' | 'compare'>('single');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -248,8 +248,10 @@ export function IntelligenceAnalysisTool() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="deepseek">DeepSeek</SelectItem>
                     <SelectItem value="openai">OpenAI</SelectItem>
                     <SelectItem value="anthropic">Anthropic</SelectItem>
+                    <SelectItem value="perplexity">Perplexity</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -258,7 +260,11 @@ export function IntelligenceAnalysisTool() {
                 <label className="text-sm font-medium text-slate-600 mb-2 block">
                   Provider Status:
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                    DeepSeek: {getProviderStatus('deepseek')}
+                  </Badge>
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
                     OpenAI: {getProviderStatus('openai')}
@@ -266,6 +272,10 @@ export function IntelligenceAnalysisTool() {
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
                     Anthropic: {getProviderStatus('anthropic')}
+                  </Badge>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                    Perplexity: {getProviderStatus('perplexity')}
                   </Badge>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
