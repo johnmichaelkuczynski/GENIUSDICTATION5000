@@ -1453,5 +1453,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }));
   });
   
+  // Intelligence Evaluation endpoints
+  app.post("/api/evaluate-intelligence", async (req, res) => {
+    try {
+      const { text, provider = 'openai' } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      console.log("Starting intelligence evaluation via API");
+      const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluation.js');
+      const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider);
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error('Intelligence evaluation error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/evaluate-originality", async (req, res) => {
+    try {
+      const { text, provider = 'openai' } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      console.log("Starting originality evaluation via API");
+      const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluation.js');
+      const result = await intelligenceEvaluationService.evaluateOriginality(text, provider);
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error('Originality evaluation error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
   return httpServer;
 }
