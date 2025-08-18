@@ -4,6 +4,7 @@ import DocumentDropzone from "@/components/DocumentDropzone";
 import StyleLibrarySection from "@/components/StyleLibrarySection";
 import ContentLibrarySection from "@/components/ContentLibrarySection";
 import { GPTBypassSectionNew } from "@/components/gpt-bypass/GPTBypassSectionNew";
+import { IntelligenceAnalysisTool } from "@/components/IntelligenceAnalysisTool";
 import { Separator } from "@/components/ui/separator";
 
 const Home = () => {
@@ -56,6 +57,20 @@ const Home = () => {
           onSendToMain={handleSendToMainApp}
           receivedText={textToGPTBypass}
         />
+      </div>
+      
+      {/* Separator between GPT Bypass and Intelligence Analysis */}
+      <div className="my-16">
+        <Separator className="my-8" />
+        <div className="text-center text-lg font-medium text-muted-foreground">
+          Intelligence Analysis Tool
+        </div>
+        <Separator className="my-8" />
+      </div>
+      
+      {/* Intelligence Analysis Tool Section */}
+      <div id="intelligence-analysis-section">
+        <IntelligenceAnalysisTool />
       </div>
     </>
   );
