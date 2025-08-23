@@ -149,7 +149,6 @@ const DictationSection = () => {
     }
   };
 
-  const presets = ["Academic", "Professional", "Creative", "Concise", "Elaborate"];
 
   return (
     <section className="mb-8">

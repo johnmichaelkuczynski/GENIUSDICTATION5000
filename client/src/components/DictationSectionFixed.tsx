@@ -1018,7 +1018,6 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
     }
   }, [toast, processDocument, setOriginalText]);
 
-  const presets = ["Academic", "Professional", "Creative", "Concise", "Elaborate"];
   
   // Content library functions
   const addCurrentTextAsDocument = () => {
@@ -1937,28 +1936,6 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
               <div className="flex flex-col space-y-4">
                 <h3 className="text-sm font-medium">Text Transformation</h3>
                 
-                {/* Preset Buttons */}
-                <div className="flex flex-wrap gap-2">
-                  {presets.map((preset) => (
-                    <Button
-                      key={preset}
-                      variant={selectedPreset === preset ? "default" : "outline"}
-                      size="sm"
-                      className="rounded-full px-3 py-1 text-xs"
-                      onClick={() => setSelectedPreset(preset)}
-                    >
-                      {preset}
-                    </Button>
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full px-3 py-1 text-xs flex items-center"
-                    onClick={() => setSelectedPreset("Custom")}
-                  >
-                    <i className="ri-add-line mr-1"></i> Custom
-                  </Button>
-                </div>
                 
                 {/* Custom Instructions */}
                 <div>
