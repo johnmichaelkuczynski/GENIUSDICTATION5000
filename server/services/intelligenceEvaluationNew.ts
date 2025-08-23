@@ -131,31 +131,36 @@ export class IntelligenceEvaluationService {
 
   // Comprehensive analysis - All phases
   async evaluateIntelligence(text: string, provider: AIProvider = 'deepseek'): Promise<EvaluationResult> {
-    console.log("Starting intelligence evaluation for text of length:", text.length);
+    console.log("🔥 STARTING COMPREHENSIVE INTELLIGENCE EVALUATION - text length:", text.length);
     
     // PHASE 1: Ask the questions
+    console.log("🚀 PHASE 1: Initial evaluation");
     const phase1Response = await this.phase1Evaluation(text, INTELLIGENCE_QUESTIONS, provider);
-    console.log("Phase 1 completed");
+    console.log("✅ Phase 1 completed");
     
     // Extract scores from phase 1
     const scores = this.extractScores(phase1Response);
+    console.log("📊 Extracted scores:", scores);
     
     // PHASE 2: Push back if scores are less than 95/100
+    console.log("🚀 PHASE 2: Pushback protocol");
     const phase2Response = await this.phase2Pushback(text, phase1Response, scores, INTELLIGENCE_QUESTIONS, provider);
-    console.log("Phase 2 completed");
+    console.log("✅ Phase 2 completed");
     
     // PHASE 3: Verify scoring consistency 
+    console.log("🚀 PHASE 3: Walmart metric verification");
     const phase3Response = await this.phase3VerifyScoring(phase2Response, provider);
-    console.log("Phase 3 completed");
+    console.log("✅ Phase 3 completed");
     
     // PHASE 4: Accept and report final result
-    const finalResult = phase3Response;
-    console.log("Phase 4 completed - evaluation finished");
+    console.log("🚀 PHASE 4: Final result compilation");
+    const finalResult = this.stripMarkdownFormatting(phase3Response);
+    console.log("✅ Phase 4 completed - COMPREHENSIVE EVALUATION FINISHED");
     
     return {
-      phase1Response,
-      phase2Response, 
-      phase3Response,
+      phase1Response: this.stripMarkdownFormatting(phase1Response),
+      phase2Response: this.stripMarkdownFormatting(phase2Response), 
+      phase3Response: this.stripMarkdownFormatting(phase3Response),
       finalResult,
       scores: this.extractScores(finalResult)
     };
@@ -271,15 +276,15 @@ Text:
     for (const [category, score] of Object.entries(scores)) {
       if (score < 95) {
         const outperformPercent = 100 - score;
-        pushbackText += `Your position is that ${outperformPercent}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that? `;
+        pushbackText += `YOUR POSITION IS THAT ${outperformPercent}/100 OUTPERFORM THE AUTHOR WITH RESPECT TO THE COGNITIVE METRIC DEFINED BY THE QUESTION: THAT IS YOUR POSITION, AM I RIGHT? AND ARE YOU SURE ABOUT THAT? `;
       }
     }
 
     const prompt = `${pushbackText}
 
-In saying this, I am not necessarily telling you to change your score, only to carefully consider it.
+IN SAYING THIS, I AM NOT NECESSARILY TELLING YOU TO CHANGE YOUR SCORE, ONLY TO CAREFULLY CONSIDER IT.
 
-Answer the following questions about the text DE NOVO:
+ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
 
 ${questions}
 
@@ -293,11 +298,11 @@ Text:
   private async phase3VerifyScoring(phase2Response: string, provider: AIProvider): Promise<string> {
     const scores = this.extractScores(phase2Response);
     
-    let verificationText = "Are your numerical scores (N/100, e.g. 99/100, 42/100) consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? ";
+    let verificationText = "ARE YOUR NUMERICAL SCORES (N/100, E.G. 99/100, 42/100) CONSISTENT WITH THE FACT THAT THOSE ARE TO BE TAKEN TO MEAN THAT (100-N) PEOPLE OUT OF 100 OUTPERFORM THE AUTHOR IN THE RELEVANT RESPECT? ";
     
     for (const [category, score] of Object.entries(scores)) {
       const peopleOutperforming = 100 - score;
-      verificationText += `So if a score of ${score}/100 is awarded to a paper, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person. `;
+      verificationText += `SO IF A SCORE OF ${score}/100 IS AWARDED TO A PAPER, THAT MEANS THAT ${peopleOutperforming}/100 PEOPLE IN WALMART ARE RUNNING RINGS AROUND THIS PERSON. `;
     }
 
     const prompt = `${verificationText}
