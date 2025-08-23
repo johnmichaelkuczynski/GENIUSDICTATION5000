@@ -150,210 +150,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Text transformation endpoint
   app.post("/api/transform", async (req, res) => {
-    // Helper functions for graph integration (defined within scope)
-    const findGraphInsertPosition = (text: string): number => {
-      const graphKeywords = [
-        'analysis', 'data', 'results', 'findings', 'trends', 'pattern', 
-        'model', 'simulation', 'spread', 'growth', 'dynamics', 'curve'
-      ];
-      
-      const sentences = text.split(/[.!?]+/);
-      
-      for (let i = 0; i < sentences.length; i++) {
-        const sentence = sentences[i].toLowerCase();
-        if (graphKeywords.some(keyword => sentence.includes(keyword))) {
-          const position = text.indexOf(sentences[i]) + sentences[i].length + 1;
-          return Math.min(position, text.length);
-        }
-      }
-      
-      const firstParagraph = text.indexOf('\n\n');
-      return firstParagraph > 0 ? firstParagraph + 2 : Math.floor(text.length / 3);
-    };
-
-    const insertGraphIntoText = (text: string, graphSvg: string, position: number): string => {
-      const beforeText = text.substring(0, position);
-      const afterText = text.substring(position);
-      
-      const graphSection = `\n\n**Figure: Mathematical Visualization**\n\n${graphSvg}\n\n*The above graph illustrates the mathematical relationship described in the analysis.*\n\n`;
-      
-      return beforeText + graphSection + afterText;
-    };
-
     try {
-      // Validate request
       const result = transformRequestSchema.safeParse(req.body);
       if (!result.success) {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { 
-        text,
-        instructions,
-        model = AIModel.GPT_4O,
-        preset,
-        useStyleReference,
-        styleReferences,
-        useContentReference,
-        contentReferences
-      } = result.data;
+      const { text, instructions, model = AIModel.GPT_4O } = result.data;
 
-      // Prepare style references if needed
-      let styleReferenceText = "";
-      if (useStyleReference && styleReferences && styleReferences.length > 0) {
-        const activeStyles = styleReferences.filter(style => style.active);
-        if (activeStyles.length > 0) {
-          styleReferenceText = `Use these style references: ${activeStyles.map(style => style.name).join(", ")}. `;
-        }
-      }
+      // Use the AI providers service with intelligence criteria
+      const aiProviders = new AIProviders();
       
-      // Prepare content references if needed
-      let contentReferenceText = "";
-      if (useContentReference && contentReferences && contentReferences.length > 0) {
-        const activeContents = contentReferences.filter(content => content.active);
-        if (activeContents.length > 0) {
-          contentReferenceText = `Use these content references for information: ${activeContents.map(content => content.name).join(", ")}. `;
-        }
-      }
+      // Determine provider based on model
+      let provider = 'openai'; // default
+      if (model.includes('Claude')) provider = 'anthropic';
+      else if (model.includes('Perplexity')) provider = 'perplexity'; 
+      else if (model.includes('DeepSeek')) provider = 'deepseek';
 
-      // Get preset instructions if applicable
-      let presetInstructions = "";
-      if (preset) {
-        switch (preset) {
-          case "Academic":
-            presetInstructions = "Rewrite in a formal academic style with proper citations, theoretical frameworks, and scholarly tone. Use precise terminology and maintain a third-person perspective.";
-            break;
-          case "Professional":
-            presetInstructions = "Transform into clear, concise professional writing suitable for business communication. Use direct language, remove unnecessary words, and organize with bullet points when appropriate.";
-            break;
-          case "Creative":
-            presetInstructions = "Rewrite with vivid imagery, varied sentence structure, and engaging narrative elements. Add metaphors and descriptive language to create a more immersive experience.";
-            break;
-          case "Concise":
-            presetInstructions = "Make the text as brief as possible while preserving all key information. Aim for at least 50% reduction in length without losing essential content.";
-            break;
-          case "Elaborate":
-            presetInstructions = "Expand on the ideas in the text, adding depth, examples, and explanations. Develop arguments more fully and explore implications of the statements.";
-            break;
-        }
-      }
+      const transformedText = await aiProviders.rewrite(provider, {
+        inputText: text,
+        customInstructions: instructions || ""
+      });
 
-      // Combine instructions
-      const combinedInstructions = [
-        styleReferenceText,
-        contentReferenceText,
-        presetInstructions,
-        instructions
-      ].filter(Boolean).join(" ");
-
-      // Determine which service to use based on the selected model
-      let transformedText = "";
-      
-      // Count words in the original text
-      const originalWordCount = text.trim().split(/\s+/).length;
-      
-      if (model.includes('Claude')) {
-        // Use Anthropic for Claude models
-        if (!process.env.ANTHROPIC_API_KEY) {
-          return res.status(400).json({ error: "Anthropic API key is not configured" });
-        }
-        transformedText = await anthropicTransform({
-          text,
-          instructions: combinedInstructions || "Rewrite this text to score significantly higher on an intelligence evaluation while preserving existing content. Optimize for: insightfulness (fresh perspectives not clichés), logical development and organization, skillful reasoning, organic point progression, fresh rather than clichéd ideas, precise technical language, real rather than institutional content, complex coherent internal logic, and clear unambiguous statements.",
-          model
-        });
-      } else if (model.includes('Perplexity')) {
-        // Use Perplexity for Llama models
-        if (!process.env.PERPLEXITY_API_KEY) {
-          return res.status(400).json({ error: "Perplexity API key is not configured" });
-        }
-        transformedText = await perplexityTransform({
-          text,
-          instructions: combinedInstructions || "Rewrite this text to score significantly higher on an intelligence evaluation while preserving existing content. Optimize for: insightfulness (fresh perspectives not clichés), logical development and organization, skillful reasoning, organic point progression, fresh rather than clichéd ideas, precise technical language, real rather than institutional content, complex coherent internal logic, and clear unambiguous statements.",
-          model
-        });
-      } else {
-        // Default to OpenAI for GPT models
-        if (!process.env.OPENAI_API_KEY) {
-          return res.status(400).json({ error: "OpenAI API key is not configured" });
-        }
-        transformedText = await openaiTransform({
-          text,
-          instructions: combinedInstructions || "Rewrite this text to score significantly higher on an intelligence evaluation while preserving existing content. Optimize for: insightfulness (fresh perspectives not clichés), logical development and organization, skillful reasoning, organic point progression, fresh rather than clichéd ideas, precise technical language, real rather than institutional content, complex coherent internal logic, and clear unambiguous statements.",
-          model
-        });
-      }
-      
-      // Verify that the transformed text is longer than the original
-      const transformedWordCount = transformedText.trim().split(/\s+/).length;
-      
-      if (transformedWordCount <= originalWordCount) {
-        console.warn(`AI model failed to produce longer text. Original: ${originalWordCount} words, Transformed: ${transformedWordCount} words. Retrying...`);
-        
-        // Add more explicit instructions for longer text and retry
-        const retryInstructions = `${combinedInstructions || "Improve this text"} CRITICAL: Your response MUST be significantly longer than the original text. Add more details, examples, and explanations to make the text longer.`;
-        
-        if (model.includes('Claude')) {
-          transformedText = await anthropicTransform({
-            text,
-            instructions: retryInstructions,
-            model
-          });
-        } else if (model.includes('Perplexity')) {
-          transformedText = await perplexityTransform({
-            text,
-            instructions: retryInstructions,
-            model
-          });
-        } else {
-          transformedText = await openaiTransform({
-            text,
-            instructions: retryInstructions,
-            model
-          });
-        }
-        
-        // Check again
-        const retryWordCount = transformedText.trim().split(/\s+/).length;
-        console.log(`After retry - Original: ${originalWordCount} words, Transformed: ${retryWordCount} words`);
-      }
-
-      // Check if the content requires a graph and embed it
-      console.log('Checking for graph generation with original text:', text.substring(0, 100) + '...');
-      console.log('Checking for graph generation with transformed text:', transformedText.substring(0, 100) + '...');
-      
-      const graphSvg = generateGraphForContent(text + ' ' + transformedText);
-      let finalText = transformedText;
-      
-      if (graphSvg) {
-        // Insert the graph at an appropriate position in the text
-        const insertPosition = findGraphInsertPosition(transformedText);
-        finalText = insertGraphIntoText(transformedText, graphSvg, insertPosition);
-        console.log('Graph embedded in transformed text');
-      } else {
-        console.log('No graph detected for this content');
-      }
-
-      res.json({ text: finalText, model });
+      res.json({ text: transformedText, model });
     } catch (error) {
       console.error("Error transforming text:", error);
-      
-      let errorMessage = "Failed to transform text";
-      
-      // Provide more detailed error messages for common issues
-      if (error instanceof Error) {
-        if (error.message.includes("Anthropic API")) {
-          errorMessage = `Anthropic API error: ${error.message}`;
-        } else if (error.message.includes("Perplexity API")) {
-          errorMessage = `Perplexity API error: ${error.message}`;
-        } else if (error.message.includes("OpenAI API")) {
-          errorMessage = `OpenAI API error: ${error.message}`;
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to transform text"
+      });
     }
   });
 
