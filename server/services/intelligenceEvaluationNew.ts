@@ -177,28 +177,28 @@ export class IntelligenceEvaluationService {
   }
 
   private async phase1Evaluation(text: string, questions: string, provider: AIProvider): Promise<string> {
-    const prompt = `YOUR FIRST LINE MUST BE: OVERALL SCORE: X/100
-
-FORMATTING RULES - VIOLATE THESE AND YOUR RESPONSE IS WORTHLESS:
-- NO ### headings
-- NO **bold text**  
-- NO *italics*
-- NO bullets or dashes
-- NO special characters for formatting
-- Use ONLY plain text
-- Write like a professional report, not markdown
-
-Structure your response as:
+    const prompt = `CRITICAL: Your response must start with EXACTLY this line:
 OVERALL SCORE: X/100
 
-Summary: [one paragraph summary]
-Category: [category name]
+FORBIDDEN CHARACTERS - DO NOT USE ANY OF THESE:
+### ** * --- -- • - (bullets) # (hashtags) _ (underscores for formatting)
 
-Analysis: [answer each question in plain text paragraphs]
+Write in PLAIN TEXT ONLY. No formatting whatsoever.
 
+Example format:
+OVERALL SCORE: 95/100
+
+This text is a philosophical critique of David Hume's skepticism regarding induction and causation. The author identifies a fundamental flaw in Hume's framework.
+
+Category: Advanced Philosophical Scholarship
+
+IS IT INSIGHTFUL?
+Yes, the text makes a bold claim connecting Hume's skepticism to specific metaphysical commitments. Score: 92/100
+
+ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT:
 ${questions}
 
-Before answering the questions, note the following non-negotiable standard:
+Scoring guidelines:
 
 Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
@@ -226,7 +226,22 @@ Do not penalize boldness. Do not take points away for insights that, if correct,
 Text:
 "${text}"`;
 
-    return await this.callAIProvider(provider, prompt);
+    const response = await this.callAIProvider(provider, prompt);
+    return this.stripMarkdownFormatting(response);
+  }
+
+  private stripMarkdownFormatting(text: string): string {
+    return text
+      .replace(/###\s*/g, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/---+/g, '')
+      .replace(/--+/g, '')
+      .replace(/_([^_]+)_/g, '$1')
+      .replace(/#+\s*/g, '')
+      .replace(/^\s*[\-\*\+]\s+/gm, '')
+      .replace(/^\s*\d+\.\s+/gm, '')
+      .trim();
   }
 
   private async phase2Pushback(text: string, phase1Response: string, scores: Record<string, number>, questions: string, provider: AIProvider): Promise<string> {
@@ -255,7 +270,8 @@ ${questions}
 Text:
 "${text}"`;
 
-    return await this.callAIProvider(provider, prompt);
+    const response = await this.callAIProvider(provider, prompt);
+    return this.stripMarkdownFormatting(response);
   }
 
   private async phase3VerifyScoring(phase2Response: string, provider: AIProvider): Promise<string> {
@@ -273,7 +289,8 @@ Text:
 Previous response:
 ${phase2Response}`;
 
-    return await this.callAIProvider(provider, prompt);
+    const response = await this.callAIProvider(provider, prompt);
+    return this.stripMarkdownFormatting(response);
   }
 
   private extractScores(response: string): Record<string, number> {
