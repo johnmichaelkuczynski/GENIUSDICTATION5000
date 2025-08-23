@@ -87,18 +87,42 @@ export async function extractTextFromDocument(
   fileType: string
 ): Promise<string> {
   try {
+    console.log('Document extraction requested:', {
+      fileName,
+      fileType,
+      bufferSize: documentBuffer.length,
+      fileExtension: fileName.toLowerCase().substring(fileName.lastIndexOf('.'))
+    });
+    
     // Extract text based on document type
     if (fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+      console.log('Processing as PDF document');
       return extractTextFromPDF(documentBuffer);
     } else if (
       fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
       fileName.toLowerCase().endsWith('.docx')
     ) {
+      console.log('Processing as DOCX document');
       return extractTextFromDOCX(documentBuffer);
     } else if (fileType === 'text/plain' || fileName.toLowerCase().endsWith('.txt')) {
+      console.log('Processing as plain text document');
       return documentBuffer.toString('utf-8');
     } else {
-      throw new Error(`Unsupported file type: ${fileType}`);
+      console.log('Unsupported file type, attempting fallback');
+      // Check if this might be a Word document based on file signature
+      const fileSignature = documentBuffer.subarray(0, 8).toString('hex');
+      console.log('File signature:', fileSignature);
+      
+      // Common Word document signatures
+      if (fileSignature.startsWith('504b0304') || // ZIP signature (DOCX)
+          fileSignature.startsWith('d0cf11e0') || // OLE signature (DOC)
+          fileName.toLowerCase().endsWith('.doc') ||
+          fileName.toLowerCase().endsWith('.docx')) {
+        console.log('Detected Word document by signature, attempting DOCX extraction');
+        return extractTextFromDOCX(documentBuffer);
+      }
+      
+      throw new Error(`Unsupported file type: ${fileType} for file: ${fileName}`);
     }
   } catch (error) {
     console.error('Error extracting text from document:', error);
@@ -148,7 +172,21 @@ async function extractTextFromPDF(pdfBuffer: Buffer): Promise<string> {
  */
 async function extractTextFromDOCX(docxBuffer: Buffer): Promise<string> {
   try {
+    console.log('Starting DOCX extraction, buffer size:', docxBuffer.length);
+    console.log('Buffer first 50 bytes:', docxBuffer.subarray(0, 50));
+    console.log('Buffer as hex:', docxBuffer.subarray(0, 20).toString('hex'));
+    
     const result = await mammoth.extractRawText({ buffer: docxBuffer });
+    console.log('Mammoth extraction result:', {
+      textLength: result.value.length,
+      textPreview: result.value.substring(0, 200),
+      hasWarnings: result.messages && result.messages.length > 0
+    });
+    
+    if (result.messages && result.messages.length > 0) {
+      console.log('Mammoth warnings:', result.messages);
+    }
+    
     return result.value;
   } catch (error) {
     console.error('Error extracting text from DOCX:', error);
