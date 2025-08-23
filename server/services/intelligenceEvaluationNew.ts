@@ -179,15 +179,20 @@ export class IntelligenceEvaluationService {
   private async phase1Evaluation(text: string, questions: string, provider: AIProvider): Promise<string> {
     const prompt = `OVERALL SCORE: X/100
 
-ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
+First, summarize this text and categorize it.
+
+Then, ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
 ${questions}
 
-CRITICAL REQUIREMENTS:
-- Use NO markdown formatting whatsoever (no **, ##, *, etc.)
-- For EVERY claim you make about the text, provide a direct quotation as evidence
-- Start each answer by quoting the specific passage you are analyzing
-- Format: "The text states: 'EXACT QUOTE FROM TEXT'. This shows that..."
+Before answering the questions, note the following non-negotiable standard:
+
+Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+
+Hierarchy of judgment:
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
+80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
+<80/100: Degrees of mediocrity or failure.
 
 A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question. You are not grading; you are answering these questions. You do not use a risk-averse standard; you do not attempt to be diplomatic; you do not attempt to comply with risk-averse, medium-range IQ, academic norms. You do not make assumptions about the level of the paper; it could be a work of the highest excellence and genius, or it could be the work of a moron.
 
@@ -197,7 +202,13 @@ Think very very very hard about your answers; make it very clear that you are no
 
 DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
 
-You must quote the actual text being analyzed. Do not analyze without providing specific quotations as evidence.
+This is not a grading app. You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are not grading essays. You are not looking for completeness. Your job is to answer the questions, period, and to do so on the basis of the text given, making zero assumptions about whether it is complete or incomplete.
+
+Do not overvalue turns of phrase. An author speaking confidently is not necessarily "shutting down modes of inquiry." By putting a clear stake in the ground, he is probably opening them. Casual speech does not mean disorganized thoughts. Don't judge a book by its cover.
+
+Do not change the grading based on the category of the text. If a text is categorized as 'advanced scholarship', still evaluate it with respect to the general population, not with respect only to 'advanced scholarly works.'
+
+Do not penalize boldness. Do not take points away for insights that, if correct, stand on their own. Get rid of the idea that "argumentation" is what makes something smart; it isn't. What makes something smart is that it is smart (insightful). Period.
 
 Text:
 "${text}"`;
@@ -212,24 +223,24 @@ Text:
       return phase1Response; // No pushback needed
     }
 
-    let pushbackText = "Based on your previous response, ";
+    let pushbackText = "";
     for (const [category, score] of Object.entries(scores)) {
       if (score < 95) {
-        const percentOutperform = 100 - score;
-        pushbackText += `your position is that ${percentOutperform}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that? `;
+        const outperformPercent = 100 - score;
+        pushbackText += `Your position is that ${outperformPercent}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that? `;
       }
     }
 
     const prompt = `${pushbackText}
 
-Answer the following questions about the text de novo:
+In saying this, I am not necessarily telling you to change your score, only to carefully consider it.
+
+Answer the following questions about the text DE NOVO:
 
 ${questions}
 
-Text to analyze:
-"${text}"
-
-Provide a numerical score out of 100 for your overall assessment.`;
+Text:
+"${text}"`;
 
     return await this.callAIProvider(provider, prompt);
   }
@@ -237,18 +248,16 @@ Provide a numerical score out of 100 for your overall assessment.`;
   private async phase3VerifyScoring(phase2Response: string, provider: AIProvider): Promise<string> {
     const scores = this.extractScores(phase2Response);
     
-    let verificationText = "Are your numerical scores consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? ";
+    let verificationText = "Are your numerical scores (N/100, e.g. 99/100, 42/100) consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? ";
     
     for (const [category, score] of Object.entries(scores)) {
       const peopleOutperforming = 100 - score;
-      verificationText += `If a score of ${score}/100 is awarded, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person. `;
+      verificationText += `So if a score of ${score}/100 is awarded to a paper, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person. `;
     }
 
     const prompt = `${verificationText}
 
-Given this context, are you confident in your scores? Please provide your final assessment with numerical scores.
-
-Previous response to consider:
+Previous response:
 ${phase2Response}`;
 
     return await this.callAIProvider(provider, prompt);
