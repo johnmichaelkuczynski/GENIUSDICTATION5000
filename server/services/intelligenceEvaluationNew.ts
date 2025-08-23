@@ -179,6 +179,8 @@ export class IntelligenceEvaluationService {
   private async phase1Evaluation(text: string, questions: string, provider: AIProvider): Promise<string> {
     const prompt = `OVERALL SCORE: X/100
 
+CRITICAL FORMATTING REQUIREMENT: Use absolutely NO markdown formatting. No ### headings, no **bold**, no *italics*, no bullets, no special formatting whatsoever. Write in plain text only.
+
 First, summarize this text and categorize it.
 
 Then, ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
