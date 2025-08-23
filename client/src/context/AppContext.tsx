@@ -70,7 +70,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dictationActive, setDictationActive] = useState(false);
   const [originalText, setOriginalText] = useState("");
   const [processedText, setProcessedText] = useState("");
-  const [customInstructions, setCustomInstructions] = useState("Write like Hemingway meets hard news. Simple words only. Short sentences. Cut 50% of words. No academic language.");
+  const [customInstructions, setCustomInstructions] = useState("");
   const [useStyleReference, setUseStyleReference] = useState(true);
   const [useContentReference, setUseContentReference] = useState(true);
   const [selectedSpeechEngine, setSelectedSpeechEngine] = useState<SpeechEngine>(SpeechEngine.GLADIA);
