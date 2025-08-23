@@ -1280,7 +1280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Intelligence Evaluation endpoints
   app.post("/api/evaluate-intelligence", async (req, res) => {
     try {
-      const { text, provider = 'openai' } = req.body;
+      const { text, provider = 'openai', comprehensive = false } = req.body;
       
       if (!text) {
         return res.status(400).json({ error: 'Text is required' });
@@ -1288,9 +1288,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Starting intelligence evaluation via API");
       const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluationNew.js');
-      const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider);
       
-      res.json(result);
+      if (comprehensive) {
+        const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider);
+        res.json(result);
+      } else {
+        // Normal = Phase 1 only
+        const phase1Response = await intelligenceEvaluationService.phase1Only(text, provider);
+        res.json({ phase1Response });
+      }
     } catch (error: any) {
       console.error('Intelligence evaluation error:', error);
       res.status(500).json({ error: error.message });

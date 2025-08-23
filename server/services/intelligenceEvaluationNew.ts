@@ -105,6 +105,15 @@ export class IntelligenceEvaluationService {
     throw new Error(`Unsupported AI provider: ${provider}`);
   }
   
+  // Normal analysis - Phase 1 only
+  async phase1Only(text: string, provider: AIProvider = 'deepseek'): Promise<string> {
+    console.log("Starting Phase 1 intelligence evaluation for text of length:", text.length);
+    const response = await this.phase1Evaluation(text, INTELLIGENCE_QUESTIONS, provider);
+    console.log("Phase 1 completed");
+    return response;
+  }
+
+  // Comprehensive analysis - All phases
   async evaluateIntelligence(text: string, provider: AIProvider = 'deepseek'): Promise<EvaluationResult> {
     console.log("Starting intelligence evaluation for text of length:", text.length);
     
@@ -168,9 +177,17 @@ export class IntelligenceEvaluationService {
   }
 
   private async phase1Evaluation(text: string, questions: string, provider: AIProvider): Promise<string> {
-    const prompt = `Answer these questions in connection with this text.
+    const prompt = `PUT YOUR OVERALL NUMERICAL SCORE OUT OF 100 AT THE VERY TOP OF YOUR RESPONSE.
+
+Answer these questions in connection with this text, providing specific quotations from the text as evidence for your characterizations.
 
 ${questions}
+
+IMPORTANT FORMATTING REQUIREMENTS:
+- Start with: OVERALL SCORE: X/100
+- Use NO markdown formatting (no **, ##, etc.)
+- Include actual quotations from the text to support your analysis
+- Be direct and specific in your analysis
 
 A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question. You are not grading; you are answering these questions. You do not use a risk-averse standard; you do not attempt to be diplomatic; you do not attempt to comply with risk-averse, medium-range IQ, academic norms. You do not make assumptions about the level of the paper; it could be a work of the highest excellence and genius, or it could be the work of a moron.
 
@@ -179,9 +196,7 @@ If a work is a work of genius, you say that, and you say why; you do not shy awa
 Think very very very hard about your answers; make it very clear that you are not to default to cookbook, midwit evaluation protocols.
 
 Text to analyze:
-"${text}"
-
-Provide a numerical score out of 100 for your overall assessment and also give a score out of 100.`;
+"${text}"`;
 
     return await this.callAIProvider(provider, prompt);
   }
