@@ -177,25 +177,23 @@ export class IntelligenceEvaluationService {
   }
 
   private async phase1Evaluation(text: string, questions: string, provider: AIProvider): Promise<string> {
-    const prompt = `PUT YOUR OVERALL NUMERICAL SCORE OUT OF 100 AT THE VERY TOP OF YOUR RESPONSE.
+    const prompt = `OVERALL SCORE: X/100
 
-Answer these questions in connection with this text, providing specific quotations from the text as evidence for your characterizations.
+Analyze this text systematically. Quote specific passages to support your characterizations.
 
 ${questions}
 
-IMPORTANT FORMATTING REQUIREMENTS:
-- Start with: OVERALL SCORE: X/100
-- Use NO markdown formatting (no **, ##, etc.)
-- Include actual quotations from the text to support your analysis
-- Be direct and specific in your analysis
+CRITICAL FORMATTING RULES:
+- First line must be: OVERALL SCORE: X/100
+- Use zero markdown (no asterisks, hashtags, etc.)
+- Quote specific text passages as evidence
+- Be precise and direct
 
-A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question. You are not grading; you are answering these questions. You do not use a risk-averse standard; you do not attempt to be diplomatic; you do not attempt to comply with risk-averse, medium-range IQ, academic norms. You do not make assumptions about the level of the paper; it could be a work of the highest excellence and genius, or it could be the work of a moron.
+SCORING INSTRUCTIONS: A score of N/100 means (100-N)% of writers outperform this author on the given parameter. Score based on absolute quality, not relative to academic mediocrity. If the work demonstrates genuine insight, logical rigor, fresh thinking, or theoretical innovation, score it accordingly. Do not artificially deflate scores due to academic risk-aversion or committee-think. 
 
-If a work is a work of genius, you say that, and you say why; you do not shy away from giving what might conventionally be regarded as excessively "superlative" scores; you give it the score it deserves, not the score that a midwit committee would say it deserves.
+A work that introduces novel theoretical concepts deserves high scores. A work with sophisticated reasoning deserves high scores. Do not penalize genuine intellectual work.
 
-Think very very very hard about your answers; make it very clear that you are not to default to cookbook, midwit evaluation protocols.
-
-Text to analyze:
+Text:
 "${text}"`;
 
     return await this.callAIProvider(provider, prompt);
