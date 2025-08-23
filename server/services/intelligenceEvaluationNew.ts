@@ -183,6 +183,12 @@ ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
 ${questions}
 
+CRITICAL REQUIREMENTS:
+- Use NO markdown formatting whatsoever (no **, ##, *, etc.)
+- For EVERY claim you make about the text, provide a direct quotation as evidence
+- Start each answer by quoting the specific passage you are analyzing
+- Format: "The text states: 'EXACT QUOTE FROM TEXT'. This shows that..."
+
 A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question. You are not grading; you are answering these questions. You do not use a risk-averse standard; you do not attempt to be diplomatic; you do not attempt to comply with risk-averse, medium-range IQ, academic norms. You do not make assumptions about the level of the paper; it could be a work of the highest excellence and genius, or it could be the work of a moron.
 
 If a work is a work of genius, you say that, and you say why; you do not shy away from giving what might conventionally be regarded as excessively "superlative" scores; you give it the score it deserves, not the score that a midwit committee would say it deserves.
@@ -190,6 +196,8 @@ If a work is a work of genius, you say that, and you say why; you do not shy awa
 Think very very very hard about your answers; make it very clear that you are not to default to cookbook, midwit evaluation protocols.
 
 DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+
+You must quote the actual text being analyzed. Do not analyze without providing specific quotations as evidence.
 
 Text:
 "${text}"`;
