@@ -13,6 +13,9 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - Math graphing capabilities with SVG visualization
 
 ## Recent Changes
+- 2025-08-23: COMPLETED - Fixed Intelligence Analysis output formatting: scores appear first, all markdown stripped globally
+- 2025-08-23: COMPLETED - Applied stripMarkdownFormatting function to all phases (1, 2, 3) ensuring clean plain text output
+- 2025-08-23: COMPLETED - Intelligence Analysis now shows "OVERALL SCORE: X/100" as first line with professional presentation
 - 2025-08-18: COMPLETED - Fixed Intelligence Analysis Tool display with high-contrast styling (black backgrounds, bright colored text)
 - 2025-08-18: COMPLETED - Made DeepSeek the default AI provider across entire application
 - 2025-08-18: COMPLETED - Updated all AI provider dropdowns and interfaces to include DeepSeek
