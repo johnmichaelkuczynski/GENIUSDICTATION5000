@@ -151,11 +151,11 @@ const Settings = () => {
                   </div>
                   
                   <div className="grid gap-2">
-                    <Label htmlFor="openai-key">OpenAI API Key (for Whisper)</Label>
+                    <Label htmlFor="openai-key">ZHI 2 API Key (for Whisper)</Label>
                     <Input
                       id="openai-key"
                       type="password"
-                      placeholder="Enter your OpenAI API key"
+                      placeholder="Enter your ZHI 2 API key"
                       value={openaiKey}
                       onChange={(e) => setOpenaiKey(e.target.value)}
                     />
@@ -206,66 +206,66 @@ const Settings = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>ZHI 3 Models</SelectLabel>
+                        <SelectLabel>ZHI 3</SelectLabel>
                         <SelectItem 
                           value={AIModel.DEEPSEEK} 
                           disabled={!apisConnected || !availableServices.deepseek}
                         >
-                          {AIModel.DEEPSEEK} {!availableServices.deepseek && "(API Key Required)"}
+                          ZHI 3 {!availableServices.deepseek && "(API Key Required)"}
                         </SelectItem>
                       </SelectGroup>
                       
                       <SelectGroup>
-                        <SelectLabel>ZHI 2 Models</SelectLabel>
+                        <SelectLabel>ZHI 2</SelectLabel>
                         <SelectItem 
                           value={AIModel.GPT4O} 
                           disabled={!apisConnected || !availableServices.openai}
                         >
-                          {AIModel.GPT4O} {!availableServices.openai && "(API Key Required)"}
+                          ZHI 2 {!availableServices.openai && "(API Key Required)"}
                         </SelectItem>
                         <SelectItem 
                           value={AIModel.GPT4} 
                           disabled={!apisConnected || !availableServices.openai}
                         >
-                          {AIModel.GPT4} {!availableServices.openai && "(API Key Required)"}
+                          ZHI 2 {!availableServices.openai && "(API Key Required)"}
                         </SelectItem>
                         <SelectItem 
                           value={AIModel.GPT35} 
                           disabled={!apisConnected || !availableServices.openai}
                         >
-                          {AIModel.GPT35} {!availableServices.openai && "(API Key Required)"}
+                          ZHI 2 {!availableServices.openai && "(API Key Required)"}
                         </SelectItem>
                       </SelectGroup>
                       
                       <SelectGroup>
-                        <SelectLabel>ZHI 1 Models</SelectLabel>
+                        <SelectLabel>ZHI 1</SelectLabel>
                         <SelectItem 
                           value={AIModel.CLAUDE_3_OPUS} 
                           disabled={!apisConnected || !availableServices.anthropic}
                         >
-                          {AIModel.CLAUDE_3_OPUS} {!availableServices.anthropic && "(API Key Required)"}
+                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
                         </SelectItem>
                         <SelectItem 
                           value={AIModel.CLAUDE_3_SONNET} 
                           disabled={!apisConnected || !availableServices.anthropic}
                         >
-                          {AIModel.CLAUDE_3_SONNET} {!availableServices.anthropic && "(API Key Required)"}
+                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
                         </SelectItem>
                         <SelectItem 
                           value={AIModel.CLAUDE_3_HAIKU} 
                           disabled={!apisConnected || !availableServices.anthropic}
                         >
-                          {AIModel.CLAUDE_3_HAIKU} {!availableServices.anthropic && "(API Key Required)"}
+                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
                         </SelectItem>
                       </SelectGroup>
                       
                       <SelectGroup>
-                        <SelectLabel>ZHI 4 Models</SelectLabel>
+                        <SelectLabel>ZHI 4</SelectLabel>
                         <SelectItem 
                           value={AIModel.PERPLEXITY_LLAMA_SONAR} 
                           disabled={!apisConnected || !availableServices.perplexity}
                         >
-                          {AIModel.PERPLEXITY_LLAMA_SONAR} {!availableServices.perplexity && "(API Key Required)"}
+                          ZHI 4 {!availableServices.perplexity && "(API Key Required)"}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -277,44 +277,44 @@ const Settings = () => {
                 
                 <div className="grid gap-4 mt-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="deepseek-key">DeepSeek API Key (for DeepSeek models)</Label>
+                    <Label htmlFor="deepseek-key">ZHI 3 API Key</Label>
                     <Input
                       id="deepseek-key"
                       type="password"
-                      placeholder="Enter your DeepSeek API key"
+                      placeholder="Enter your ZHI 3 API key"
                       value={deepseekKey}
                       onChange={(e) => setDeepseekKey(e.target.value)}
                     />
                     <p className="text-sm text-muted-foreground">
-                      Required for using DeepSeek models. Get a key at <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">platform.deepseek.com</a>.
+                      Required for using ZHI 3 models. Get a key at <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">platform.deepseek.com</a>.
                     </p>
                   </div>
                 
                   <div className="grid gap-2">
-                    <Label htmlFor="anthropic-key">Anthropic API Key (for Claude models)</Label>
+                    <Label htmlFor="anthropic-key">ZHI 1 API Key</Label>
                     <Input
                       id="anthropic-key"
                       type="password"
-                      placeholder="Enter your Anthropic API key"
+                      placeholder="Enter your ZHI 1 API key"
                       value={anthropicKey}
                       onChange={(e) => setAnthropicKey(e.target.value)}
                     />
                     <p className="text-sm text-muted-foreground">
-                      Required for using Claude models. Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">console.anthropic.com</a>.
+                      Required for using ZHI 1 models. Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">console.anthropic.com</a>.
                     </p>
                   </div>
                   
                   <div className="grid gap-2">
-                    <Label htmlFor="perplexity-key">Perplexity API Key (for Llama models)</Label>
+                    <Label htmlFor="perplexity-key">ZHI 4 API Key</Label>
                     <Input
                       id="perplexity-key"
                       type="password"
-                      placeholder="Enter your Perplexity API key"
+                      placeholder="Enter your ZHI 4 API key"
                       value={perplexityKey}
                       onChange={(e) => setPerplexityKey(e.target.value)}
                     />
                     <p className="text-sm text-muted-foreground">
-                      Required for using Perplexity Llama models. Get a key at <a href="https://www.perplexity.ai" target="_blank" rel="noopener noreferrer" className="text-primary underline">perplexity.ai</a>.
+                      Required for using ZHI 4 models. Get a key at <a href="https://www.perplexity.ai" target="_blank" rel="noopener noreferrer" className="text-primary underline">perplexity.ai</a>.
                     </p>
                   </div>
                 </div>

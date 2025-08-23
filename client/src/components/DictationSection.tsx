@@ -489,9 +489,9 @@ const DictationSection = () => {
                           <SelectValue placeholder="Select AI model" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={AIModel.GPT4O}>{AIModel.GPT4O}</SelectItem>
-                          <SelectItem value={AIModel.GPT4}>{AIModel.GPT4}</SelectItem>
-                          <SelectItem value={AIModel.GPT35}>{AIModel.GPT35}</SelectItem>
+                          <SelectItem value={AIModel.GPT4O}>ZHI 2</SelectItem>
+                          <SelectItem value={AIModel.GPT4}>ZHI 2</SelectItem>
+                          <SelectItem value={AIModel.GPT35}>ZHI 2</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
