@@ -89,27 +89,33 @@ export class IntelligenceEvaluationService {
     }
     
     if (provider === 'perplexity') {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'sonar-pro',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 4000,
-          stream: false,
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+      try {
+        console.log('Testing Perplexity API key:', process.env.PERPLEXITY_API_KEY ? 'Key exists' : 'Key missing');
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'sonar-pro',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.3,
+            max_tokens: 4000,
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        return data.choices[0].message.content || "";
+      } catch (error: any) {
+        console.error('Perplexity API detailed error:', error);
+        throw new Error(`Perplexity API error: ${error.message}`);
       }
-      
-      const data = await response.json();
-      return data.choices[0].message.content || "";
     }
     
     throw new Error(`Unsupported AI provider: ${provider}`);
