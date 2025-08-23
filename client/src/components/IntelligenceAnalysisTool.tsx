@@ -358,10 +358,10 @@ export function IntelligenceAnalysisTool() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="deepseek">DeepSeek</SelectItem>
-                    <SelectItem value="openai">OpenAI</SelectItem>
-                    <SelectItem value="anthropic">Anthropic</SelectItem>
-                    <SelectItem value="perplexity">Perplexity</SelectItem>
+                    <SelectItem value="deepseek">ZHI 3</SelectItem>
+                    <SelectItem value="openai">ZHI 2</SelectItem>
+                    <SelectItem value="anthropic">ZHI 1</SelectItem>
+                    <SelectItem value="perplexity">ZHI 4</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -373,19 +373,19 @@ export function IntelligenceAnalysisTool() {
                 <div className="flex gap-2 flex-wrap">
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                    DeepSeek: {getProviderStatus('deepseek')}
+                    ZHI 3: {getProviderStatus('deepseek')}
                   </Badge>
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                    OpenAI: {getProviderStatus('openai')}
+                    ZHI 2: {getProviderStatus('openai')}
                   </Badge>
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                    Anthropic: {getProviderStatus('anthropic')}
+                    ZHI 1: {getProviderStatus('anthropic')}
                   </Badge>
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                    Perplexity: {getProviderStatus('perplexity')}
+                    ZHI 4: {getProviderStatus('perplexity')}
                   </Badge>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">

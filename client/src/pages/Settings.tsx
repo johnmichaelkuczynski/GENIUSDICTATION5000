@@ -206,7 +206,7 @@ const Settings = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>DeepSeek Models</SelectLabel>
+                        <SelectLabel>ZHI 3 Models</SelectLabel>
                         <SelectItem 
                           value={AIModel.DEEPSEEK} 
                           disabled={!apisConnected || !availableServices.deepseek}
@@ -216,7 +216,7 @@ const Settings = () => {
                       </SelectGroup>
                       
                       <SelectGroup>
-                        <SelectLabel>OpenAI Models</SelectLabel>
+                        <SelectLabel>ZHI 2 Models</SelectLabel>
                         <SelectItem 
                           value={AIModel.GPT4O} 
                           disabled={!apisConnected || !availableServices.openai}
@@ -238,7 +238,7 @@ const Settings = () => {
                       </SelectGroup>
                       
                       <SelectGroup>
-                        <SelectLabel>Anthropic Models</SelectLabel>
+                        <SelectLabel>ZHI 1 Models</SelectLabel>
                         <SelectItem 
                           value={AIModel.CLAUDE_3_OPUS} 
                           disabled={!apisConnected || !availableServices.anthropic}
@@ -260,7 +260,7 @@ const Settings = () => {
                       </SelectGroup>
                       
                       <SelectGroup>
-                        <SelectLabel>Perplexity Models</SelectLabel>
+                        <SelectLabel>ZHI 4 Models</SelectLabel>
                         <SelectItem 
                           value={AIModel.PERPLEXITY_LLAMA_SONAR} 
                           disabled={!apisConnected || !availableServices.perplexity}

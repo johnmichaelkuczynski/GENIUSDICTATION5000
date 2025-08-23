@@ -37,16 +37,16 @@ export function AssessmentModelSelector({
         <SelectContent>
           <SelectGroup>
             <SelectItem value="deepseek" disabled={!availableModels.deepseek} className="font-medium">
-              DeepSeek (Chat)
+              ZHI 3 (Chat)
             </SelectItem>
             <SelectItem value="openai" disabled={!availableModels.openai} className="font-medium">
-              OpenAI (GPT-4o)
+              ZHI 2 (GPT-4o)
             </SelectItem>
             <SelectItem value="anthropic" disabled={!availableModels.anthropic} className="font-medium">
-              Anthropic (Claude 3)
+              ZHI 1 (Claude 3)
             </SelectItem>
             <SelectItem value="perplexity" disabled={!availableModels.perplexity} className="font-medium">
-              Perplexity (Llama)
+              ZHI 4 (Llama)
             </SelectItem>
           </SelectGroup>
         </SelectContent>

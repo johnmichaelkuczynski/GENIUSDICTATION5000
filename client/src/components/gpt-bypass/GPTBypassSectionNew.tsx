@@ -441,10 +441,10 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="anthropic">Anthropic Claude</SelectItem>
-                    <SelectItem value="openai">OpenAI GPT-4o</SelectItem>
-                    <SelectItem value="perplexity">Perplexity</SelectItem>
-                    <SelectItem value="deepseek">DeepSeek</SelectItem>
+                    <SelectItem value="anthropic">ZHI 1</SelectItem>
+                    <SelectItem value="openai">ZHI 2</SelectItem>
+                    <SelectItem value="perplexity">ZHI 4</SelectItem>
+                    <SelectItem value="deepseek">ZHI 3</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
