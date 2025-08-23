@@ -32,24 +32,51 @@ export function IntelligenceAnalysisTool() {
   const [rewrittenText, setRewrittenText] = useState('');
   const { toast } = useToast();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, docType: 'A' | 'B') => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, docType: 'A' | 'B') => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      if (docType === 'A') {
-        setDocumentAText(text);
-      } else {
-        setDocumentBText(text);
+    // Show loading state
+    toast({
+      title: "Processing document...",
+      description: "Extracting text from your document.",
+    });
+
+    try {
+      // Use proper document extraction for Word docs, PDFs, etc.
+      const formData = new FormData();
+      formData.append("document", file);
+      
+      const response = await fetch("/api/extract-text", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to process document: ${response.statusText}`);
       }
+      
+      const data = await response.json();
+      const extractedText = data.text;
+      
+      if (docType === 'A') {
+        setDocumentAText(extractedText);
+      } else {
+        setDocumentBText(extractedText);
+      }
+      
       toast({
         title: "File uploaded successfully",
-        description: `Document ${docType} has been loaded.`,
+        description: `Document ${docType} has been loaded and text extracted.`,
       });
-    };
-    reader.readAsText(file);
+    } catch (error) {
+      console.error("Error processing document:", error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to extract text from the document. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const startDictation = (docType: 'A' | 'B') => {
