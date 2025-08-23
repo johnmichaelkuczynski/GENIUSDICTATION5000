@@ -36,14 +36,14 @@ export function AssessmentModelSelector({
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value="deepseek" disabled={!availableModels.deepseek} className="font-medium">
-              ZHI 3
+            <SelectItem value="anthropic" disabled={!availableModels.anthropic} className="font-medium">
+              ZHI 1
             </SelectItem>
             <SelectItem value="openai" disabled={!availableModels.openai} className="font-medium">
               ZHI 2
             </SelectItem>
-            <SelectItem value="anthropic" disabled={!availableModels.anthropic} className="font-medium">
-              ZHI 1
+            <SelectItem value="deepseek" disabled={!availableModels.deepseek} className="font-medium">
+              ZHI 3
             </SelectItem>
             <SelectItem value="perplexity" disabled={!availableModels.perplexity} className="font-medium">
               ZHI 4

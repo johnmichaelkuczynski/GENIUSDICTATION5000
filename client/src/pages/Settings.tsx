@@ -206,12 +206,24 @@ const Settings = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>ZHI 3</SelectLabel>
+                        <SelectLabel>ZHI 1</SelectLabel>
                         <SelectItem 
-                          value={AIModel.DEEPSEEK} 
-                          disabled={!apisConnected || !availableServices.deepseek}
+                          value={AIModel.CLAUDE_3_OPUS} 
+                          disabled={!apisConnected || !availableServices.anthropic}
                         >
-                          ZHI 3 {!availableServices.deepseek && "(API Key Required)"}
+                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
+                        </SelectItem>
+                        <SelectItem 
+                          value={AIModel.CLAUDE_3_SONNET} 
+                          disabled={!apisConnected || !availableServices.anthropic}
+                        >
+                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
+                        </SelectItem>
+                        <SelectItem 
+                          value={AIModel.CLAUDE_3_HAIKU} 
+                          disabled={!apisConnected || !availableServices.anthropic}
+                        >
+                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
                         </SelectItem>
                       </SelectGroup>
                       
@@ -238,24 +250,12 @@ const Settings = () => {
                       </SelectGroup>
                       
                       <SelectGroup>
-                        <SelectLabel>ZHI 1</SelectLabel>
+                        <SelectLabel>ZHI 3</SelectLabel>
                         <SelectItem 
-                          value={AIModel.CLAUDE_3_OPUS} 
-                          disabled={!apisConnected || !availableServices.anthropic}
+                          value={AIModel.DEEPSEEK} 
+                          disabled={!apisConnected || !availableServices.deepseek}
                         >
-                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
-                        </SelectItem>
-                        <SelectItem 
-                          value={AIModel.CLAUDE_3_SONNET} 
-                          disabled={!apisConnected || !availableServices.anthropic}
-                        >
-                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
-                        </SelectItem>
-                        <SelectItem 
-                          value={AIModel.CLAUDE_3_HAIKU} 
-                          disabled={!apisConnected || !availableServices.anthropic}
-                        >
-                          ZHI 1 {!availableServices.anthropic && "(API Key Required)"}
+                          ZHI 3 {!availableServices.deepseek && "(API Key Required)"}
                         </SelectItem>
                       </SelectGroup>
                       

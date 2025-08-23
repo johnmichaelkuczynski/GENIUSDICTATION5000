@@ -413,9 +413,9 @@ export const IntelligenceAnalysisTool = forwardRef<IntelligenceAnalysisToolRef, 
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="deepseek">ZHI 3</SelectItem>
-                    <SelectItem value="openai">ZHI 2</SelectItem>
                     <SelectItem value="anthropic">ZHI 1</SelectItem>
+                    <SelectItem value="openai">ZHI 2</SelectItem>
+                    <SelectItem value="deepseek">ZHI 3</SelectItem>
                     <SelectItem value="perplexity">ZHI 4</SelectItem>
                   </SelectContent>
                 </Select>
