@@ -468,41 +468,6 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-base font-medium">Instruction Presets</Label>
-              <div className="max-h-[280px] overflow-y-auto border rounded-lg p-4 space-y-3">
-                {['Core', 'Advanced', 'Combo'].map((category) => (
-                  <div key={category} className="space-y-3">
-                    <Label className="text-sm font-semibold text-primary">{category}</Label>
-                    <div className="grid gap-3">
-                      {INSTRUCTION_PRESETS
-                        .filter(preset => preset.category === category)
-                        .map((preset) => (
-                          <div key={preset.id} className="flex items-start space-x-3">
-                            <Checkbox
-                              id={preset.id}
-                              checked={selectedPresets.includes(preset.id)}
-                              onCheckedChange={() => togglePreset(preset.id)}
-                              className="mt-1"
-                            />
-                            <div className="grid gap-1 leading-tight">
-                              <Label
-                                htmlFor={preset.id}
-                                className="text-sm font-medium leading-tight cursor-pointer"
-                              >
-                                {preset.name}
-                              </Label>
-                              <p className="text-xs text-muted-foreground leading-tight">
-                                {preset.description}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           <div className="flex gap-4 pt-4 border-t">

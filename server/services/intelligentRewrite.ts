@@ -21,39 +21,49 @@ interface RewriteParams {
 export class IntelligentRewriteService {
   
   private buildRewritePrompt(text: string, customInstructions?: string): string {
-    const baseInstructions = `Rewrite this text so that it scores significantly higher on an intelligence evaluation protocol while preserving existing content as much as possible.
+    const hasCustomInstructions = !!(customInstructions && customInstructions.trim() !== "");
+    
+    // Intelligence criteria that always applies
+    const intelligenceCriteria = `Rewrite this text so that it scores as high as possible with respect to the following intelligence questions:
 
-The evaluation criteria you should optimize for include:
-- Is it insightful? (not clichés, fresh perspectives)
-- Does it develop points? (evidence of logical development)
-- Is the organization hierarchical? (not just sequential, but logically scaffolded)
-- Does it operate skillfully with logic/reasoning?
-- Are the points fresh rather than clichéd?
-- Does it use technical terms to render more precise (not obfuscate)?
-- Is it organic? (points unfold naturally, not forced/artificial)
-- Does it open up new domains of inquiry?
-- Is it actually intelligent (not just presumed intelligent by subject matter)?
-- Is it real rather than phony?
-- Do sentences exhibit complex and coherent internal logic?
-- Is it governed by a strong concept (not just expository organization)?
-- Is there system-level control over ideas? (author integrates earlier points)
-- Are the points real and fresh (not institutional propaganda)?
-- Is the writing direct rather than evasive?
-- Are statements unambiguous?
-- Does progression develop according to logical entailment (not just citations)?
-- Does the author use other authors to develop ideas (not cloak lack of ideas)?
+IS IT INSIGHTFUL?
+DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
+IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY?
+IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING?
+ARE THE POINTS CLICHES? OR ARE THEY "FRESH"?
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE?
+IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY 'UNFOLD'? OR ARE THEY FORCED AND ARTIFICIAL?
+DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)?
+IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)?
+IS IT REAL OR IS IT PHONY?
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC?
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS?
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN?
+ARE THE POINTS 'REAL'? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE?
+IS THE WRITING EVASIVE OR DIRECT?
+ARE THE STATEMENTS AMBIGUOUS?
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?`;
 
-CONDITION A: Rightsize the passage to score higher on these evaluation criteria
-CONDITION B: Preserve existing content as much as Condition A allows
+    if (hasCustomInstructions) {
+      // User instructions + intelligence optimization
+      return `${customInstructions}
 
-${customInstructions ? `\nAdditional custom instructions (weight these heavily but balance with Conditions A & B): ${customInstructions}` : ''}
+Additionally, ${intelligenceCriteria}
 
 Text to rewrite:
 "${text}"
 
 Provide only the rewritten text without explanations.`;
+    }
 
-    return baseInstructions;
+    // Default: Intelligence optimization only
+    return `${intelligenceCriteria}
+
+Text to rewrite:
+"${text}"
+
+Provide only the rewritten text without explanations.`;
   }
 
   async rewriteWithOpenAI(params: RewriteParams): Promise<string> {
