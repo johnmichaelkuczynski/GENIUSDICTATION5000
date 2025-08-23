@@ -89,17 +89,27 @@ export class IntelligenceEvaluationService {
     }
     
     if (provider === 'perplexity') {
-      const perplexityOpenai = new OpenAI({
-        apiKey: process.env.PERPLEXITY_API_KEY || "default_key",
-        baseURL: "https://api.perplexity.ai",
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'sonar-pro',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: 4000,
+          stream: false,
+        }),
       });
-      const response = await perplexityOpenai.chat.completions.create({
-        model: "llama-3.1-sonar-small-128k-online",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-        max_tokens: 4000,
-      });
-      return response.choices[0].message.content || "";
+      
+      if (!response.ok) {
+        throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      return data.choices[0].message.content || "";
     }
     
     throw new Error(`Unsupported AI provider: ${provider}`);
