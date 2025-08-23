@@ -11,7 +11,7 @@ router.post('/evaluate-intelligence', async (req, res) => {
       return res.status(400).json({ error: 'Text is required' });
     }
 
-    console.log("Starting intelligence evaluation via API");
+    console.log("🔥 API ROUTE - provider:", provider, "abbreviated:", abbreviated, "text length:", text.length);
     const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider, abbreviated);
     
     res.json(result);
