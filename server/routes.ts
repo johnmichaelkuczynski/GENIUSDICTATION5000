@@ -259,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         transformedText = await anthropicTransform({
           text,
-          instructions: combinedInstructions || "Improve this text",
+          instructions: combinedInstructions || "Rewrite this text to score significantly higher on an intelligence evaluation while preserving existing content. Optimize for: insightfulness (fresh perspectives not clichés), logical development and organization, skillful reasoning, organic point progression, fresh rather than clichéd ideas, precise technical language, real rather than institutional content, complex coherent internal logic, and clear unambiguous statements.",
           model
         });
       } else if (model.includes('Perplexity')) {
@@ -269,7 +269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         transformedText = await perplexityTransform({
           text,
-          instructions: combinedInstructions || "Improve this text",
+          instructions: combinedInstructions || "Rewrite this text to score significantly higher on an intelligence evaluation while preserving existing content. Optimize for: insightfulness (fresh perspectives not clichés), logical development and organization, skillful reasoning, organic point progression, fresh rather than clichéd ideas, precise technical language, real rather than institutional content, complex coherent internal logic, and clear unambiguous statements.",
           model
         });
       } else {
@@ -279,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         transformedText = await openaiTransform({
           text,
-          instructions: combinedInstructions || "Improve this text",
+          instructions: combinedInstructions || "Rewrite this text to score significantly higher on an intelligence evaluation while preserving existing content. Optimize for: insightfulness (fresh perspectives not clichés), logical development and organization, skillful reasoning, organic point progression, fresh rather than clichéd ideas, precise technical language, real rather than institutional content, complex coherent internal logic, and clear unambiguous statements.",
           model
         });
       }

@@ -116,10 +116,11 @@ When would it become rational to believe that, next time, you're more likely tha
 interface GPTBypassSectionNewProps {
   className?: string;
   onSendToMain?: (text: string) => void;
+  onSendToIntelligenceAnalysis?: (text: string) => void;
   receivedText?: string;
 }
 
-export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: GPTBypassSectionNewProps) {
+export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntelligenceAnalysis, receivedText }: GPTBypassSectionNewProps) {
   const { toast } = useToast();
   
   // State management
@@ -173,6 +174,13 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
       analyzeText(receivedText);
     }
   }, [receivedText]);
+
+  // Transfer functions
+  const sendToIntelligenceAnalysis = (text: string) => {
+    if (onSendToIntelligenceAnalysis) {
+      onSendToIntelligenceAnalysis(text);
+    }
+  };
 
   // Auto-analyze input text changes with debouncing
   useEffect(() => {
@@ -593,6 +601,9 @@ export function GPTBypassSectionNew({ className, onSendToMain, receivedText }: G
               </Button>
               <Button variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600" onClick={() => sendToMainApp(outputText)} disabled={!outputText.trim()}>
                 <Send className="w-4 h-4 mr-1" /> Send to Homework
+              </Button>
+              <Button variant="outline" size="sm" className="bg-green-500 text-white hover:bg-green-600" onClick={() => sendToIntelligenceAnalysis(outputText)} disabled={!outputText.trim()}>
+                <Send className="w-4 h-4 mr-1" /> Send to Intelligence
               </Button>
             </div>
             <div className="flex gap-2 mt-2">

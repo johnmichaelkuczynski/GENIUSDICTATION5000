@@ -10,7 +10,9 @@ import { Separator } from "@/components/ui/separator";
 const Home = () => {
   const [textToGPTBypass, setTextToGPTBypass] = useState<string>('');
   const [textToMainApp, setTextToMainApp] = useState<string>('');
+  const [textToIntelligenceAnalysis, setTextToIntelligenceAnalysis] = useState<string>('');
   const dictationRef = useRef<any>(null);
+  const intelligenceAnalysisRef = useRef<any>(null);
 
   const handleSendToGPTBypass = (text: string) => {
     setTextToGPTBypass(text);
@@ -31,11 +33,25 @@ const Home = () => {
     }
   };
 
+  const handleSendToIntelligenceAnalysis = (text: string) => {
+    setTextToIntelligenceAnalysis(text);
+    // Scroll to intelligence analysis section
+    const intelligenceElement = document.getElementById('intelligence-analysis-section');
+    if (intelligenceElement) {
+      intelligenceElement.scrollIntoView({ behavior: 'smooth' });
+    }
+    // Pass text to intelligence analysis component
+    if (intelligenceAnalysisRef.current && intelligenceAnalysisRef.current.receiveText) {
+      intelligenceAnalysisRef.current.receiveText(text);
+    }
+  };
+
   return (
     <>
       <DictationSectionFixed 
         ref={dictationRef}
         onSendToGPTBypass={handleSendToGPTBypass}
+        onSendToIntelligenceAnalysis={handleSendToIntelligenceAnalysis}
         receivedText={textToMainApp}
       />
       <DocumentDropzone />
@@ -55,6 +71,7 @@ const Home = () => {
       <div id="gpt-bypass-section">
         <GPTBypassSectionNew 
           onSendToMain={handleSendToMainApp}
+          onSendToIntelligenceAnalysis={handleSendToIntelligenceAnalysis}
           receivedText={textToGPTBypass}
         />
       </div>
@@ -70,7 +87,12 @@ const Home = () => {
       
       {/* Intelligence Analysis Tool Section */}
       <div id="intelligence-analysis-section">
-        <IntelligenceAnalysisTool />
+        <IntelligenceAnalysisTool 
+          ref={intelligenceAnalysisRef}
+          onSendToMain={handleSendToMainApp}
+          onSendToGPTBypass={handleSendToGPTBypass}
+          receivedText={textToIntelligenceAnalysis}
+        />
       </div>
     </>
   );

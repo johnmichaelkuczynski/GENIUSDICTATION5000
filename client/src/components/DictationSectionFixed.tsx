@@ -68,6 +68,7 @@ const countWords = (text: string): number => {
 
 interface DictationSectionProps {
   onSendToGPTBypass?: (text: string) => void;
+  onSendToIntelligenceAnalysis?: (text: string) => void;
   receivedText?: string;
 }
 
@@ -75,7 +76,7 @@ interface DictationSectionRef {
   receiveText: (text: string) => void;
 }
 
-const DictationSection = forwardRef<DictationSectionRef, DictationSectionProps>(({ onSendToGPTBypass, receivedText }, ref) => {
+function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, receivedText }: DictationSectionProps) {
   const {
     originalText,
     setOriginalText,
@@ -171,16 +172,6 @@ const DictationSection = forwardRef<DictationSectionRef, DictationSectionProps>(
     }
   }, [receivedText, setOriginalText, toast]);
 
-  // Expose methods to parent component
-  useImperativeHandle(ref, () => ({
-    receiveText: (text: string) => {
-      setOriginalText(text);
-      toast({
-        title: "Text received from GPT Bypass",
-        description: "Text has been added to the input field.",
-      });
-    }
-  }), [setOriginalText, toast]);
 
   // Function to send text to GPT Bypass
   const sendToGPTBypass = useCallback((text: string) => {
@@ -192,6 +183,17 @@ const DictationSection = forwardRef<DictationSectionRef, DictationSectionProps>(
       });
     }
   }, [onSendToGPTBypass, toast]);
+  
+  // Function to send text to Intelligence Analysis
+  const sendToIntelligenceAnalysis = useCallback((text: string) => {
+    if (onSendToIntelligenceAnalysis) {
+      onSendToIntelligenceAnalysis(text);
+      toast({
+        title: "Text sent to Intelligence Analysis",
+        description: "Text has been transferred for intelligence evaluation.",
+      });
+    }
+  }, [onSendToIntelligenceAnalysis, toast]);
   
   // Extract graphs from processed text
   const extractedGraphs = useMemo(() => {
@@ -409,7 +411,7 @@ const DictationSection = forwardRef<DictationSectionRef, DictationSectionProps>(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: originalText,
-          instructions: customInstructions || "Improve this text. IMPORTANT: For any mathematical expressions, use proper LaTeX notation: \\(expression\\) for inline math and $$expression$$ for display math. Do not escape backslashes or convert math to plain text.",
+          instructions: customInstructions || "Rewrite this text to score significantly higher on an intelligence evaluation while preserving existing content. Optimize for: insightfulness (fresh perspectives not clichés), logical development and organization, skillful reasoning, organic point progression, fresh rather than clichéd ideas, precise technical language, real rather than institutional content, complex coherent internal logic, and clear unambiguous statements. IMPORTANT: For any mathematical expressions, use proper LaTeX notation: \\(expression\\) for inline math and $$expression$$ for display math.",
           model: selectedAIModel,
           preset: selectedPreset,
           useStyleReference,
@@ -1697,15 +1699,26 @@ const DictationSection = forwardRef<DictationSectionRef, DictationSectionProps>(
                         <i className="ri-file-pdf-line mr-1"></i> Download PDF
                       </Button>
                       {onSendToGPTBypass && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
-                          onClick={() => sendToGPTBypass(processedText)}
-                          disabled={!processedText?.trim()}
-                        >
-                          <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
-                        </Button>
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
+                            onClick={() => sendToGPTBypass(processedText)}
+                            disabled={!processedText?.trim()}
+                          >
+                            <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-xs flex items-center text-green-600 hover:bg-green-50"
+                            onClick={() => sendToIntelligenceAnalysis(processedText)}
+                            disabled={!processedText?.trim()}
+                          >
+                            <i className="ri-send-plane-line mr-1"></i> Send to Intelligence
+                          </Button>
+                        </>
                       )}
                       <Button 
                         variant="ghost" 
@@ -2515,8 +2528,6 @@ const DictationSection = forwardRef<DictationSectionRef, DictationSectionProps>(
       />
     </section>
   );
-});
-
-DictationSection.displayName = "DictationSection";
+}
 
 export default DictationSection;

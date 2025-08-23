@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,7 +17,17 @@ interface AnalysisResult {
   scores: Record<string, number>;
 }
 
-export function IntelligenceAnalysisTool() {
+interface IntelligenceAnalysisToolProps {
+  onSendToMain?: (text: string) => void;
+  onSendToGPTBypass?: (text: string) => void;
+  receivedText?: string;
+}
+
+interface IntelligenceAnalysisToolRef {
+  receiveText: (text: string) => void;
+}
+
+export const IntelligenceAnalysisTool = forwardRef<IntelligenceAnalysisToolRef, IntelligenceAnalysisToolProps>(({ onSendToMain, onSendToGPTBypass, receivedText }, ref) => {
   const [documentAText, setDocumentAText] = useState('');
   const [documentBText, setDocumentBText] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('deepseek');
@@ -31,6 +41,49 @@ export function IntelligenceAnalysisTool() {
   const [originalText, setOriginalText] = useState('');
   const [rewrittenText, setRewrittenText] = useState('');
   const { toast } = useToast();
+
+  // Handle received text from other components
+  useEffect(() => {
+    if (receivedText) {
+      setDocumentAText(receivedText);
+      toast({
+        title: "Text received",
+        description: "Text has been added to Document A.",
+      });
+    }
+  }, [receivedText, toast]);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    receiveText: (text: string) => {
+      setDocumentAText(text);
+      toast({
+        title: "Text received",
+        description: "Text has been added to Document A.",
+      });
+    }
+  }), [toast]);
+
+  // Transfer functions
+  const sendToMainApp = useCallback((text: string) => {
+    if (onSendToMain) {
+      onSendToMain(text);
+      toast({
+        title: "Text sent to Main App",
+        description: "Text has been transferred to the main input.",
+      });
+    }
+  }, [onSendToMain, toast]);
+
+  const sendToGPTBypass = useCallback((text: string) => {
+    if (onSendToGPTBypass) {
+      onSendToGPTBypass(text);
+      toast({
+        title: "Text sent to GPT Bypass",
+        description: "Text has been transferred for humanization.",
+      });
+    }
+  }, [onSendToGPTBypass, toast]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, docType: 'A' | 'B') => {
     const file = event.target.files?.[0];
@@ -446,6 +499,24 @@ export function IntelligenceAnalysisTool() {
                 Dictate Text
               </Button>
             </div>
+            <div className="flex gap-2 mb-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => sendToMainApp(documentAText)}
+                disabled={!documentAText.trim()}
+              >
+                Send to Main App
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => sendToGPTBypass(documentAText)}
+                disabled={!documentAText.trim()}
+              >
+                Send to GPT Bypass
+              </Button>
+            </div>
 
             <Textarea
               placeholder="Type, paste, or dictate your text here..."
@@ -666,6 +737,20 @@ export function IntelligenceAnalysisTool() {
               Keep Original
             </Button>
             <Button 
+              onClick={() => sendToMainApp(rewrittenText)}
+              variant="outline"
+              className="bg-blue-50 border-blue-300 hover:bg-blue-100"
+            >
+              Send to Main App
+            </Button>
+            <Button 
+              onClick={() => sendToGPTBypass(rewrittenText)}
+              variant="outline"
+              className="bg-purple-50 border-purple-300 hover:bg-purple-100"
+            >
+              Send to GPT Bypass
+            </Button>
+            <Button 
               variant="ghost"
               size="sm"
               onClick={() => setShowComparison(false)}
@@ -677,4 +762,4 @@ export function IntelligenceAnalysisTool() {
       </Dialog>
     </div>
   );
-}
+});
