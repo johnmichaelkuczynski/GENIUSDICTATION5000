@@ -98,16 +98,46 @@ function buildRewritePrompt(params: {
   selectedPresets?: string[];
   customInstructions?: string;
 }): string {
-  const hasStyle = !!(params.styleText && params.styleText.trim() !== "");
-  const defaultStyleSample = "There are two broad types of relationships: formal and functional. Formal relationships hold between descriptions. A description is any statement that can be true or false. Example of a formal relationship: The description that a shape is a square cannot be true unless the description that it has four equal sides is true. Therefore, a shape's being a square depends on its having four equal sides. Functional relationships hold between events or conditions. (An event is anything that happens at a specific time; a condition is anything that can change over time.) Example of a functional relationship: A switch's being in the on position causes the light bulb connected to it to be lit. Therefore, the light bulb's being lit depends on the switch's being in the on position.";
+  const hasCustomInstructions = !!(params.customInstructions && params.customInstructions.trim() !== "");
   
-  const styleSample = hasStyle ? params.styleText! : defaultStyleSample;
+  // If user provides custom instructions, use those instead of intelligence optimization
+  if (hasCustomInstructions) {
+    return `${params.customInstructions}
 
-  // SIMPLE STYLE TRANSFER INSTRUCTION ONLY
-  return `Rewrite this text so that it is exactly in the style of the following style sample:
+Text to rewrite:
+"${params.inputText}"`;
+  }
 
-Style sample:
-"${styleSample}"
+  // Default: Intelligence optimization
+  return `Rewrite this text to dramatically increase its intelligence score. Focus on:
+
+INTELLIGENCE CRITERIA (make the text score 85+ on each):
+- Is it insightful? (Generate fresh perspectives, avoid clichés)
+- Does it develop points logically? (Build arguments systematically) 
+- Is the organization hierarchical? (Not just sequential - logically scaffolded)
+- Does it use skillful logic/reasoning? (Show clear cause-effect relationships)
+- Are the points fresh rather than clichéd? (Original thinking, not recycled ideas)
+- Does it use technical precision? (Precise terminology that clarifies, not obfuscates)
+- Is it organic? (Points unfold naturally, not forced)
+- Does it open new domains of inquiry? (Raise important questions)
+- Is it genuinely intelligent? (Not just academic subject matter)
+- Is it real rather than institutional? (Authentic voice, not corporate speak)
+- Do sentences exhibit complex coherent logic? (Sophisticated reasoning)
+- Is it governed by strong concepts? (Clear organizing principles)
+- Is there system-level control? (Author integrates earlier points effectively)
+- Are points real and fresh? (Substantive content, not propaganda)
+- Is the writing direct? (Clear and unambiguous)
+- Does progression follow logical entailment? (Each point builds on previous)
+
+STYLE REQUIREMENTS:
+- Use short, declarative sentences
+- Employ concrete, specific words
+- Eliminate flowery language and filler
+- Use active voice
+- Make every sentence carry weight
+
+PRESERVE: Core meaning and key information
+ELIMINATE: Bloated phrasing, unnecessary words, clichés, vague generalizations
 
 Text to rewrite:
 "${params.inputText}"`;

@@ -50,7 +50,7 @@ OR WOULD WHATEVER HIS TAKEAWAY WAS HAVE VALIDITY ONLY RELATIVE TO VALIDITIES THA
 
 export class IntelligenceEvaluationService {
   
-  async evaluateIntelligence(text: string, provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity' = 'deepseek'): Promise<EvaluationResult> {
+  async evaluateIntelligence(text: string, provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity' = 'deepseek', abbreviated: boolean = false): Promise<EvaluationResult> {
     console.log("Starting intelligence evaluation for text of length:", text.length);
     
     // PHASE 1: Ask the questions
@@ -59,6 +59,18 @@ export class IntelligenceEvaluationService {
     
     // Extract scores from phase 1
     const scores = this.extractScores(phase1Response);
+    
+    // If abbreviated analysis requested, return only Phase 1 results
+    if (abbreviated) {
+      console.log("Abbreviated analysis - returning Phase 1 only");
+      return {
+        phase1Response,
+        phase2Response: "", 
+        phase3Response: "",
+        finalResult: phase1Response,
+        scores
+      };
+    }
     
     // PHASE 2: Push back if scores are less than 95/100
     const phase2Response = await this.phase2Pushback(text, phase1Response, scores, INTELLIGENCE_QUESTIONS, provider);

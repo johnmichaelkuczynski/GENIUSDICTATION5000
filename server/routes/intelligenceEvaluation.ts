@@ -5,14 +5,14 @@ const router = Router();
 
 router.post('/evaluate-intelligence', async (req, res) => {
   try {
-    const { text, provider = 'openai' } = req.body;
+    const { text, provider = 'openai', abbreviated = false } = req.body;
     
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
     }
 
     console.log("Starting intelligence evaluation via API");
-    const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider);
+    const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider, abbreviated);
     
     res.json(result);
   } catch (error: any) {

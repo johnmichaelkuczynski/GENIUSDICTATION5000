@@ -32,6 +32,7 @@ export const IntelligenceAnalysisTool = forwardRef<IntelligenceAnalysisToolRef, 
   const [documentBText, setDocumentBText] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('deepseek');
   const [analysisMode, setAnalysisMode] = useState<'single' | 'compare'>('single');
+  const [analysisType, setAnalysisType] = useState<'normal' | 'comprehensive'>('normal');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [isDictating, setIsDictating] = useState(false);
@@ -218,6 +219,7 @@ export const IntelligenceAnalysisTool = forwardRef<IntelligenceAnalysisToolRef, 
         body: JSON.stringify({
           text: documentAText,
           provider: selectedProvider,
+          abbreviated: analysisType === 'normal',
         }),
       });
 
@@ -579,13 +581,33 @@ export const IntelligenceAnalysisTool = forwardRef<IntelligenceAnalysisToolRef, 
           </div>
 
           {/* Action Buttons */}
+          {/* Analysis Type Toggle */}
+          <div className="flex gap-2 pt-4">
+            <Button
+              onClick={() => setAnalysisType('normal')}
+              variant={analysisType === 'normal' ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs"
+            >
+              Normal (Phase 1)
+            </Button>
+            <Button
+              onClick={() => setAnalysisType('comprehensive')}
+              variant={analysisType === 'comprehensive' ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs"
+            >
+              Comprehensive (All Phases)
+            </Button>
+          </div>
+
           <div className="flex gap-3 pt-4">
             <Button 
               onClick={runIntelligenceAnalysis}
               disabled={isAnalyzing || isRewriting}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isAnalyzing ? 'Analyzing...' : 'Analyze Document'}
+              {isAnalyzing ? 'Analyzing...' : `Analyze Document (${analysisType === 'normal' ? 'Quick' : 'Full'})`}
             </Button>
             <Button 
               onClick={runOriginalityAnalysis}
