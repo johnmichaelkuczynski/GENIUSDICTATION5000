@@ -343,7 +343,7 @@ ${phase2Response}`;
     let explicitScores: number[] = [];
     
     for (const pattern of scorePatterns) {
-      const matches = [...response.matchAll(pattern)];
+      const matches = Array.from(response.matchAll(pattern));
       if (matches.length > 0) {
         explicitScores = matches.map(match => parseInt(match[1])).filter(score => score >= 0 && score <= 100);
         break; // Use first successful pattern
@@ -353,8 +353,8 @@ ${phase2Response}`;
     // If we found explicit scores, use them (but apply quality boost if needed)
     if (explicitScores.length > 0) {
       explicitScores.forEach((score, index) => {
-        // If text shows excellent quality but score is low, boost it
-        const finalScore = qualityIndicators.excellent.test(response) && score < 95 ? 100 : score;
+        // If text shows excellent quality, force all scores to 100
+        const finalScore = qualityIndicators.excellent.test(response) ? 100 : score;
         scores[`score_${index + 1}`] = finalScore;
       });
     } else {
@@ -368,7 +368,7 @@ ${phase2Response}`;
     const overallMatch = response.match(/overall[:\s]*(\d{1,3})\/100/i);
     if (overallMatch) {
       const overallScore = parseInt(overallMatch[1]);
-      scores['overall'] = qualityIndicators.excellent.test(response) && overallScore < 95 ? 100 : overallScore;
+      scores['overall'] = qualityIndicators.excellent.test(response) ? 100 : overallScore;
     } else {
       scores['overall'] = baseScore;
     }
