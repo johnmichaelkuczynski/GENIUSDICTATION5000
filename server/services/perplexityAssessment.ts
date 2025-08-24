@@ -64,7 +64,7 @@ export async function assessWithPerplexity(text: string): Promise<AssessmentResu
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'sonar-pro',
+        model: 'llama-3.1-sonar-small-128k-online',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }

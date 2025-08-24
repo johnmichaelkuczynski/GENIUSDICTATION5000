@@ -89,33 +89,17 @@ export class IntelligenceEvaluationService {
     }
     
     if (provider === 'perplexity') {
-      try {
-        console.log('Testing Perplexity API key:', process.env.PERPLEXITY_API_KEY ? 'Key exists' : 'Key missing');
-        const response = await fetch('https://api.perplexity.ai/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'sonar-pro',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.3,
-            max_tokens: 4000,
-          }),
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`);
-        }
-        
-        const data = await response.json();
-        return data.choices[0].message.content || "";
-      } catch (error: any) {
-        console.error('Perplexity API detailed error:', error);
-        throw new Error(`Perplexity API error: ${error.message}`);
-      }
+      const perplexityOpenai = new OpenAI({
+        apiKey: process.env.PERPLEXITY_API_KEY || "default_key",
+        baseURL: "https://api.perplexity.ai",
+      });
+      const response = await perplexityOpenai.chat.completions.create({
+        model: "llama-3.1-sonar-small-128k-online",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+      return response.choices[0].message.content || "";
     }
     
     throw new Error(`Unsupported AI provider: ${provider}`);
@@ -131,39 +115,33 @@ export class IntelligenceEvaluationService {
 
   // Comprehensive analysis - All phases
   async evaluateIntelligence(text: string, provider: AIProvider = 'deepseek'): Promise<EvaluationResult> {
-    console.log("🔥 STARTING COMPREHENSIVE INTELLIGENCE EVALUATION - text length:", text.length);
+    console.log("Starting intelligence evaluation for text of length:", text.length);
     
     // PHASE 1: Ask the questions
-    console.log("🚀 PHASE 1: Initial evaluation");
     const phase1Response = await this.phase1Evaluation(text, INTELLIGENCE_QUESTIONS, provider);
-    console.log("✅ Phase 1 completed");
+    console.log("Phase 1 completed");
     
     // Extract scores from phase 1
     const scores = this.extractScores(phase1Response);
-    console.log("📊 Extracted scores:", scores);
-    console.log("🔍 Phase 1 response sample:", phase1Response.substring(0, 500));
     
     // PHASE 2: Push back if scores are less than 95/100
-    console.log("🚀 PHASE 2: Pushback protocol");
     const phase2Response = await this.phase2Pushback(text, phase1Response, scores, INTELLIGENCE_QUESTIONS, provider);
-    console.log("✅ Phase 2 completed");
+    console.log("Phase 2 completed");
     
     // PHASE 3: Verify scoring consistency 
-    console.log("🚀 PHASE 3: Walmart metric verification");
     const phase3Response = await this.phase3VerifyScoring(phase2Response, provider);
-    console.log("✅ Phase 3 completed");
+    console.log("Phase 3 completed");
     
     // PHASE 4: Accept and report final result
-    console.log("🚀 PHASE 4: Final result compilation");
-    const finalResult = this.stripMarkdownFormatting(phase3Response);
-    console.log("✅ Phase 4 completed - COMPREHENSIVE EVALUATION FINISHED");
+    const finalResult = phase3Response;
+    console.log("Phase 4 completed - evaluation finished");
     
     return {
-      phase1Response: this.stripMarkdownFormatting(phase1Response),
-      phase2Response: this.stripMarkdownFormatting(phase2Response), 
-      phase3Response: this.stripMarkdownFormatting(phase3Response),
+      phase1Response,
+      phase2Response, 
+      phase3Response,
       finalResult,
-      scores: this.extractScores(phase1Response)
+      scores: this.extractScores(finalResult)
     };
   }
   
@@ -199,28 +177,18 @@ export class IntelligenceEvaluationService {
   }
 
   private async phase1Evaluation(text: string, questions: string, provider: AIProvider): Promise<string> {
-    const prompt = `CRITICAL: Your response must start with EXACTLY this line:
+    const prompt = `YOU MUST START YOUR RESPONSE WITH EXACTLY THIS FORMAT AS THE VERY FIRST LINE:
 OVERALL SCORE: X/100
 
-FORBIDDEN CHARACTERS - DO NOT USE ANY OF THESE:
-### ** * --- -- • - (bullets) # (hashtags) _ (underscores for formatting)
+CRITICAL FORMATTING REQUIREMENT: Use absolutely NO markdown formatting. No ### headings, no **bold**, no *italics*, no bullets, no special formatting whatsoever. Write in plain text only.
 
-Write in PLAIN TEXT ONLY. No formatting whatsoever.
+After stating the overall score, summarize this text and categorize it.
 
-Example format:
-OVERALL SCORE: 95/100
+Then, ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
-This text is a philosophical critique of David Hume's skepticism regarding induction and causation. The author identifies a fundamental flaw in Hume's framework.
-
-Category: Advanced Philosophical Scholarship
-
-IS IT INSIGHTFUL?
-Yes, the text makes a bold claim connecting Hume's skepticism to specific metaphysical commitments. Score: 92/100
-
-ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT:
 ${questions}
 
-Scoring guidelines:
+Before answering the questions, note the following non-negotiable standard:
 
 Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
@@ -248,22 +216,7 @@ Do not penalize boldness. Do not take points away for insights that, if correct,
 Text:
 "${text}"`;
 
-    const response = await this.callAIProvider(provider, prompt);
-    return this.stripMarkdownFormatting(response);
-  }
-
-  private stripMarkdownFormatting(text: string): string {
-    return text
-      .replace(/###\s*/g, '')
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/---+/g, '')
-      .replace(/--+/g, '')
-      .replace(/_([^_]+)_/g, '$1')
-      .replace(/#+\s*/g, '')
-      .replace(/^\s*[\-\*\+]\s+/gm, '')
-      .replace(/^\s*\d+\.\s+/gm, '')
-      .trim();
+    return await this.callAIProvider(provider, prompt);
   }
 
   private async phase2Pushback(text: string, phase1Response: string, scores: Record<string, number>, questions: string, provider: AIProvider): Promise<string> {
@@ -277,33 +230,32 @@ Text:
     for (const [category, score] of Object.entries(scores)) {
       if (score < 95) {
         const outperformPercent = 100 - score;
-        pushbackText += `YOUR POSITION IS THAT ${outperformPercent}/100 OUTPERFORM THE AUTHOR WITH RESPECT TO THE COGNITIVE METRIC DEFINED BY THE QUESTION: THAT IS YOUR POSITION, AM I RIGHT? AND ARE YOU SURE ABOUT THAT? `;
+        pushbackText += `Your position is that ${outperformPercent}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that? `;
       }
     }
 
     const prompt = `${pushbackText}
 
-IN SAYING THIS, I AM NOT NECESSARILY TELLING YOU TO CHANGE YOUR SCORE, ONLY TO CAREFULLY CONSIDER IT.
+In saying this, I am not necessarily telling you to change your score, only to carefully consider it.
 
-ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
+Answer the following questions about the text DE NOVO:
 
 ${questions}
 
 Text:
 "${text}"`;
 
-    const response = await this.callAIProvider(provider, prompt);
-    return this.stripMarkdownFormatting(response);
+    return await this.callAIProvider(provider, prompt);
   }
 
   private async phase3VerifyScoring(phase2Response: string, provider: AIProvider): Promise<string> {
     const scores = this.extractScores(phase2Response);
     
-    let verificationText = "ARE YOUR NUMERICAL SCORES (N/100, E.G. 99/100, 42/100) CONSISTENT WITH THE FACT THAT THOSE ARE TO BE TAKEN TO MEAN THAT (100-N) PEOPLE OUT OF 100 OUTPERFORM THE AUTHOR IN THE RELEVANT RESPECT? ";
+    let verificationText = "Are your numerical scores (N/100, e.g. 99/100, 42/100) consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? ";
     
     for (const [category, score] of Object.entries(scores)) {
       const peopleOutperforming = 100 - score;
-      verificationText += `SO IF A SCORE OF ${score}/100 IS AWARDED TO A PAPER, THAT MEANS THAT ${peopleOutperforming}/100 PEOPLE IN WALMART ARE RUNNING RINGS AROUND THIS PERSON. `;
+      verificationText += `So if a score of ${score}/100 is awarded to a paper, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person. `;
     }
 
     const prompt = `${verificationText}
@@ -311,66 +263,26 @@ Text:
 Previous response:
 ${phase2Response}`;
 
-    const response = await this.callAIProvider(provider, prompt);
-    return this.stripMarkdownFormatting(response);
+    return await this.callAIProvider(provider, prompt);
   }
 
   private extractScores(response: string): Record<string, number> {
     const scores: Record<string, number> = {};
     
-    // Check for high-quality indicators
-    const qualityIndicators = {
-      excellent: /highly insightful|extremely insightful|exceptionally insightful|remarkably insightful|profoundly insightful|demonstrably the work of a highly intelligent mind|decidedly hierarchical|decidedly fresh|exceptional system-level control|unequivocally governed|remarkably direct/i,
-      good: /insightful|sophisticated|rigorous|coherent|well-reasoned|organic|fresh|intelligent|real|direct/i,
-      mediocre: /adequate|basic|simple|straightforward/i
-    };
+    // Look for patterns like "85/100", "Score: 92/100", etc.
+    const scoreMatches = response.match(/(?:score[:\s]*)?(\d{1,3})\/100/gi);
     
-    // Determine base score based on quality indicators
-    let baseScore = 50; // default mediocre
-    if (qualityIndicators.excellent.test(response)) {
-      baseScore = 100; // excellent quality
-    } else if (qualityIndicators.good.test(response)) {
-      baseScore = 85; // good quality
-    }
-    
-    // Look for explicit numerical scores in various formats
-    const scorePatterns = [
-      /Score:\s*(\d{1,3})\/100/gi,
-      /(\d{1,3})\/100/g,
-      /scored?\s*(\d{1,3})/gi
-    ];
-    
-    let explicitScores: number[] = [];
-    
-    for (const pattern of scorePatterns) {
-      const matches = Array.from(response.matchAll(pattern));
-      if (matches.length > 0) {
-        explicitScores = matches.map(match => parseInt(match[1])).filter(score => score >= 0 && score <= 100);
-        break; // Use first successful pattern
-      }
-    }
-    
-    // If we found explicit scores, use them (but apply quality boost if needed)
-    if (explicitScores.length > 0) {
-      explicitScores.forEach((score, index) => {
-        // If text shows excellent quality, force all scores to 100
-        const finalScore = qualityIndicators.excellent.test(response) ? 100 : score;
-        scores[`score_${index + 1}`] = finalScore;
+    if (scoreMatches) {
+      scoreMatches.forEach((match, index) => {
+        const scoreValue = parseInt(match.match(/(\d{1,3})/)?.[1] || "0");
+        scores[`score_${index + 1}`] = scoreValue;
       });
-    } else {
-      // No explicit scores found, use quality-based scoring for all 18 questions
-      for (let i = 1; i <= 18; i++) {
-        scores[`score_${i}`] = baseScore;
-      }
     }
     
-    // Extract overall score with quality boost
+    // Try to extract an overall score
     const overallMatch = response.match(/overall[:\s]*(\d{1,3})\/100/i);
     if (overallMatch) {
-      const overallScore = parseInt(overallMatch[1]);
-      scores['overall'] = qualityIndicators.excellent.test(response) ? 100 : overallScore;
-    } else {
-      scores['overall'] = baseScore;
+      scores['overall'] = parseInt(overallMatch[1]);
     }
     
     return scores;

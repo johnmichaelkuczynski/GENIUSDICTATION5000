@@ -219,7 +219,7 @@ export const IntelligenceAnalysisTool = forwardRef<IntelligenceAnalysisToolRef, 
         body: JSON.stringify({
           text: documentAText,
           provider: selectedProvider,
-          comprehensive: analysisType === 'comprehensive',
+          abbreviated: analysisType === 'normal',
         }),
       });
 
