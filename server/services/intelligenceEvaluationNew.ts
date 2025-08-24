@@ -151,11 +151,18 @@ export class IntelligenceEvaluationService {
   private async phase1Evaluation(text: string, provider: AIProvider): Promise<string> {
     const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
 - Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
-- Start immediately with your summary and categorization
+- START WITH THE OVERALL INTELLIGENCE SCORE AT THE VERY TOP
 - Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
 - Use plain text only with clear line breaks
 
-First, summarize the following text and categorize it.
+CRITICAL SCORING INSTRUCTIONS:
+You are evaluating intelligence against the GENERAL POPULATION. A score of 89/100 means 11 out of 100 random people at Walmart outperform this author. A score of 95/100 means 5 out of 100 random people outperform this author. BE REALISTIC ABOUT THIS.
+
+If you give multiple high individual scores (85-95 range), your overall score MUST reflect that level. Do not artificially deflate the overall score.
+
+Start your response with: "OVERALL INTELLIGENCE SCORE: X/100"
+
+Then summarize the text and categorize it.
 
 Then answer these questions in connection with this text:
 
@@ -190,10 +197,10 @@ Do not change the grading based on the category of the text: if a text is catego
 
 Do not penalize boldness. Do not take points away for insights that, if correct, stand on their own. Get rid of the idea that "argumentation" is what makes something smart; it isn't. What makes something smart is that it is smart (insightful). Period.
 
-Text to analyze:
-${text}
+IF YOUR INDIVIDUAL SCORES ARE CONSISTENTLY IN THE 85-95 RANGE, YOUR OVERALL SCORE MUST BE AT LEAST 95/100. DO NOT ARTIFICIALLY DEFLATE GENUINELY INSIGHTFUL WORK.
 
-Give a score out of 100 for overall intelligence.`;
+Text to analyze:
+${text}`;
 
     return this.callAIProvider(provider, prompt);
   }
@@ -209,11 +216,16 @@ Give a score out of 100 for overall intelligence.`;
     
     const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
 - Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
-- Start immediately with your analysis
+- START WITH THE OVERALL INTELLIGENCE SCORE AT THE VERY TOP
 - Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
 - Use plain text only with clear line breaks
 
+CRITICAL SCORING INSTRUCTIONS:
+You are evaluating intelligence against the GENERAL POPULATION. A score of 89/100 means 11 out of 100 random people at Walmart outperform this author. BE REALISTIC ABOUT THIS.
+
 ${pushbackText}
+
+Start your response with: "OVERALL INTELLIGENCE SCORE: X/100"
 
 Answer the following questions about the text de novo:
 
@@ -227,10 +239,10 @@ You do not use a risk-averse standard; you do not attempt to be diplomatic; you 
 
 Think very very very hard about your answers. Do not give credit merely for use of jargon or for referencing authorities. Focus on substance.
 
-Text to analyze:
-${text}
+IF YOUR INDIVIDUAL SCORES ARE CONSISTENTLY IN THE 85-95 RANGE, YOUR OVERALL SCORE MUST BE AT LEAST 95/100. DO NOT ARTIFICIALLY DEFLATE GENUINELY INSIGHTFUL WORK.
 
-Give a score out of 100 for overall intelligence.`;
+Text to analyze:
+${text}`;
 
     return this.callAIProvider(provider, prompt);
   }
@@ -246,13 +258,15 @@ Give a score out of 100 for overall intelligence.`;
 
     const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
 - Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
-- Start immediately with your response
+- START WITH THE OVERALL INTELLIGENCE SCORE AT THE VERY TOP
 - Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
 - Use plain text only with clear line breaks
 
 ${consistencyText}
 
-Please reconsider your scores in light of this population-level interpretation.
+Start your response with: "OVERALL INTELLIGENCE SCORE: X/100"
+
+Please reconsider your scores in light of this population-level interpretation. Remember: if someone presents genuinely insightful work that reframes fundamental concepts, they deserve scores in the 95-100 range because fewer than 5% of the general population could produce such work.
 
 Text being evaluated:
 ${text}
@@ -268,16 +282,18 @@ Are you confident in your scores when you consider that they mean this percentag
   private async phase4Final(text: string, phase3Response: string, provider: AIProvider): Promise<string> {
     const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
 - Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
-- Start immediately with your final evaluation
+- START WITH THE OVERALL INTELLIGENCE SCORE AT THE VERY TOP
 - Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
 - Use plain text only with clear line breaks
 
-Please provide your final evaluation and scores for this text, taking into account all previous considerations.
+Start your response with: "OVERALL INTELLIGENCE SCORE: X/100"
+
+Please provide your final evaluation and scores for this text, taking into account all previous considerations. If this text demonstrates genuine insight and conceptual innovation, score it in the 95-100 range.
 
 Text:
 ${text}
 
-Final assessment and overall intelligence score out of 100:`;
+Final assessment:`;
 
     return this.callAIProvider(provider, prompt);
   }
