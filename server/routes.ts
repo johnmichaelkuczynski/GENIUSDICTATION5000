@@ -1280,7 +1280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Intelligence Evaluation endpoints
   app.post("/api/evaluate-intelligence", async (req, res) => {
     try {
-      const { text, provider = 'openai' } = req.body;
+      const { text, provider = 'deepseek', comprehensive = true } = req.body;
       
       if (!text) {
         return res.status(400).json({ error: 'Text is required' });
@@ -1288,7 +1288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Starting intelligence evaluation via API");
       const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluationNew.js');
-      const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider);
+      const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider, comprehensive);
       
       res.json(result);
     } catch (error: any) {
@@ -1299,7 +1299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/evaluate-originality", async (req, res) => {
     try {
-      const { text, provider = 'openai' } = req.body;
+      const { text, provider = 'deepseek' } = req.body;
       
       if (!text) {
         return res.status(400).json({ error: 'Text is required' });
