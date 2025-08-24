@@ -105,15 +105,6 @@ export class IntelligenceEvaluationService {
     throw new Error(`Unsupported AI provider: ${provider}`);
   }
   
-  // Normal analysis - Phase 1 only
-  async phase1Only(text: string, provider: AIProvider = 'deepseek'): Promise<string> {
-    console.log("Starting Phase 1 intelligence evaluation for text of length:", text.length);
-    const response = await this.phase1Evaluation(text, INTELLIGENCE_QUESTIONS, provider);
-    console.log("Phase 1 completed");
-    return response;
-  }
-
-  // Comprehensive analysis - All phases
   async evaluateIntelligence(text: string, provider: AIProvider = 'deepseek'): Promise<EvaluationResult> {
     console.log("Starting intelligence evaluation for text of length:", text.length);
     
@@ -177,25 +168,9 @@ export class IntelligenceEvaluationService {
   }
 
   private async phase1Evaluation(text: string, questions: string, provider: AIProvider): Promise<string> {
-    const prompt = `YOU MUST START YOUR RESPONSE WITH EXACTLY THIS FORMAT AS THE VERY FIRST LINE:
-OVERALL SCORE: X/100
-
-CRITICAL FORMATTING REQUIREMENT: Use absolutely NO markdown formatting. No ### headings, no **bold**, no *italics*, no bullets, no special formatting whatsoever. Write in plain text only.
-
-After stating the overall score, summarize this text and categorize it.
-
-Then, ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
+    const prompt = `Answer these questions in connection with this text.
 
 ${questions}
-
-Before answering the questions, note the following non-negotiable standard:
-
-Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
-
-Hierarchy of judgment:
-95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
-80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
-<80/100: Degrees of mediocrity or failure.
 
 A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question. You are not grading; you are answering these questions. You do not use a risk-averse standard; you do not attempt to be diplomatic; you do not attempt to comply with risk-averse, medium-range IQ, academic norms. You do not make assumptions about the level of the paper; it could be a work of the highest excellence and genius, or it could be the work of a moron.
 
@@ -203,18 +178,10 @@ If a work is a work of genius, you say that, and you say why; you do not shy awa
 
 Think very very very hard about your answers; make it very clear that you are not to default to cookbook, midwit evaluation protocols.
 
-DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+Text to analyze:
+"${text}"
 
-This is not a grading app. You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are not grading essays. You are not looking for completeness. Your job is to answer the questions, period, and to do so on the basis of the text given, making zero assumptions about whether it is complete or incomplete.
-
-Do not overvalue turns of phrase. An author speaking confidently is not necessarily "shutting down modes of inquiry." By putting a clear stake in the ground, he is probably opening them. Casual speech does not mean disorganized thoughts. Don't judge a book by its cover.
-
-Do not change the grading based on the category of the text. If a text is categorized as 'advanced scholarship', still evaluate it with respect to the general population, not with respect only to 'advanced scholarly works.'
-
-Do not penalize boldness. Do not take points away for insights that, if correct, stand on their own. Get rid of the idea that "argumentation" is what makes something smart; it isn't. What makes something smart is that it is smart (insightful). Period.
-
-Text:
-"${text}"`;
+Provide a numerical score out of 100 for your overall assessment and also give a score out of 100.`;
 
     return await this.callAIProvider(provider, prompt);
   }
@@ -226,24 +193,24 @@ Text:
       return phase1Response; // No pushback needed
     }
 
-    let pushbackText = "";
+    let pushbackText = "Based on your previous response, ";
     for (const [category, score] of Object.entries(scores)) {
       if (score < 95) {
-        const outperformPercent = 100 - score;
-        pushbackText += `Your position is that ${outperformPercent}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that? `;
+        const percentOutperform = 100 - score;
+        pushbackText += `your position is that ${percentOutperform}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that? `;
       }
     }
 
     const prompt = `${pushbackText}
 
-In saying this, I am not necessarily telling you to change your score, only to carefully consider it.
-
-Answer the following questions about the text DE NOVO:
+Answer the following questions about the text de novo:
 
 ${questions}
 
-Text:
-"${text}"`;
+Text to analyze:
+"${text}"
+
+Provide a numerical score out of 100 for your overall assessment.`;
 
     return await this.callAIProvider(provider, prompt);
   }
@@ -251,16 +218,18 @@ Text:
   private async phase3VerifyScoring(phase2Response: string, provider: AIProvider): Promise<string> {
     const scores = this.extractScores(phase2Response);
     
-    let verificationText = "Are your numerical scores (N/100, e.g. 99/100, 42/100) consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? ";
+    let verificationText = "Are your numerical scores consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? ";
     
     for (const [category, score] of Object.entries(scores)) {
       const peopleOutperforming = 100 - score;
-      verificationText += `So if a score of ${score}/100 is awarded to a paper, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person. `;
+      verificationText += `If a score of ${score}/100 is awarded, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person. `;
     }
 
     const prompt = `${verificationText}
 
-Previous response:
+Given this context, are you confident in your scores? Please provide your final assessment with numerical scores.
+
+Previous response to consider:
 ${phase2Response}`;
 
     return await this.callAIProvider(provider, prompt);
