@@ -149,7 +149,13 @@ export class IntelligenceEvaluationService {
   }
 
   private async phase1Evaluation(text: string, provider: AIProvider): Promise<string> {
-    const prompt = `First, summarize the following text and categorize it.
+    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
+- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
+- Start immediately with your summary and categorization
+- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
+- Use plain text only with clear line breaks
+
+First, summarize the following text and categorize it.
 
 Then answer these questions in connection with this text:
 
@@ -201,7 +207,13 @@ Give a score out of 100 for overall intelligence.`;
       pushbackText += `Your position is that ${outperformPercent}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that? `;
     }
     
-    const prompt = `${pushbackText}
+    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
+- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
+- Start immediately with your analysis
+- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
+- Use plain text only with clear line breaks
+
+${pushbackText}
 
 Answer the following questions about the text de novo:
 
@@ -232,7 +244,13 @@ Give a score out of 100 for overall intelligence.`;
       consistencyText += `So if a score of ${score}/100 is awarded to this text, that means that ${outperformCount}/100 people in Walmart are running rings around this person. Is that consistent with your evaluation? `;
     }
 
-    const prompt = `${consistencyText}
+    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
+- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
+- Start immediately with your response
+- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
+- Use plain text only with clear line breaks
+
+${consistencyText}
 
 Please reconsider your scores in light of this population-level interpretation.
 
@@ -248,7 +266,13 @@ Are you confident in your scores when you consider that they mean this percentag
   }
 
   private async phase4Final(text: string, phase3Response: string, provider: AIProvider): Promise<string> {
-    const prompt = `Please provide your final evaluation and scores for this text, taking into account all previous considerations.
+    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
+- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
+- Start immediately with your final evaluation
+- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
+- Use plain text only with clear line breaks
+
+Please provide your final evaluation and scores for this text, taking into account all previous considerations.
 
 Text:
 ${text}
@@ -283,7 +307,13 @@ Final assessment and overall intelligence score out of 100:`;
     DOES IT REVEAL SOMETHING NEW OR REPEAT WHAT IS ALREADY KNOWN?
     `;
 
-    const prompt = `First, summarize the following text and categorize it.
+    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
+- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
+- Start immediately with your summary and categorization
+- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
+- Use plain text only with clear line breaks
+
+First, summarize the following text and categorize it.
 
 Then answer these questions in connection with this text:
 
