@@ -96,6 +96,16 @@ export class IntelligenceEvaluationService {
     
     throw new Error(`Unsupported AI provider: ${provider}`);
   }
+
+  private stripMarkdown(text: string): string {
+    // Remove all markdown formatting - ** and ##
+    return text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove **bold** formatting
+      .replace(/##\s*([^\n]+)/g, '$1')    // Remove ## headers
+      .replace(/\*([^*]+)\*/g, '$1')      // Remove *italic* formatting
+      .replace(/---+/g, '')               // Remove horizontal rules
+      .replace(/\-\s*\-\s*\-/g, '');      // Remove dashed lines
+  }
   
   async evaluateIntelligence(text: string, provider: AIProvider = 'deepseek', comprehensive: boolean = true): Promise<EvaluationResult> {
     console.log("Starting intelligence evaluation for text of length:", text.length);
@@ -149,20 +159,18 @@ export class IntelligenceEvaluationService {
   }
 
   private async phase1Evaluation(text: string, provider: AIProvider): Promise<string> {
-    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
-- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
-- START WITH THE OVERALL INTELLIGENCE SCORE AT THE VERY TOP
-- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
-- Use plain text only with clear line breaks
+    const prompt = `YOU MUST START YOUR RESPONSE WITH EXACTLY THIS FORMAT:
+
+OVERALL INTELLIGENCE SCORE: X/100
+
+Do not write anything before that line. Put the score on the very first line.
 
 CRITICAL SCORING INSTRUCTIONS:
 You are evaluating intelligence against the GENERAL POPULATION. A score of 89/100 means 11 out of 100 random people at Walmart outperform this author. A score of 95/100 means 5 out of 100 random people outperform this author. BE REALISTIC ABOUT THIS.
 
 If you give multiple high individual scores (85-95 range), your overall score MUST reflect that level. Do not artificially deflate the overall score.
 
-Start your response with: "OVERALL INTELLIGENCE SCORE: X/100"
-
-Then summarize the text and categorize it.
+AFTER the score line, then summarize and categorize the text.
 
 Then answer these questions in connection with this text:
 
@@ -202,7 +210,8 @@ IF YOUR INDIVIDUAL SCORES ARE CONSISTENTLY IN THE 85-95 RANGE, YOUR OVERALL SCOR
 Text to analyze:
 ${text}`;
 
-    return this.callAIProvider(provider, prompt);
+    const response = await this.callAIProvider(provider, prompt);
+    return this.stripMarkdown(response);
   }
 
   private async phase2Pushback(text: string, phase1Response: string, provider: AIProvider): Promise<string> {
@@ -214,20 +223,18 @@ ${text}`;
       pushbackText += `Your position is that ${outperformPercent}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that? `;
     }
     
-    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
-- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
-- START WITH THE OVERALL INTELLIGENCE SCORE AT THE VERY TOP
-- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
-- Use plain text only with clear line breaks
+    const prompt = `YOU MUST START YOUR RESPONSE WITH EXACTLY THIS FORMAT:
+
+OVERALL INTELLIGENCE SCORE: X/100
+
+Do not write anything before that line. Put the score on the very first line.
 
 CRITICAL SCORING INSTRUCTIONS:
 You are evaluating intelligence against the GENERAL POPULATION. A score of 89/100 means 11 out of 100 random people at Walmart outperform this author. BE REALISTIC ABOUT THIS.
 
 ${pushbackText}
 
-Start your response with: "OVERALL INTELLIGENCE SCORE: X/100"
-
-Answer the following questions about the text de novo:
+AFTER the score line, answer the following questions about the text de novo using NO markup formatting (no **, ##, etc.):
 
 ${INTELLIGENCE_QUESTIONS}
 
@@ -244,7 +251,8 @@ IF YOUR INDIVIDUAL SCORES ARE CONSISTENTLY IN THE 85-95 RANGE, YOUR OVERALL SCOR
 Text to analyze:
 ${text}`;
 
-    return this.callAIProvider(provider, prompt);
+    const response = await this.callAIProvider(provider, prompt);
+    return this.stripMarkdown(response);
   }
 
   private async phase3ScoreConsistency(text: string, previousResponse: string, provider: AIProvider): Promise<string> {
@@ -256,17 +264,15 @@ ${text}`;
       consistencyText += `So if a score of ${score}/100 is awarded to this text, that means that ${outperformCount}/100 people in Walmart are running rings around this person. Is that consistent with your evaluation? `;
     }
 
-    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
-- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
-- START WITH THE OVERALL INTELLIGENCE SCORE AT THE VERY TOP
-- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
-- Use plain text only with clear line breaks
+    const prompt = `YOU MUST START YOUR RESPONSE WITH EXACTLY THIS FORMAT:
+
+OVERALL INTELLIGENCE SCORE: X/100
+
+Do not write anything before that line. Put the score on the very first line.
 
 ${consistencyText}
 
-Start your response with: "OVERALL INTELLIGENCE SCORE: X/100"
-
-Please reconsider your scores in light of this population-level interpretation. Remember: if someone presents genuinely insightful work that reframes fundamental concepts, they deserve scores in the 95-100 range because fewer than 5% of the general population could produce such work.
+AFTER the score line, please reconsider your scores in light of this population-level interpretation using NO markup formatting (no **, ##, etc.). Remember: if someone presents genuinely insightful work that reframes fundamental concepts, they deserve scores in the 95-100 range because fewer than 5% of the general population could produce such work.
 
 Text being evaluated:
 ${text}
@@ -276,26 +282,26 @@ ${previousResponse}
 
 Are you confident in your scores when you consider that they mean this percentage of the general population outperforms the author?`;
 
-    return this.callAIProvider(provider, prompt);
+    const response = await this.callAIProvider(provider, prompt);
+    return this.stripMarkdown(response);
   }
 
   private async phase4Final(text: string, phase3Response: string, provider: AIProvider): Promise<string> {
-    const prompt = `CRITICAL FORMATTING INSTRUCTIONS:
-- Use NO markdown formatting whatsoever (no **, ##, ---, etc.)
-- START WITH THE OVERALL INTELLIGENCE SCORE AT THE VERY TOP
-- Do NOT begin with phrases like "Of course" or "Here is a detailed analysis"
-- Use plain text only with clear line breaks
+    const prompt = `YOU MUST START YOUR RESPONSE WITH EXACTLY THIS FORMAT:
 
-Start your response with: "OVERALL INTELLIGENCE SCORE: X/100"
+OVERALL INTELLIGENCE SCORE: X/100
 
-Please provide your final evaluation and scores for this text, taking into account all previous considerations. If this text demonstrates genuine insight and conceptual innovation, score it in the 95-100 range.
+Do not write anything before that line. Put the score on the very first line.
+
+AFTER the score line, please provide your final evaluation and scores for this text using NO markup formatting (no **, ##, etc.), taking into account all previous considerations. If this text demonstrates genuine insight and conceptual innovation, score it in the 95-100 range.
 
 Text:
 ${text}
 
 Final assessment:`;
 
-    return this.callAIProvider(provider, prompt);
+    const response = await this.callAIProvider(provider, prompt);
+    return this.stripMarkdown(response);
   }
 
   private hasScoresBelow95(response: string): boolean {
