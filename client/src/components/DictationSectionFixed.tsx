@@ -1615,6 +1615,28 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                     >
                       <i className="ri-file-copy-line mr-1"></i> Copy
                     </Button>
+                    {onSendToGPTBypass && (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
+                          onClick={() => sendToGPTBypass(processedText)}
+                          disabled={!processedText?.trim()}
+                        >
+                          <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs flex items-center text-green-600 hover:bg-green-50"
+                          onClick={() => sendToIntelligenceAnalysis(processedText)}
+                          disabled={!processedText?.trim()}
+                        >
+                          <i className="ri-send-plane-line mr-1"></i> Send to Intelligence
+                        </Button>
+                      </>
+                    )}
                     <div className="flex items-center gap-1">
                       <Button 
                         variant="ghost" 
@@ -1697,28 +1719,6 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                       >
                         <i className="ri-file-pdf-line mr-1"></i> Download PDF
                       </Button>
-                      {onSendToGPTBypass && (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
-                            onClick={() => sendToGPTBypass(processedText)}
-                            disabled={!processedText?.trim()}
-                          >
-                            <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-xs flex items-center text-green-600 hover:bg-green-50"
-                            onClick={() => sendToIntelligenceAnalysis(processedText)}
-                            disabled={!processedText?.trim()}
-                          >
-                            <i className="ri-send-plane-line mr-1"></i> Send to Intelligence
-                          </Button>
-                        </>
-                      )}
                       <Button 
                         variant="ghost" 
                         size="sm" 
