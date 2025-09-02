@@ -13,6 +13,10 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - Math graphing capabilities with SVG visualization
 
 ## Recent Changes
+- 2025-09-02: COMPLETED - MAJOR FIX: Style transfer bug completely resolved - style samples now actively used in rewrite prompts
+- 2025-09-02: COMPLETED - GPT Bypass/humanizer working perfectly with dramatic AI score reductions (100% to 39-49%)
+- 2025-09-02: COMPLETED - All provider dropdowns updated to ZHI naming scheme (ZHI 1=Anthropic, 2=OpenAI, 3=DeepSeek, 4=Perplexity)
+- 2025-09-02: COMPLETED - Pure style transfer logic implemented as primary function when style samples provided
 - 2025-08-24: COMPLETED - MAJOR FIX: Intelligence evaluation now displays overall score at the very top of every response
 - 2025-08-24: COMPLETED - MAJOR FIX: Eliminated all markdown formatting from evaluation output (no more **, ##, etc.)
 - 2025-08-24: COMPLETED - MAJOR FIX: Implemented post-processing markdown stripper to force clean plain text output
