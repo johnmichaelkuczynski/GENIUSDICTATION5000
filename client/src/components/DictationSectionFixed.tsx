@@ -1637,6 +1637,49 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                         </Button>
                       </>
                     )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch("/api/export/latex", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              text: processedText,
+                              title: "Mathematical Document",
+                              author: "Genius Dictation"
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'document.tex';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                            
+                            toast({
+                              title: "LaTeX Download Complete",
+                              description: "Mathematical document exported as LaTeX file"
+                            });
+                          }
+                        } catch (error) {
+                          toast({
+                            title: "Export Failed",
+                            description: "Could not export LaTeX file",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    >
+                      <i className="ri-file-text-line mr-1"></i> LaTeX
+                    </Button>
                     <div className="flex items-center gap-1">
                       <Button 
                         variant="ghost" 
@@ -1718,49 +1761,6 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                         }}
                       >
                         <i className="ri-file-pdf-line mr-1"></i> Download PDF
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs flex items-center"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch("/api/export/latex", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                text: processedText,
-                                title: "Mathematical Document",
-                                author: "Genius Dictation"
-                              })
-                            });
-                            
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'document.tex';
-                              document.body.appendChild(a);
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                              document.body.removeChild(a);
-                              
-                              toast({
-                                title: "LaTeX Download Complete",
-                                description: "Mathematical document exported as LaTeX file"
-                              });
-                            }
-                          } catch (error) {
-                            toast({
-                              title: "Export Failed",
-                              description: "Could not export LaTeX file",
-                              variant: "destructive"
-                            });
-                          }
-                        }}
-                      >
-                        <i className="ri-file-text-line mr-1"></i> LaTeX
                       </Button>
                     </div>
                     {processedText && (
