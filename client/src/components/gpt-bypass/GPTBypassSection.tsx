@@ -525,7 +525,7 @@ export function GPTBypassSection({ className }: GPTBypassSectionProps) {
                   disabled={!inputText.trim() || isLoading}
                   className="flex-1"
                 >
-                  {isLoading ? 'Processing...' : 'Rewrite Text'}
+                  {isLoading ? 'Processing...' : 'HUMANIZE'}
                   <Zap className="w-4 h-4 ml-2" />
                 </Button>
                 <Button

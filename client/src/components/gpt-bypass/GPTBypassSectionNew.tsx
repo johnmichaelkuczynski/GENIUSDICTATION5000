@@ -537,7 +537,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
               className="flex-1 h-12 text-base"
               size="lg"
             >
-              {isLoading ? 'Processing...' : 'Rewrite Text'}
+              {isLoading ? 'Processing...' : 'HUMANIZE'}
               <Zap className="w-5 h-5 ml-2" />
             </Button>
             <Button
