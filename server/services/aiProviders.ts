@@ -98,9 +98,39 @@ function buildRewritePrompt(params: {
   selectedPresets?: string[];
   customInstructions?: string;
 }): string {
+  const hasStyleText = !!(params.styleText && params.styleText.trim() !== "");
   const hasCustomInstructions = !!(params.customInstructions && params.customInstructions.trim() !== "");
+  const hasPresets = !!(params.selectedPresets && params.selectedPresets.length > 0);
   
-  // Intelligence criteria that always applies
+  // CORE FUNCTION: Pure Style Transfer when style sample is provided
+  if (hasStyleText) {
+    let prompt = `Rewrite the following text in the exact writing style of the provided style sample. This is pure style transfer - keep the content and meaning of the original text exactly the same, but change ONLY the writing style, sentence structure, tone, and presentation to match the style sample.
+
+STYLE SAMPLE (learn the writing style from this):
+"${params.styleText}"
+
+TEXT TO REWRITE (rewrite this content using the style from above):
+"${params.inputText}"
+
+Important: Preserve the original meaning and content exactly. Only change the writing style to match the sample.`;
+
+    // Add preset instructions if provided
+    if (hasPresets) {
+      const presetBlock = buildPresetBlock(params.selectedPresets, undefined);
+      if (presetBlock) {
+        prompt = presetBlock + prompt;
+      }
+    }
+
+    // Add custom instructions if provided
+    if (hasCustomInstructions) {
+      prompt = `Additional instructions: ${params.customInstructions}\n\n` + prompt;
+    }
+
+    return prompt;
+  }
+
+  // FALLBACK: Intelligence optimization when no style sample is provided
   const intelligenceCriteria = `Rewrite this text so that it scores as high as possible with respect to the following intelligence questions:
 
 IS IT INSIGHTFUL?
@@ -122,21 +152,22 @@ ARE THE STATEMENTS AMBIGUOUS?
 DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
 DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?`;
 
-  if (hasCustomInstructions) {
-    // User instructions + intelligence optimization
-    return `${params.customInstructions}
+  let prompt = intelligenceCriteria + `\n\nText to rewrite:\n"${params.inputText}"`;
 
-Additionally, ${intelligenceCriteria}
-
-Text to rewrite:
-"${params.inputText}"`;
+  // Add preset instructions if provided
+  if (hasPresets) {
+    const presetBlock = buildPresetBlock(params.selectedPresets, undefined);
+    if (presetBlock) {
+      prompt = presetBlock + prompt;
+    }
   }
 
-  // Default: Intelligence optimization only
-  return `${intelligenceCriteria}
+  // Add custom instructions if provided
+  if (hasCustomInstructions) {
+    prompt = `${params.customInstructions}\n\nAdditionally, ` + prompt;
+  }
 
-Text to rewrite:
-"${params.inputText}"`;
+  return prompt;
 }
 
 export interface RewriteParams {
