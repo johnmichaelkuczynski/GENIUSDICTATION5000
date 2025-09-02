@@ -232,7 +232,7 @@ export function GPTBypassSection({ className }: GPTBypassSectionProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Re-rewrite failed');
+        throw new Error(errorData.message || 'RE-HUMANIZE failed');
       }
 
       const data = await response.json();
@@ -241,12 +241,12 @@ export function GPTBypassSection({ className }: GPTBypassSectionProps) {
       setJobId(data.jobId);
 
       toast({
-        title: "Re-rewrite completed",
+        title: "RE-HUMANIZE completed",
         description: `AI score: ${data.outputAiScore}%`,
       });
     } catch (error) {
       toast({
-        title: "Re-rewrite failed",
+        title: "RE-HUMANIZE failed",
         description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
@@ -532,7 +532,8 @@ export function GPTBypassSection({ className }: GPTBypassSectionProps) {
                   onClick={handleReRewrite}
                   disabled={!outputText.trim() || isLoading}
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  RE-HUMANIZE
                 </Button>
               </div>
             </CardContent>

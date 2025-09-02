@@ -425,7 +425,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Re-rewrite failed');
+        throw new Error(errorData.message || 'RE-HUMANIZE failed');
       }
 
       const data = await response.json();
@@ -434,12 +434,12 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
       setJobId(data.jobId);
 
       toast({
-        title: "Re-rewrite completed",
+        title: "RE-HUMANIZE completed",
         description: `AI score: ${data.outputAiScore}%`,
       });
     } catch (error) {
       toast({
-        title: "Re-rewrite failed",
+        title: "RE-HUMANIZE failed",
         description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
@@ -547,7 +547,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
               size="lg"
             >
               <RotateCcw className="w-5 h-5" />
-              Re-rewrite
+              RE-HUMANIZE
             </Button>
           </div>
         </CardContent>
