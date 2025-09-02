@@ -184,6 +184,7 @@ export interface RewriteParams {
 export class AIProviderService {
   async rewriteWithOpenAI(params: RewriteParams): Promise<string> {
     console.log("🔥 CALLING OPENAI API - Input length:", params.inputText?.length || 0);
+    console.log("🔥 OPENAI - STYLE TEXT PROVIDED:", !!params.styleText, "Length:", params.styleText?.length || 0);
     const prompt = buildRewritePrompt({
       inputText: params.inputText,
       styleText: params.styleText,
@@ -245,6 +246,8 @@ export class AIProviderService {
   }
 
   async rewriteWithPerplexity(params: RewriteParams): Promise<string> {
+    console.log("🔥 CALLING PERPLEXITY API - Input length:", params.inputText?.length || 0);
+    console.log("🔥 PERPLEXITY - STYLE TEXT PROVIDED:", !!params.styleText, "Length:", params.styleText?.length || 0);
     const prompt = buildRewritePrompt({
       inputText: params.inputText,
       styleText: params.styleText,
@@ -283,6 +286,8 @@ export class AIProviderService {
   }
 
   async rewriteWithDeepSeek(params: RewriteParams): Promise<string> {
+    console.log("🔥 CALLING DEEPSEEK API - Input length:", params.inputText?.length || 0);
+    console.log("🔥 DEEPSEEK - STYLE TEXT PROVIDED:", !!params.styleText, "Length:", params.styleText?.length || 0);
     const prompt = buildRewritePrompt({
       inputText: params.inputText,
       styleText: params.styleText,
