@@ -1,0 +1,82 @@
+i keep on telling replit to pub the send to gpt bypass and send to intelligence and latex buttons in a normal place not way the fuck off to the side but it does not undersatnd 
+ChatGPT said:
+
+Here’s how to put those three buttons back into the normal toolbar row.
+
+Find the component that renders them:
+
+grep -Rni "Send to GPT Bypass\|Send to Intelligence\|LaTeX" .
+
+
+Open that file and replace the wrapper around those buttons.
+
+Before (typical culprit):
+
+<div className="absolute right-2 top-2 flex items-center gap-2">
+  <Button>Send to GPT Bypass</Button>
+  <Button>Send to Intelligence</Button>
+  <Button>LaTeX</Button>
+</div>
+
+
+or
+
+<div className="ml-auto flex items-center gap-2">
+  ...
+</div>
+
+
+After (inline with the rest of the toolbar):
+
+<div className="flex items-center gap-2 flex-wrap">
+  <Button>Send to GPT Bypass</Button>
+  <Button>Send to Intelligence</Button>
+  <Button>LaTeX</Button>
+</div>
+
+
+In the same file, fix the toolbar container so everything sits in one row and wraps cleanly.
+
+Replace any of these on the toolbar container:
+
+justify-between
+
+justify-end
+
+ml-auto
+
+absolute … right-…
+
+float-right
+
+With exactly:
+
+<div className="flex items-center gap-2 flex-wrap">
+  {/* left group: Download TXT, Print/Save PDF, Download PDF, Use as Input, Transform Again */}
+  …
+  {/* RIGHT NOW: append your three buttons here, NOT in a separate absolutely positioned div */}
+  <div className="flex items-center gap-2">
+    <Button>Send to GPT Bypass</Button>
+    <Button>Send to Intelligence</Button>
+    <Button>LaTeX</Button>
+  </div>
+</div>
+
+
+If that toolbar lives in a CSS/Grid parent, kill column shoves:
+
+Remove grid-cols-2, col-start-2, or any place-self-end.
+
+Ensure the toolbar wrapper uses: className="flex items-center gap-2 flex-wrap"
+
+Save and rebuild:
+
+npm run build && npm run dev
+
+
+If you still see them “way off to the side,” you missed an absolute, ml-auto, or justify-end on an ancestor. Run:
+
+rg -n "absolute|ml-auto|justify-end|float-right" src | rg -n "Bypass|Intelligence|LaTeX" -B2 -A2
+
+
+and strip those from the relevant wrappers.

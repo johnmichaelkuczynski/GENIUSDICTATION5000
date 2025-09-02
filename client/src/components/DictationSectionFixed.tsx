@@ -1409,7 +1409,7 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                   </div>
                 </div>
                 {/* AI Detection Button */}
-                <div className="flex items-center justify-end space-x-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -1576,9 +1576,38 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                 </div>
               </div>
               
+              {/* Transform Text Button */}
+              <div className="flex items-center justify-center py-4">
+                <Button 
+                  className="flex items-center px-6 py-3" 
+                  onClick={handleTransformText}
+                  disabled={isProcessing || !originalText}
+                  size="lg"
+                >
+                  {isProcessing || isProcessingChunks ? (
+                    <>
+                      <span className="animate-spin h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
+                      {isChunkedProcessing 
+                        ? `Processing Chunks (${processingProgress}%)` 
+                        : "Processing..."}
+                    </>
+                  ) : (
+                    <>
+                      <i className="ri-magic-line mr-2"></i>
+                      {isLargeText ? "Transform Text (Chunked)" : "Transform Text"}
+                      {isLargeText && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Large Text
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                </Button>
+              </div>
+              
               {/* Processed Text Panel */}
               <div className="flex flex-col space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">Processed Output</h3>
                     <Badge variant="outline" className="text-xs font-normal">
@@ -1598,176 +1627,169 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                       <span className="text-xs text-muted-foreground">{processingProgress}%</span>
                     </div>
                   )}
-                  <div className="flex flex-col gap-2">
-                    {/* Primary Action Buttons Row */}
-                    <div className="flex space-x-2 gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs flex items-center"
-                        onClick={handleClearProcessed}
-                      >
-                        <i className="ri-delete-bin-line mr-1"></i> Clear
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs flex items-center"
-                        onClick={handleCopyProcessed}
-                      >
-                        <i className="ri-file-copy-line mr-1"></i> Copy
-                      </Button>
-                      {onSendToGPTBypass && (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
-                            onClick={() => sendToGPTBypass(processedText)}
-                            disabled={!processedText?.trim()}
-                          >
-                            <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-xs flex items-center text-green-600 hover:bg-green-50"
-                            onClick={() => sendToIntelligenceAnalysis(processedText)}
-                            disabled={!processedText?.trim()}
-                          >
-                            <i className="ri-send-plane-line mr-1"></i> Send to Intelligence
-                          </Button>
-                        </>
-                      )}
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs flex items-center"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch("/api/export/latex", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                text: processedText,
-                                title: "Mathematical Document",
-                                author: "Genius Dictation"
-                              })
-                            });
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center"
+                      onClick={handleClearProcessed}
+                    >
+                      <i className="ri-delete-bin-line mr-1"></i> Clear
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center"
+                      onClick={handleCopyProcessed}
+                    >
+                      <i className="ri-file-copy-line mr-1"></i> Copy
+                    </Button>
+                    {onSendToGPTBypass && (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
+                          onClick={() => sendToGPTBypass(processedText)}
+                          disabled={!processedText?.trim()}
+                        >
+                          <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs flex items-center text-green-600 hover:bg-green-50"
+                          onClick={() => sendToIntelligenceAnalysis(processedText)}
+                          disabled={!processedText?.trim()}
+                        >
+                          <i className="ri-send-plane-line mr-1"></i> Send to Intelligence
+                        </Button>
+                      </>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch("/api/export/latex", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              text: processedText,
+                              title: "Mathematical Document",
+                              author: "Genius Dictation"
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'document.tex';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
                             
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'document.tex';
-                              document.body.appendChild(a);
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                              document.body.removeChild(a);
-                              
-                              toast({
-                                title: "LaTeX Download Complete",
-                                description: "Mathematical document exported as LaTeX file"
-                              });
-                            }
-                          } catch (error) {
                             toast({
-                              title: "Export Failed",
-                              description: "Could not export LaTeX file",
-                              variant: "destructive"
+                              title: "LaTeX Download Complete",
+                              description: "Mathematical document exported as LaTeX file"
                             });
                           }
-                        }}
-                      >
-                        <i className="ri-file-text-line mr-1"></i> LaTeX
-                      </Button>
-                    </div>
-                    
-                    {/* Secondary Export Buttons Row */}
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs flex items-center"
-                        onClick={handleDownloadProcessed}
-                      >
-                        <i className="ri-download-line mr-1"></i> Download TXT
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                        onClick={() => {
-                          try {
-                            const combinedHTML = generateCombinedDocumentHTML(
-                              processedText, 
-                              extractedGraphs, 
-                              "Mathematical Document"
-                            );
-                            const printWindow = window.open('', '_blank');
-                            if (printWindow) {
-                              printWindow.document.write(combinedHTML);
-                              printWindow.document.close();
-                              printWindow.focus();
-                            }
-                            toast({
-                              title: "Print Window Opened",
-                              description: "Graphs displayed at top, text below. Use browser's print dialog to save as PDF"
-                            });
-                          } catch (error) {
-                            toast({
-                              title: "Print Failed",
-                              description: "Could not open print window",
-                              variant: "destructive"
-                            });
+                        } catch (error) {
+                          toast({
+                            title: "Export Failed",
+                            description: "Could not export LaTeX file",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    >
+                      <i className="ri-file-text-line mr-1"></i> LaTeX
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center"
+                      onClick={handleDownloadProcessed}
+                    >
+                      <i className="ri-download-line mr-1"></i> Download TXT
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                      onClick={() => {
+                        try {
+                          const combinedHTML = generateCombinedDocumentHTML(
+                            processedText, 
+                            extractedGraphs, 
+                            "Mathematical Document"
+                          );
+                          const printWindow = window.open('', '_blank');
+                          if (printWindow) {
+                            printWindow.document.write(combinedHTML);
+                            printWindow.document.close();
+                            printWindow.focus();
                           }
-                        }}
-                      >
-                        <i className="ri-printer-line mr-1"></i> Print/Save PDF
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch("/api/generate-document", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                text: processedText,
-                                format: "pdf",
-                                fileName: "mathematical-document",
-                                separateGraphs: true
-                              })
-                            });
+                          toast({
+                            title: "Print Window Opened",
+                            description: "Graphs displayed at top, text below. Use browser's print dialog to save as PDF"
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Print Failed",
+                            description: "Could not open print window",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    >
+                      <i className="ri-printer-line mr-1"></i> Print/Save PDF
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch("/api/generate-document", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              text: processedText,
+                              format: "pdf",
+                              fileName: "mathematical-document",
+                              separateGraphs: true
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            // Open directly in new tab for print/save as PDF
+                            window.open(url, '_blank');
                             
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              // Open directly in new tab for print/save as PDF
-                              window.open(url, '_blank');
-                              
-                              toast({
-                                title: "PDF Ready",
-                                description: "Click 'Print / Save as PDF' button in the opened page for perfect math notation"
-                              });
-                            } else {
-                              throw new Error('PDF generation failed');
-                            }
-                          } catch (error) {
                             toast({
-                              title: "PDF Export Failed",
-                              description: "Could not generate PDF with math notation",
-                              variant: "destructive"
+                              title: "PDF Ready",
+                              description: "Click 'Print / Save as PDF' button in the opened page for perfect math notation"
                             });
+                          } else {
+                            throw new Error('PDF generation failed');
                           }
-                        }}
-                      >
-                        <i className="ri-file-pdf-line mr-1"></i> Download PDF
-                      </Button>
-                    </div>
+                        } catch (error) {
+                          toast({
+                            title: "PDF Export Failed",
+                            description: "Could not generate PDF with math notation",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    >
+                      <i className="ri-file-pdf-line mr-1"></i> Download PDF
+                    </Button>
                     {processedText && (
                       <>
                         <Button 
@@ -1804,11 +1826,10 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                         </Button>
                       </>
                     )}
-                    </div>
                   </div>
                 </div>
                 {/* AI Detection Button for Processed Text */}
-                <div className="flex items-center justify-end">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -1936,7 +1957,9 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                 )}
               </div>
             </div>
-            
+          </TabsContent>
+          
+          <TabsContent value="dictation" className="p-6">
             {/* Transformation Controls */}
             <div className="mt-6 bg-accent/5 p-4 rounded-md border">
               <div className="flex flex-col space-y-4">
