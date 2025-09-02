@@ -200,6 +200,7 @@ export class AIProviderService {
       customInstructions: params.customInstructions,
     });
     console.log("🔥 User prompt length:", prompt.length);
+    console.log("🔥 OPENAI PROMPT PREVIEW:", prompt.substring(0, 200) + "...");
     
     try {
       console.log("🔥 About to make OpenAI API call...");
@@ -231,6 +232,7 @@ export class AIProviderService {
       customInstructions: params.customInstructions,
     });
     console.log("🔥 User prompt length:", prompt.length);
+    console.log("🔥 ANTHROPIC PROMPT PREVIEW:", prompt.substring(0, 200) + "...");
     
     try {
       console.log("🔥 About to make Anthropic API call...");
@@ -309,6 +311,7 @@ export class AIProviderService {
       selectedPresets: params.selectedPresets,
       customInstructions: params.customInstructions,
     });
+    console.log("🔥 DEEPSEEK PROMPT PREVIEW:", prompt.substring(0, 200) + "...");
     
     try {
       const response = await fetch('https://api.deepseek.com/chat/completions', {
