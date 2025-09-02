@@ -1598,88 +1598,93 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                       <span className="text-xs text-muted-foreground">{processingProgress}%</span>
                     </div>
                   )}
-                  <div className="flex space-x-2 flex-wrap gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs flex items-center"
-                      onClick={handleClearProcessed}
-                    >
-                      <i className="ri-delete-bin-line mr-1"></i> Clear
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs flex items-center"
-                      onClick={handleCopyProcessed}
-                    >
-                      <i className="ri-file-copy-line mr-1"></i> Copy
-                    </Button>
-                    {onSendToGPTBypass && (
-                      <>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
-                          onClick={() => sendToGPTBypass(processedText)}
-                          disabled={!processedText?.trim()}
-                        >
-                          <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-xs flex items-center text-green-600 hover:bg-green-50"
-                          onClick={() => sendToIntelligenceAnalysis(processedText)}
-                          disabled={!processedText?.trim()}
-                        >
-                          <i className="ri-send-plane-line mr-1"></i> Send to Intelligence
-                        </Button>
-                      </>
-                    )}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs flex items-center"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch("/api/export/latex", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              text: processedText,
-                              title: "Mathematical Document",
-                              author: "Genius Dictation"
-                            })
-                          });
-                          
-                          if (response.ok) {
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'document.tex';
-                            document.body.appendChild(a);
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                            document.body.removeChild(a);
+                  <div className="flex flex-col gap-2">
+                    {/* Primary Action Buttons Row */}
+                    <div className="flex space-x-2 gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs flex items-center"
+                        onClick={handleClearProcessed}
+                      >
+                        <i className="ri-delete-bin-line mr-1"></i> Clear
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs flex items-center"
+                        onClick={handleCopyProcessed}
+                      >
+                        <i className="ri-file-copy-line mr-1"></i> Copy
+                      </Button>
+                      {onSendToGPTBypass && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-xs flex items-center text-blue-600 hover:bg-blue-50"
+                            onClick={() => sendToGPTBypass(processedText)}
+                            disabled={!processedText?.trim()}
+                          >
+                            <i className="ri-send-plane-line mr-1"></i> Send to GPT Bypass
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-xs flex items-center text-green-600 hover:bg-green-50"
+                            onClick={() => sendToIntelligenceAnalysis(processedText)}
+                            disabled={!processedText?.trim()}
+                          >
+                            <i className="ri-send-plane-line mr-1"></i> Send to Intelligence
+                          </Button>
+                        </>
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs flex items-center"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch("/api/export/latex", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                text: processedText,
+                                title: "Mathematical Document",
+                                author: "Genius Dictation"
+                              })
+                            });
                             
+                            if (response.ok) {
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = 'document.tex';
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                              
+                              toast({
+                                title: "LaTeX Download Complete",
+                                description: "Mathematical document exported as LaTeX file"
+                              });
+                            }
+                          } catch (error) {
                             toast({
-                              title: "LaTeX Download Complete",
-                              description: "Mathematical document exported as LaTeX file"
+                              title: "Export Failed",
+                              description: "Could not export LaTeX file",
+                              variant: "destructive"
                             });
                           }
-                        } catch (error) {
-                          toast({
-                            title: "Export Failed",
-                            description: "Could not export LaTeX file",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    >
-                      <i className="ri-file-text-line mr-1"></i> LaTeX
-                    </Button>
+                        }}
+                      >
+                        <i className="ri-file-text-line mr-1"></i> LaTeX
+                      </Button>
+                    </div>
+                    
+                    {/* Secondary Export Buttons Row */}
                     <div className="flex items-center gap-1">
                       <Button 
                         variant="ghost" 
@@ -1799,6 +1804,7 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                         </Button>
                       </>
                     )}
+                    </div>
                   </div>
                 </div>
                 {/* AI Detection Button for Processed Text */}
