@@ -106,15 +106,22 @@ function buildRewritePrompt(params: {
   
   // CORE FUNCTION: Pure Style Transfer when style sample is provided
   if (hasStyleText) {
-    let prompt = `Rewrite the following text in the exact writing style of the provided style sample. This is pure style transfer - keep the content and meaning of the original text exactly the same, but change ONLY the writing style, sentence structure, tone, and presentation to match the style sample.
+    let prompt = `You are an expert writing style analyst and text rewriter. Your task is to rewrite the given text using the exact writing style, tone, and approach shown in the style sample.
 
-STYLE SAMPLE (learn the writing style from this):
+STYLE SAMPLE TO EMULATE:
 "${params.styleText}"
 
-TEXT TO REWRITE (rewrite this content using the style from above):
+TEXT TO REWRITE:
 "${params.inputText}"
 
-Important: Preserve the original meaning and content exactly. Only change the writing style to match the sample.`;
+INSTRUCTIONS:
+1. Analyze the writing style, tone, sentence structure, vocabulary choices, and rhetorical patterns in the style sample
+2. Rewrite the input text using this exact same style approach
+3. Keep the core meaning and content identical - only change the style, structure, and presentation
+4. Match the style sample's level of formality, complexity, and voice
+5. Output ONLY the rewritten text with no explanations or commentary
+
+REWRITTEN TEXT:`;
 
     // Add preset instructions if provided
     if (hasPresets) {
@@ -255,12 +262,14 @@ export class AIProviderService {
       selectedPresets: params.selectedPresets,
       customInstructions: params.customInstructions,
     });
+    console.log("🔥 Perplexity prompt length:", prompt.length);
     
     try {
+      console.log("🔥 About to make Perplexity API call...");
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY || process.env.PERPLEXITY_API_KEY_ENV_VAR || "default_key"}`,
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -275,12 +284,17 @@ export class AIProviderService {
       });
 
       if (!response.ok) {
-        throw new Error(`Perplexity API error: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error("🔥 PERPLEXITY API ERROR:", response.status, errorText);
+        throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      return this.cleanMarkup(data.choices[0].message.content || "");
+      const content = data.choices?.[0]?.message?.content || "";
+      console.log("🔥 Perplexity response received, length:", content.length);
+      return this.cleanMarkup(content);
     } catch (error: any) {
+      console.error("🔥 PERPLEXITY ERROR:", error);
       throw new Error(`Perplexity API error: ${error.message}`);
     }
   }
