@@ -776,7 +776,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
             ) : (
               <>
                 <Zap className="w-5 h-5 mr-2" />
-                HUMANIZE TEXT
+                HUMANIZE
               </>
             )}
           </Button>
