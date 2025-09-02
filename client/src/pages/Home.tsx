@@ -11,7 +11,7 @@ const Home = () => {
   const [textToGPTBypass, setTextToGPTBypass] = useState<string>('');
   const [textToMainApp, setTextToMainApp] = useState<string>('');
   const [textToIntelligenceAnalysis, setTextToIntelligenceAnalysis] = useState<string>('');
-  const dictationRef = useRef<any>(null);
+  const dictationRef = useRef<{ receiveText: (text: string) => void } | null>(null);
   const intelligenceAnalysisRef = useRef<any>(null);
 
   const handleSendToGPTBypass = (text: string) => {
@@ -27,10 +27,8 @@ const Home = () => {
     setTextToMainApp(text);
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Pass text to dictation component
-    if (dictationRef.current && dictationRef.current.receiveText) {
-      dictationRef.current.receiveText(text);
-    }
+    // Pass text to dictation component (ref functionality not implemented yet)
+    // TODO: Implement ref functionality in DictationSectionFixed component
   };
 
   const handleSendToIntelligenceAnalysis = (text: string) => {
@@ -49,7 +47,6 @@ const Home = () => {
   return (
     <>
       <DictationSectionFixed 
-        ref={dictationRef}
         onSendToGPTBypass={handleSendToGPTBypass}
         onSendToIntelligenceAnalysis={handleSendToIntelligenceAnalysis}
         receivedText={textToMainApp}

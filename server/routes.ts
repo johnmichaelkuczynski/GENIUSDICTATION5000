@@ -52,6 +52,7 @@ import { sendProcessedText } from "./services/sendgrid";
 import { fileProcessorService } from "./services/fileProcessor";
 import { textChunkerService } from "./services/textChunker";
 import { detectAIContent as detectAIContentFn } from "./services/gptzero";
+import { intelligentRewriteService } from "./services/intelligentRewrite";
 
 // Create a simple service wrapper for consistency
 const gptZeroService = {
@@ -72,8 +73,6 @@ const gptZeroService = {
     }));
   }
 };
-import { aiProviderService } from "./services/aiProviders";
-import { intelligentRewriteService } from "./services/intelligentRewrite";
 
 // Set up multer for file uploads
 const upload = multer({ 
@@ -157,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: result.error.message });
       }
 
-      const { text, instructions, model = AIModel.GPT_4O } = result.data;
+      const { text, instructions, model = AIModel.GPT4O } = result.data;
 
       // Determine provider based on model
       let provider = 'openai'; // default
@@ -658,8 +657,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ voices });
     } catch (error) {
       console.error("Error fetching voices:", error);
-      console.error("Error details:", error.message, error.stack);
-      res.status(500).json({ error: "Failed to fetch voices", details: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error("Error details:", errorMsg, errorStack);
+      res.status(500).json({ error: "Failed to fetch voices", details: errorMsg });
     }
   });
 
@@ -673,12 +674,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { text } = result.data;
+      const provider = req.body.provider || 'openai';
 
       // First, try using GPTZero if it's available
       if (process.env.GPTZERO_API_KEY) {
         try {
           // Detect if text is AI-generated using GPTZero
-          const detectionResult = await detectAIContent(text);
+          const detectionResult = await detectAIContentFn(text);
           
           // Return raw detection result without canned assessment
           return res.json(detectionResult);
@@ -854,7 +856,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('File upload error:', error);
-      res.status(500).json({ message: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMsg });
     }
   });
 
@@ -891,7 +894,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Text analysis error:', error);
-      res.status(500).json({ message: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMsg });
     }
   });
 
@@ -964,7 +968,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error('Rewrite error:', error);
-      res.status(500).json({ message: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMsg });
     }
   });
 
@@ -1032,7 +1037,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error('Re-rewrite error:', error);
-      res.status(500).json({ message: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMsg });
     }
   });
 
@@ -1049,7 +1055,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(job);
     } catch (error) {
       console.error('Get job error:', error);
-      res.status(500).json({ message: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMsg });
     }
   });
 
@@ -1060,7 +1067,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(jobs);
     } catch (error) {
       console.error('List jobs error:', error);
-      res.status(500).json({ message: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMsg });
     }
   });
 
