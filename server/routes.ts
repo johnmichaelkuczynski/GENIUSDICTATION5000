@@ -1003,7 +1003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Perform re-rewrite using current style text from Box B
         const rewrittenText = await aiProviderService.rewrite(provider || originalJob.provider, {
           inputText: originalJob.outputText,
-          styleText: styleText || originalJob.styleText,
+          styleText: styleText || originalJob.styleText || undefined,
           contentMixText: originalJob.contentMixText,
           customInstructions: customInstructions || originalJob.customInstructions,
           selectedPresets: selectedPresets || originalJob.selectedPresets,
