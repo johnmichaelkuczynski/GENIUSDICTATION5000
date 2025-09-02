@@ -102,6 +102,8 @@ function buildRewritePrompt(params: {
   const hasCustomInstructions = !!(params.customInstructions && params.customInstructions.trim() !== "");
   const hasPresets = !!(params.selectedPresets && params.selectedPresets.length > 0);
   
+  console.log("🔥 PROMPT BUILDER - Has style text:", hasStyleText, "Style length:", params.styleText?.length || 0);
+  
   // CORE FUNCTION: Pure Style Transfer when style sample is provided
   if (hasStyleText) {
     let prompt = `Rewrite the following text in the exact writing style of the provided style sample. This is pure style transfer - keep the content and meaning of the original text exactly the same, but change ONLY the writing style, sentence structure, tone, and presentation to match the style sample.
@@ -212,6 +214,7 @@ export class AIProviderService {
 
   async rewriteWithAnthropic(params: RewriteParams): Promise<string> {
     console.log("🔥 CALLING ANTHROPIC API - Input length:", params.inputText?.length || 0);
+    console.log("🔥 STYLE TEXT PROVIDED:", !!params.styleText, "Length:", params.styleText?.length || 0);
     const prompt = buildRewritePrompt({
       inputText: params.inputText,
       styleText: params.styleText,
