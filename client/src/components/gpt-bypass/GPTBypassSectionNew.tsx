@@ -750,13 +750,13 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
             <Label className="text-base font-semibold mb-2 block">AI Provider</Label>
             <Select value={provider} onValueChange={setProvider}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Anthropic Claude" />
+                <SelectValue placeholder="ZHI 1" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="anthropic">Anthropic Claude</SelectItem>
-                <SelectItem value="openai">OpenAI GPT-4</SelectItem>
-                <SelectItem value="perplexity">Perplexity</SelectItem>
-                <SelectItem value="deepseek">DeepSeek</SelectItem>
+                <SelectItem value="anthropic">ZHI 1</SelectItem>
+                <SelectItem value="openai">ZHI 2</SelectItem>
+                <SelectItem value="perplexity">ZHI 4</SelectItem>
+                <SelectItem value="deepseek">ZHI 3</SelectItem>
               </SelectContent>
             </Select>
           </div>
