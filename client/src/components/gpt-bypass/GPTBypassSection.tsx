@@ -227,6 +227,7 @@ export function GPTBypassSection({ className }: GPTBypassSectionProps) {
           customInstructions: customInstructions.trim() || undefined,
           selectedPresets,
           provider,
+          styleText: styleText.trim() || undefined,
         }),
       });
 

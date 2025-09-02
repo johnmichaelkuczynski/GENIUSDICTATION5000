@@ -420,6 +420,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
           customInstructions: customInstructions.trim() || undefined,
           selectedPresets,
           provider,
+          styleText: styleText.trim() || undefined,
         }),
       });
 

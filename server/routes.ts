@@ -977,17 +977,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/gpt-bypass/re-rewrite/:jobId", async (req, res) => {
     try {
       const { jobId } = req.params;
-      const { customInstructions, selectedPresets, provider } = req.body;
+      const { customInstructions, selectedPresets, provider, styleText } = req.body;
       
       const originalJob = await storage.getRewriteJob(jobId);
       if (!originalJob || !originalJob.outputText) {
         return res.status(404).json({ message: "Original job not found or incomplete" });
       }
 
-      // Create new rewrite job using the previous output as input
+      // Create new rewrite job using the previous output as input and current style text
       const rewriteJob = await storage.createRewriteJob({
         inputText: originalJob.outputText,
-        styleText: originalJob.styleText || undefined,
+        styleText: styleText || originalJob.styleText || undefined,
         contentMixText: originalJob.contentMixText || undefined,
         customInstructions: customInstructions || originalJob.customInstructions,
         selectedPresets: selectedPresets || originalJob.selectedPresets,
@@ -1000,10 +1000,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       try {
-        // Perform re-rewrite
+        // Perform re-rewrite using current style text from Box B
         const rewrittenText = await aiProviderService.rewrite(provider || originalJob.provider, {
           inputText: originalJob.outputText,
-          styleText: originalJob.styleText,
+          styleText: styleText || originalJob.styleText,
           contentMixText: originalJob.contentMixText,
           customInstructions: customInstructions || originalJob.customInstructions,
           selectedPresets: selectedPresets || originalJob.selectedPresets,
