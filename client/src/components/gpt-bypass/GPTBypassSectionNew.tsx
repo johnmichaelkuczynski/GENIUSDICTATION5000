@@ -512,7 +512,6 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
                     <SelectItem value="anthropic">ZHI 1</SelectItem>
                     <SelectItem value="openai">ZHI 2</SelectItem>
                     <SelectItem value="deepseek">ZHI 3</SelectItem>
-                    <SelectItem value="perplexity">ZHI 4</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -756,7 +755,6 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
               <SelectContent>
                 <SelectItem value="anthropic">ZHI 1</SelectItem>
                 <SelectItem value="openai">ZHI 2</SelectItem>
-                <SelectItem value="perplexity">ZHI 4</SelectItem>
                 <SelectItem value="deepseek">ZHI 3</SelectItem>
               </SelectContent>
             </Select>
