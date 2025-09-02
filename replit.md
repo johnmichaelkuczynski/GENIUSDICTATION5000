@@ -13,6 +13,8 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - Math graphing capabilities with SVG visualization
 
 ## Recent Changes
+- 2025-09-02: COMPLETED - MAJOR FIX: HUMANIZE function now working across all providers (ZHI 1-3) with proper Box B style transfer
+- 2025-09-02: COMPLETED - Enhanced prompt structure with step-by-step instructions for consistent style transfer across all AI providers
 - 2025-09-02: COMPLETED - MAJOR FIX: Style transfer bug completely resolved - style samples now actively used in rewrite prompts
 - 2025-09-02: COMPLETED - GPT Bypass/humanizer working perfectly with dramatic AI score reductions (100% to 39-49%)
 - 2025-09-02: COMPLETED - All provider dropdowns updated to ZHI naming scheme (ZHI 1=Anthropic, 2=OpenAI, 3=DeepSeek, 4=Perplexity)

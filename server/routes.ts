@@ -928,8 +928,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       try {
-        console.log("🔥 MAIN HUMANIZE - Provider:", rewriteRequest.provider);
-        console.log("🔥 MAIN HUMANIZE - Style text provided:", !!rewriteRequest.styleText, "Length:", rewriteRequest.styleText?.length || 0);
         
         // Perform rewrite
         const rewrittenText = await aiProviderService.rewrite(rewriteRequest.provider, {
