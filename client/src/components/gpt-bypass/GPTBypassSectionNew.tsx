@@ -109,8 +109,67 @@ When would it become rational to believe that, next time, you're more likely tha
       category: 'academic'
     }
   ],
-  professional: [],
-  creative: []
+  professional: [
+    {
+      id: 'business-efficiency',
+      name: 'ECONOMIC EFFICIENCY ANALYSIS',
+      preview: 'The more efficient an economy is, the less it depends on work-input...',
+      content: `The Paradox of Economic Efficiency
+
+The more efficient an economy is, the less it depends on the work-input of any given person. The less it depends on any given person, the more useless to the economy any given person is and, consequently, the less able any given person is to find a way to earn a living by participating in it. So as economies become more efficient, people become more economically useless and therefore less able to earn a living and more dependent for their livelihood on welfare of some kind. Hence the following paradox: The more efficient an economy is, the more people tend to be prevented from profiting from it.  
+        Let us put this in concrete terms. Until recently, audio editing, such as the editing involved in making this very audio book, had to be done almost entirely manually. Very little of the process was automated. Somebody had to physically splice the tape to edit out sounds. Another person had to be in charge of all of the splicing-relating technology. And so on. This meant a lot of jobs for a lot of people. All of those jobs are now gone, since sound-editing is now done by an app that costs around $30/year, as opposed to the $30/hour charged by some union sound-technician. Now that sound-editing can be done so cheaply, audio-products are less expensive than before and also available in greater number and variety. But all of those sound people are either excluded from the economy or they had to find entirely new lines of work. In most cases, they are living off of dwindling savings and are basically parasites. 
+        And what is true of audio editing is true to varying degrees of many other economic sectors. Banking is largely automated. No more need for bank-tellers. Insurance-sales is largely automated. No more need for insurance salesman.  No more need for salesman of any kind. Nor is there is much of a need for supermarket cashiers. And the list goes on.
+        Where do these people go? Further and further down, until they cannot live without handouts. So as the economy becomes more efficient, people become more useless to the economy and therefore less able to profitably engage the economy.`,
+      category: 'professional'
+    },
+    {
+      id: 'slacker-paradox',
+      name: 'THE SLACKER\'S PARADOX',
+      preview: 'People who try to avoid working end up working harder...',
+      content: `The Slacker's Paradox 
+
+People who try to avoid working end up working harder than people who don't try to avoid working. Case in point: People who work for pyramid schemes. These schemes never involve putting in time at an office, and one can work one's own hours. Also, theoretically, one can make an unlimited amount of money at one of these schemes doing very little work. But that isn't how it works out. People involved in such schemes end up putting in longer hours than people with real jobs and doing harder work, while being paid little or nothing.
+This is not an isolated phenomenon. There are entire demographics of people whose professional lives are about avoiding work but who for that reason end up working far more than most people: street musicians, struggling actors, sex workers, and criminals. 
+The solution to this paradox is that slackers are playing a defensive game. By spurning the normal rules of economic engagement, they are forced to take whatever opportunities come their way, which means that they aren't deciding the terms of those transactions and are therefore constantly short-selling themselves, so that the have to work extra hard to make up the difference. 
+People who are extremely successful don't slack off, but they also don't work excessively hard. And these two facts are related. They work mainly at choosing the kind of work that they do and spend relatively little of their energy doing work-proper. By contrast, less successful people, including drifters, do little in the way of deciding what kind of work they will do and commensurately more in the way of doing work-proper.`,
+      category: 'professional'
+    }
+  ],
+  creative: [
+    {
+      id: 'coin-paradox',
+      name: 'THE COIN PARADOX',
+      preview: 'There are non-denumerably many regions that a given coin can occupy...',
+      content: `The Coin Paradox 
+
+There are non-denumerably many regions R that a given coin dropped on a flat surface can occupy after settling. So if R* is the exact region that the coin does occupy, the chances of the coin's occupying that exact region are 1 divided by the number of such regions and are therefore zero. But since the coin does occupy R*, the chances of its doing so are greater than zero.  
+The solution: If an infinitely large class contains zero x's, then the chances of choosing an x from that class are nil. If an infinitely large class contains one x, then the chances of choosing an x from that class are infinitesimally small but not nil.`,
+      category: 'creative'
+    },
+    {
+      id: 'bhartrhari-paradox',
+      name: 'BHARTRHARI\'S PARADOX',
+      preview: 'The contention that some things cannot be described self-refutes...',
+      content: `Bhartrhari's Paradox
+
+The contention that some things cannot be described self-refutes, since in saying of something that it cannot be described, one is describing that thing. This is Bhartrhari's Paradox. 
+This paradox is based on a fallacy. Let S be the statement: "some things cannot be described." There is no particular object x such that S says of x that x cannot be described. S makes a statement about a class of objects. It says that the class of indescribable objects is non-empty. There is no particular member of that class to which it ascribes the property of being indescribable. So there is no particular object to which S ascribes any property, and S therefore doesn't self-refute. 
+We have seen that S does not self-refute. But is S true? Yes and no. S is ambiguous, and one of its disambiguations is true and the is false. S can be taken to mean: Given any language L, there exist objects that cannot be described in L. Thus disambiguated, S is true. A language is a recursively defined expression-class and therefore contains denumerably many expressions. (A class is denumerably if it has the same number of members as the class of natural numbers.) There exist non-denumerably many real numbers. (A class is non-denumerable if it is larger than the class of natural numbers.) Therefore, for any language, there exist objects that cannot be referred to in L. 
+S can also be taken to mean: There exist objects that cannot be described in any given language. Thus disambiguated, S is false, since given any object, there exists a possible language that can be refer to that object. 
+So S not only fails to refute but is actually true on one of its disambiguations, and  Bhartrhari's Paradox is not so much a real paradox as it is a logical blunder.`,
+      category: 'creative'
+    },
+    {
+      id: 'riddle-induction',
+      name: 'THE RIDDLE OF INDUCTION',
+      preview: 'I cannot legitimately infer that x\'s will lead to y\'s from the fact they have done so...',
+      content: `The Riddle of Induction 
+
+I cannot legitimately infer that x's will lead to y's from the fact they have done so thus far unless I know that what has happened will continue to happen, but I cannot know that what has happened will continue to happen unless I can legitimately infer that x's will lead to y's from the fact that they have do so thus far. Knowledge of the past provides no basis for knowledge of the future. 
+Solution: When we know the future, it is on the basis of continuities, not regularities. For x to cause y is for y to be a continuation of x. It is not for x-like events to always precede y-like events. It is obviously to some extent on the basis of regularities that we know what causes what, but that is because regularities often tell us where to look for continuities---if I notice that the elevator comes every time I push a certain button, then I know where to look for a causal connection, meaning that I know where to look for a continuity. And until I have knowledge of such a continuity, my knowledge that the elevator always comes when I push that button provides no basis for inductive inferences concerning the arrival of the elevator.`,
+      category: 'creative'
+    }
+  ]
 };
 
 interface GPTBypassSectionNewProps {
@@ -672,14 +731,13 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
             <Label className="text-base font-semibold mb-2 block">Writing Sample</Label>
             <Select value={selectedWritingSample} onValueChange={handleWritingSampleSelect}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="FORMAL AND FUNCTIONAL RELATIONSHIPS (Content-Neutral)" />
+                <SelectValue placeholder="Select a writing sample..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="formal-functional">FORMAL AND FUNCTIONAL RELATIONSHIPS (Content-Neutral)</SelectItem>
                 {Object.entries(WRITING_SAMPLES).map(([category, samples]) => 
                   samples.map((sample) => (
                     <SelectItem key={sample.id} value={sample.id}>
-                      {sample.name.toUpperCase()} ({category})
+                      {sample.name} ({category.toUpperCase()})
                     </SelectItem>
                   ))
                 )}
