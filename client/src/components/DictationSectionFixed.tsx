@@ -298,6 +298,7 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
   const [shouldAutoAssess, setShouldAutoAssess] = useState(false);
   const [selectedAssessmentModel, setSelectedAssessmentModel] = useState<AssessmentModel>('openai');
   const [availableModels, setAvailableModels] = useState({
+    deepseek: false,
     openai: false,
     anthropic: false,
     perplexity: false
@@ -879,13 +880,16 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
         const data = await response.json();
         
         setAvailableModels({
+          deepseek: data.services.deepseek,
           openai: data.services.openai,
           anthropic: data.services.anthropic,
           perplexity: data.services.perplexity
         });
         
-        // Set default model based on availability
-        if (data.services.openai) {
+        // Set default model based on availability (prioritize DeepSeek as per user preferences)
+        if (data.services.deepseek) {
+          setSelectedAssessmentModel('deepseek');
+        } else if (data.services.openai) {
           setSelectedAssessmentModel('openai');
         } else if (data.services.anthropic) {
           setSelectedAssessmentModel('anthropic');
@@ -2069,45 +2073,21 @@ function DictationSection({ onSendToGPTBypass, onSendToIntelligenceAnalysis, rec
                           >
                             OpenAI: {AIModel.GPT4O}
                           </SelectItem>
-                          <SelectItem 
-                            value={AIModel.GPT4} 
-                            disabled={!availableServices.openai}
-                          >
-                            OpenAI: {AIModel.GPT4}
-                          </SelectItem>
-                          <SelectItem 
-                            value={AIModel.GPT35} 
-                            disabled={!availableServices.openai}
-                          >
-                            OpenAI: {AIModel.GPT35}
-                          </SelectItem>
                           
                           {/* Anthropic Models */}
                           <SelectItem 
-                            value={AIModel.CLAUDE_3_OPUS} 
+                            value={AIModel.CLAUDE_SONNET} 
                             disabled={!availableServices.anthropic}
                           >
-                            Anthropic: {AIModel.CLAUDE_3_OPUS}
-                          </SelectItem>
-                          <SelectItem 
-                            value={AIModel.CLAUDE_3_SONNET} 
-                            disabled={!availableServices.anthropic}
-                          >
-                            Anthropic: {AIModel.CLAUDE_3_SONNET}
-                          </SelectItem>
-                          <SelectItem 
-                            value={AIModel.CLAUDE_3_HAIKU} 
-                            disabled={!availableServices.anthropic}
-                          >
-                            Anthropic: {AIModel.CLAUDE_3_HAIKU}
+                            Anthropic: {AIModel.CLAUDE_SONNET}
                           </SelectItem>
                           
                           {/* Perplexity Models */}
                           <SelectItem 
-                            value={AIModel.PERPLEXITY_LLAMA_SONAR} 
+                            value={AIModel.PERPLEXITY} 
                             disabled={!availableServices.perplexity}
                           >
-                            Perplexity: {AIModel.PERPLEXITY_LLAMA_SONAR}
+                            Perplexity: {AIModel.PERPLEXITY}
                           </SelectItem>
                         </SelectContent>
                       </Select>
