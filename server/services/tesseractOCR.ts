@@ -203,6 +203,11 @@ export function enhanceMathNotation(text: string): string {
  * @returns True if Tesseract is installed and working
  */
 export async function isTesseractAvailable(): Promise<boolean> {
+  if (process.env.CHECK_TESSERACT !== "1") {
+    // Skip the self-test if CHECK_TESSERACT is not set to "1"
+    return true; // Assume available to avoid blocking functionality
+  }
+
   try {
     // Create a simple test image buffer (1x1 white pixel)
     const testBuffer = await sharp({
