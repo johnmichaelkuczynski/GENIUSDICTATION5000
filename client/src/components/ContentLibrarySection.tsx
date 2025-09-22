@@ -493,12 +493,13 @@ const ContentLibrarySection = () => {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">Content Text (Paste your text content here)</Label>
                     <Textarea 
                       id="description" 
                       value={newContentDescription} 
                       onChange={(e) => setNewContentDescription(e.target.value)} 
-                      placeholder="Describe the purpose of this content reference"
+                      placeholder="Paste your text content here - this will be used as reference material for transformations"
+                      className="min-h-[120px]"
                     />
                   </div>
                   
@@ -562,10 +563,44 @@ const ContentLibrarySection = () => {
             </Dialog>
           </div>
 
+          {/* Quick Text Input Area */}
+          <div className="mb-6 p-4 border rounded-lg bg-muted/20">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-sm font-medium">Quick Add Content</Label>
+              <Button 
+                size="sm" 
+                onClick={() => {
+                  if (!newContentName.trim()) {
+                    setNewContentName(`Content ${contentReferences.length + 1}`);
+                  }
+                  handleAddContent();
+                }}
+                disabled={!newContentDescription.trim()}
+              >
+                <i className="ri-add-line mr-1"></i>
+                Add as Content Reference
+              </Button>
+            </div>
+            <div className="grid gap-3">
+              <Input
+                value={newContentName}
+                onChange={(e) => setNewContentName(e.target.value)}
+                placeholder="Content name (optional - will auto-generate if empty)"
+                className="text-sm"
+              />
+              <Textarea
+                value={newContentDescription}
+                onChange={(e) => setNewContentDescription(e.target.value)}
+                placeholder="Paste your text content here - this will be saved as a content reference for transformations"
+                className="min-h-[100px] text-sm"
+              />
+            </div>
+          </div>
+
           {contentReferences.length === 0 ? (
             <Alert>
               <AlertDescription>
-                No content references found. Add a new content reference to get started.
+                No content references found. Use the quick add area above or create a new content reference to get started.
               </AlertDescription>
             </Alert>
           ) : (
