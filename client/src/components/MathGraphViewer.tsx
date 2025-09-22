@@ -279,17 +279,31 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
+        {/* Primary Equation Input - Made More Prominent */}
+        <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+          <Label htmlFor="equation" className="text-lg font-semibold text-blue-800 mb-3 block">
+            Enter Your Equation Here
+          </Label>
+          <Input
+            id="equation"
+            value={equation}
+            onChange={(e) => handleEquationChange(e.target.value)}
+            placeholder="Type your equation: x^2, sin(x), cos(x)+2, sqrt(x), etc."
+            className="text-lg p-4 border-2 border-blue-300 focus:border-blue-500"
+          />
+          <p className="text-sm text-blue-600 mt-2">
+            Examples: x^2 (parabola), sin(x) (sine wave), cos(x)*2 (scaled cosine), log(x) (logarithm)
+          </p>
+        </div>
+
         {/* Controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="equation">Equation</Label>
-            <Input
-              id="equation"
-              value={equation}
-              onChange={(e) => handleEquationChange(e.target.value)}
-              placeholder="e.g., x^2, sin(x), cos(x)+2"
-            />
+            <Label className="text-sm font-medium text-gray-700">Current Equation</Label>
+            <div className="p-2 bg-gray-100 rounded border text-center font-mono">
+              {equation || "No equation entered"}
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -437,12 +451,40 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
           </div>
         </div>
 
+        {/* Quick Example Buttons */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <Label className="text-sm font-semibold text-yellow-800 mb-2 block">Quick Examples - Click to Try:</Label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              'x^2',
+              'sin(x)', 
+              'cos(x)*2',
+              'sqrt(x)',
+              'log(x)',
+              'x^3-2*x',
+              'sin(x)*cos(x)',
+              'abs(x)'
+            ].map((example) => (
+              <Button
+                key={example}
+                variant="outline"
+                size="sm"
+                onClick={() => handleEquationChange(example)}
+                className="bg-white hover:bg-yellow-100 text-yellow-800 border-yellow-300"
+              >
+                {example}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         {/* Instructions */}
-        <div className="text-sm text-gray-600 space-y-1">
+        <div className="text-sm text-gray-600 space-y-1 bg-gray-50 p-3 rounded border">
           <p><strong>Function examples:</strong> x^2, sin(x), cos(x)*2, sqrt(x), log(x)</p>
           <p><strong>Parametric examples:</strong> t*cos(t), t*sin(t) (separate x and y with comma)</p>
           <p><strong>Polar examples:</strong> 1+cos(x), sin(2*x)</p>
           <p><strong>Available functions:</strong> sin, cos, tan, sqrt, log, ln, abs, pi, e</p>
+          <p><strong>Operations:</strong> + - * / ^ (power), parentheses for grouping</p>
         </div>
       </CardContent>
     </Card>
