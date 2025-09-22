@@ -53,6 +53,7 @@ import { fileProcessorService } from "./services/fileProcessor";
 import { textChunkerService } from "./services/textChunker";
 import { detectAIContent as detectAIContentFn } from "./services/gptzero";
 import { intelligentRewriteService } from "./services/intelligentRewrite";
+import { generateGraphFromDescription } from "./services/graphGenerator";
 
 // Create a simple service wrapper for consistency
 const gptZeroService = {
@@ -1353,6 +1354,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Intelligent rewrite error:', error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Generate graph from natural language description
+  app.post("/api/generate-graph", async (req, res) => {
+    try {
+      const { description } = req.body;
+      
+      if (!description || typeof description !== 'string') {
+        return res.status(400).json({ error: 'Description is required' });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      console.log("Generating graph from description:", description);
+      const result = await generateGraphFromDescription(description);
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error('Graph generation error:', error);
+      res.status(500).json({ error: error.message || 'Failed to generate graph' });
     }
   });
   

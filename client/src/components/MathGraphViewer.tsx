@@ -38,6 +38,9 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
     gridSize: 1
   });
   const [error, setError] = useState<string | null>(null);
+  const [inputMode, setInputMode] = useState<'formula' | 'description'>('formula');
+  const [description, setDescription] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // SVG dimensions
   const SVG_WIDTH = 600;
@@ -235,6 +238,46 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
     onEquationChange?.(newEquation);
   };
 
+  const insertSymbol = (symbol: string) => {
+    setEquation(prev => prev + symbol);
+  };
+
+  const generateFromDescription = async () => {
+    if (!description.trim()) return;
+    
+    setIsGenerating(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/generate-graph', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: description.trim() })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate graph from description');
+      }
+      
+      const result = await response.json();
+      setEquation(result.equation);
+      
+      // Update settings if suggested
+      if (result.settings) {
+        setSettings(prev => ({ ...prev, ...result.settings }));
+      }
+      
+      // Switch to formula mode to show the generated equation
+      setInputMode('formula');
+      
+    } catch (error) {
+      console.error('Error generating graph:', error);
+      setError('Failed to generate graph from description. Please try a different description.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleDownloadSVG = () => {
     const svgElement = document.getElementById('math-graph-svg');
     if (!svgElement) return;
@@ -280,22 +323,129 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Primary Equation Input - Made More Prominent */}
-        <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
-          <Label htmlFor="equation" className="text-lg font-semibold text-blue-800 mb-3 block">
-            Enter Your Equation Here
-          </Label>
-          <Input
-            id="equation"
-            value={equation}
-            onChange={(e) => handleEquationChange(e.target.value)}
-            placeholder="Type your equation: x^2, sin(x), cos(x)+2, sqrt(x), etc."
-            className="text-lg p-4 border-2 border-blue-300 focus:border-blue-500"
-          />
-          <p className="text-sm text-blue-600 mt-2">
-            Examples: x^2 (parabola), sin(x) (sine wave), cos(x)*2 (scaled cosine), log(x) (logarithm)
-          </p>
+        {/* Input Mode Selector */}
+        <div className="flex items-center justify-center space-x-4 p-2 bg-gray-100 rounded-lg">
+          <Button
+            variant={inputMode === 'formula' ? 'default' : 'outline'}
+            onClick={() => setInputMode('formula')}
+            className="flex items-center"
+          >
+            <span className="mr-2">🔢</span>
+            Formula Mode
+          </Button>
+          <Button
+            variant={inputMode === 'description' ? 'default' : 'outline'}
+            onClick={() => setInputMode('description')}
+            className="flex items-center"
+          >
+            <span className="mr-2">💬</span>
+            Description Mode
+          </Button>
         </div>
+
+        {/* Natural Language Description Input */}
+        {inputMode === 'description' && (
+          <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+            <Label htmlFor="description" className="text-lg font-semibold text-green-800 mb-3 block">
+              Describe the Graph You Want
+            </Label>
+            <div className="space-y-3">
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Examples: 'Growth of US economy over last 50 years', 'Exponential function that describes bacterial growth', 'Rate of decay of plutonium', 'Parabolic trajectory of a projectile'"
+                className="w-full p-4 text-lg border-2 border-green-300 focus:border-green-500 rounded-md min-h-[100px] resize-vertical"
+              />
+              <Button
+                onClick={generateFromDescription}
+                disabled={isGenerating || !description.trim()}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {isGenerating ? (
+                  <>
+                    <span className="animate-spin mr-2">⚡</span>
+                    Generating Graph...
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">🎨</span>
+                    Generate Graph from Description
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-sm text-green-600 mt-2">
+              AI will analyze your description and create the appropriate mathematical function
+            </p>
+          </div>
+        )}
+
+        {/* Formula Input with Math Console */}
+        {inputMode === 'formula' && (
+          <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+            <Label htmlFor="equation" className="text-lg font-semibold text-blue-800 mb-3 block">
+              Enter Your Mathematical Equation
+            </Label>
+            <div className="space-y-4">
+              <Input
+                id="equation"
+                value={equation}
+                onChange={(e) => handleEquationChange(e.target.value)}
+                placeholder="Type your equation: x^2, sin(x), cos(x)+2, sqrt(x), etc."
+                className="text-lg p-4 border-2 border-blue-300 focus:border-blue-500"
+              />
+              
+              {/* Math Symbol Console */}
+              <div className="bg-white border rounded-lg p-3">
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">Math Symbol Console</Label>
+                <div className="grid grid-cols-8 gap-1 text-sm">
+                  {[
+                    { symbol: '^2', display: 'x²' },
+                    { symbol: '^3', display: 'x³' },
+                    { symbol: '^', display: '^' },
+                    { symbol: 'sqrt()', display: '√' },
+                    { symbol: 'sin()', display: 'sin' },
+                    { symbol: 'cos()', display: 'cos' },
+                    { symbol: 'tan()', display: 'tan' },
+                    { symbol: 'log()', display: 'log' },
+                    { symbol: 'ln()', display: 'ln' },
+                    { symbol: 'abs()', display: '|x|' },
+                    { symbol: 'pi', display: 'π' },
+                    { symbol: 'e', display: 'e' },
+                    { symbol: '(', display: '(' },
+                    { symbol: ')', display: ')' },
+                    { symbol: '+', display: '+' },
+                    { symbol: '-', display: '−' },
+                    { symbol: '*', display: '×' },
+                    { symbol: '/', display: '÷' },
+                    { symbol: '=', display: '=' },
+                    { symbol: '<', display: '<' },
+                    { symbol: '>', display: '>' },
+                    { symbol: '<=', display: '≤' },
+                    { symbol: '>=', display: '≥' },
+                    { symbol: '!=', display: '≠' }
+                  ].map(({ symbol, display }) => (
+                    <Button
+                      key={symbol}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => insertSymbol(symbol)}
+                      className="h-8 w-full text-xs hover:bg-blue-100"
+                      title={`Insert ${symbol}`}
+                    >
+                      {display}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
+              <p className="text-sm text-blue-600">
+                Click symbols above to insert them, or type directly. Examples: x^2, sin(x), cos(x)*2
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
