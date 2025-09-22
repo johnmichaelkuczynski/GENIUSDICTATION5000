@@ -28,6 +28,7 @@ interface MathGraphViewerProps {
 
 export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationChange }: MathGraphViewerProps) {
   const [equation, setEquation] = useState(initialEquation || 'x^2');
+  const [submittedEquation, setSubmittedEquation] = useState(initialEquation || 'x^2'); // This drives the actual graph
   const [graphType, setGraphType] = useState<'function' | 'parametric' | 'polar'>('function');
   const [settings, setSettings] = useState<GraphSettings>({
     xMin: -10,
@@ -85,7 +86,7 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
 
   // Generate points for the graph
   const graphPoints = useMemo(() => {
-    if (!equation.trim()) return [];
+    if (!submittedEquation.trim()) return [];
     
     setError(null);
     const points: Point[] = [];
@@ -95,7 +96,7 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
         // y = f(x) format
         for (let x = settings.xMin; x <= settings.xMax; x += settings.step) {
           try {
-            const y = evaluateExpression(equation, x);
+            const y = evaluateExpression(submittedEquation, x);
             if (isFinite(y) && y >= settings.yMin && y <= settings.yMax) {
               points.push(mathToSvg(x, y));
             }
@@ -106,7 +107,7 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
         }
       } else if (graphType === 'parametric') {
         // x = f(t), y = g(t) format - expect "x_expr,y_expr"
-        const [xExpr, yExpr] = equation.split(',').map(e => e.trim());
+        const [xExpr, yExpr] = submittedEquation.split(',').map(e => e.trim());
         if (!xExpr || !yExpr) {
           throw new Error('Parametric equations must be in format: x_expression,y_expression');
         }
@@ -128,7 +129,7 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
         // r = f(θ) format
         for (let theta = 0; theta <= 2 * Math.PI; theta += settings.step / 10) {
           try {
-            const r = evaluateExpression(equation, theta);
+            const r = evaluateExpression(submittedEquation, theta);
             if (isFinite(r) && r >= 0) {
               const x = r * Math.cos(theta);
               const y = r * Math.sin(theta);
@@ -261,6 +262,7 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
       
       const result = await response.json();
       setEquation(result.equation);
+      setSubmittedEquation(result.equation); // Also update the submitted equation
       
       // Update settings if suggested
       if (result.settings) {
@@ -276,6 +278,12 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const createGraph = () => {
+    if (!equation.trim()) return;
+    setSubmittedEquation(equation);
+    setError(null);
   };
 
   const handleDownloadSVG = () => {
@@ -361,6 +369,7 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
                 onClick={generateFromDescription}
                 disabled={isGenerating || !description.trim()}
                 className="w-full bg-green-600 hover:bg-green-700"
+                data-testid="button-generate-from-description"
               >
                 {isGenerating ? (
                   <>
@@ -390,10 +399,12 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
             <div className="space-y-4">
               <Input
                 id="equation"
+                data-testid="input-equation"
                 value={equation}
                 onChange={(e) => handleEquationChange(e.target.value)}
                 placeholder="Type your equation: x^2, sin(x), cos(x)+2, sqrt(x), etc."
                 className="text-lg p-4 border-2 border-blue-300 focus:border-blue-500"
+                onKeyDown={(e) => e.key === 'Enter' && createGraph()}
               />
               
               {/* Math Symbol Console */}
@@ -433,12 +444,23 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
                       onClick={() => insertSymbol(symbol)}
                       className="h-8 w-full text-xs hover:bg-blue-100"
                       title={`Insert ${symbol}`}
+                      data-testid={`button-insert-${symbol.replace(/[^a-zA-Z0-9]/g, '')}`}
                     >
                       {display}
                     </Button>
                   ))}
                 </div>
               </div>
+              
+              <Button
+                onClick={createGraph}
+                disabled={!equation.trim()}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-3 mt-4"
+                data-testid="button-create-graph"
+              >
+                <span className="mr-2">📊</span>
+                Create Graph
+              </Button>
               
               <p className="text-sm text-blue-600">
                 Click symbols above to insert them, or type directly. Examples: x^2, sin(x), cos(x)*2
@@ -450,10 +472,15 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
         {/* Controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700">Current Equation</Label>
+            <Label className="text-sm font-medium text-gray-700">Currently Graphed Equation</Label>
             <div className="p-2 bg-gray-100 rounded border text-center font-mono">
-              {equation || "No equation entered"}
+              {submittedEquation || "No equation graphed"}
             </div>
+            {equation !== submittedEquation && equation.trim() && (
+              <p className="text-xs text-orange-600 mt-1 text-center">
+                📝 You have unsaved changes. Click "Create Graph" to update.
+              </p>
+            )}
           </div>
           
           <div className="space-y-2">
