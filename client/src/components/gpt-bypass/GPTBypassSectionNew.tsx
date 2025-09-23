@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Upload, FileText, Zap, RotateCcw, MessageCircle, Download, Copy, Send, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useAppContext } from '@/context/AppContext';
 
 // Constants for instruction presets
 const INSTRUCTION_PRESETS = [
@@ -181,6 +182,7 @@ interface GPTBypassSectionNewProps {
 
 export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntelligenceAnalysis, receivedText }: GPTBypassSectionNewProps) {
   const { toast } = useToast();
+  const { styleReferences, contentReferences } = useAppContext();
   
   // State management
   const [inputText, setInputText] = useState('');
@@ -197,6 +199,10 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
   const [jobId, setJobId] = useState<string | null>(null);
   const [isAnalyzingInput, setIsAnalyzingInput] = useState(false);
   const [isAnalyzingOutput, setIsAnalyzingOutput] = useState(false);
+  
+  // NEW: Granular sample selection
+  const [selectedStyleSamples, setSelectedStyleSamples] = useState<number[]>([]);
+  const [selectedContentSamples, setSelectedContentSamples] = useState<number[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const styleFileInputRef = useRef<HTMLInputElement>(null);
