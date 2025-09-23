@@ -28,7 +28,7 @@ interface MathGraphViewerProps {
 
 export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationChange }: MathGraphViewerProps) {
   const [equation, setEquation] = useState(initialEquation || 'x^2');
-  const [submittedEquation, setSubmittedEquation] = useState(initialEquation || 'x^2'); // This drives the actual graph
+  const [submittedEquation, setSubmittedEquation] = useState(''); // Start with empty so first click shows difference
   const [graphType, setGraphType] = useState<'function' | 'parametric' | 'polar'>('function');
   const [settings, setSettings] = useState<GraphSettings>({
     xMin: -10,
@@ -281,9 +281,24 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
   };
 
   const createGraph = () => {
-    if (!equation.trim()) return;
+    console.log('CREATE GRAPH CLICKED!', { equation, submittedEquation });
+    if (!equation.trim()) {
+      console.log('No equation to graph');
+      setError('Please enter an equation first');
+      return;
+    }
+    console.log('Setting submitted equation to:', equation);
     setSubmittedEquation(equation);
     setError(null);
+    
+    // Visual feedback that something happened
+    const button = document.querySelector('[data-testid="button-create-graph"]');
+    if (button) {
+      button.textContent = '✅ Graph Created!';
+      setTimeout(() => {
+        button.innerHTML = '<span class="mr-2">📊</span>Create Graph';
+      }, 1000);
+    }
   };
 
   const handleDownloadSVG = () => {
