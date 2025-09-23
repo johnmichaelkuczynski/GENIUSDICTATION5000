@@ -36,21 +36,28 @@ export async function generateGraphFromDescription(description: string): Promise
       messages: [
         {
           role: "system",
-          content: `You are a mathematical function generator. Convert natural language descriptions into appropriate mathematical equations for graphing.
+          content: `You are a creative mathematical function generator. Your job is to interpret natural language descriptions and create unique, dynamic mathematical equations that truly represent the described phenomenon.
 
-Rules:
-1. Generate equations using standard mathematical notation: x^2, sin(x), cos(x), log(x), ln(x), sqrt(x), abs(x), pi, e
-2. Use x as the variable for functions
-3. For exponential growth/decay, use exponential functions like e^(k*x) or a*e^(b*x)
-4. For economic/population data, consider logistic growth: L/(1+e^(-k*(x-x0)))
-5. For periodic phenomena, use trigonometric functions
-6. For polynomial relationships, use appropriate degree polynomials
-7. Suggest appropriate graph settings (xMin, xMax, yMin, yMax, step)
+CRITICAL RULES:
+1. DO NOT use templated or canned equations
+2. DO NOT default to logistic growth formulas like "a/(1+e^(-k*(x-c)))"
+3. CREATE custom mathematical relationships based on the specific description
+4. Think about the actual mathematical behavior being described
+5. Use creative combinations of functions: polynomials, exponentials, trigonometric, logarithmic, etc.
+6. Make the equation coefficients and structure unique to the description
 
-Respond with JSON in this exact format:
+Available mathematical notation: x^2, sin(x), cos(x), log(x), ln(x), sqrt(x), abs(x), pi, e, +, -, *, /, ()
+
+Examples of GOOD creative responses:
+- "bacterial growth in petri dish" → "0.5*x^3 - 2*x^2 + 4*x + 1" (polynomial growth with constraints)
+- "ocean wave pattern" → "3*sin(0.2*x) + 0.5*cos(0.7*x)" (composite wave)
+- "radioactive decay" → "100*e^(-0.693*x/12)" (actual exponential decay)
+- "economic recession and recovery" → "x^2 - 6*x + 5" (quadratic with minimum)
+
+Respond with JSON:
 {
-  "equation": "mathematical equation using x",
-  "description": "brief explanation of the function",
+  "equation": "unique mathematical equation using x",
+  "description": "brief explanation",
   "settings": {
     "xMin": number,
     "xMax": number, 
@@ -94,40 +101,4 @@ Respond with JSON in this exact format:
   }
 }
 
-/**
- * Get suggested equations for common graph types
- */
-export function getSuggestedEquations(): Array<{ name: string; equation: string; description: string }> {
-  return [
-    {
-      name: "Economic Growth",
-      equation: "100*e^(0.03*x)",
-      description: "Exponential economic growth at 3% per year"
-    },
-    {
-      name: "Population Growth", 
-      equation: "1000/(1+9*e^(-0.1*x))",
-      description: "Logistic population growth with carrying capacity"
-    },
-    {
-      name: "Radioactive Decay",
-      equation: "100*e^(-0.693*x/5.73)",
-      description: "Decay of Carbon-14 (half-life 5,730 years)"
-    },
-    {
-      name: "Bacterial Growth",
-      equation: "10*e^(0.5*x)",
-      description: "Exponential bacterial reproduction"
-    },
-    {
-      name: "Projectile Motion",
-      equation: "-4.9*x^2+20*x+100",
-      description: "Height of projectile over time"
-    },
-    {
-      name: "Damped Oscillation",
-      equation: "e^(-0.1*x)*cos(x)",
-      description: "Oscillation with exponential decay"
-    }
-  ];
-}
+// Removed preset equations - AI must be fully creative
