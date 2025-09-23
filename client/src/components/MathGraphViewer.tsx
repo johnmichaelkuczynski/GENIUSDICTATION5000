@@ -58,8 +58,8 @@ export function MathGraphViewer({ equation: initialEquation = 'x^2', onEquationC
   // Safe math evaluation function
   const evaluateExpression = useCallback((expr: string, x: number, t?: number): number => {
     try {
-      // Replace common math functions and constants
-      let cleanExpr = expr
+      // Replace common math functions and constants (case insensitive)
+      let cleanExpr = expr.toLowerCase()
         .replace(/\^/g, '**')
         .replace(/sin/g, 'Math.sin')
         .replace(/cos/g, 'Math.cos')
