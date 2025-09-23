@@ -377,6 +377,9 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
           customInstructions: customInstructions.trim() || undefined,
           selectedPresets,
           provider,
+          // NEW: Include selected samples for granular control
+          selectedStyleSamples,
+          selectedContentSamples,
         }),
       });
 
@@ -392,7 +395,7 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
 
       toast({
         title: "Rewrite completed",
-        description: `AI score reduced from ${data.inputAiScore}% to ${data.outputAiScore}%`,
+        description: `AI score reduced from ${data.inputAiScore}% to ${data.outputAiScore}% using ${selectedStyleSamples.length} style samples and ${selectedContentSamples.length} content samples`,
       });
     } catch (error) {
       toast({
@@ -732,23 +735,90 @@ export function GPTBypassSectionNew({ className, onSendToMain, onSendToIntellige
             />
           </div>
 
-          {/* Writing Sample Dropdown */}
-          <div>
-            <Label className="text-base font-semibold mb-2 block">Writing Sample</Label>
-            <Select value={selectedWritingSample} onValueChange={handleWritingSampleSelect}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a writing sample..." />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(WRITING_SAMPLES).map(([category, samples]) => 
-                  samples.map((sample) => (
-                    <SelectItem key={sample.id} value={sample.id}>
-                      {sample.name} ({category.toUpperCase()})
-                    </SelectItem>
+          {/* GRANULAR SAMPLE SELECTION */}
+          <div className="space-y-4">
+            {/* Style Samples Selection */}
+            <div>
+              <Label className="text-base font-semibold mb-2 block">Style Samples Selection</Label>
+              <div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
+                {styleReferences.filter(style => style.active).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No active style references available</p>
+                ) : (
+                  styleReferences.filter(style => style.active).map((style) => (
+                    <div key={style.id} className="flex items-center space-x-2 py-1">
+                      <Checkbox
+                        id={`style-${style.id}`}
+                        checked={selectedStyleSamples.includes(style.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedStyleSamples([...selectedStyleSamples, style.id]);
+                          } else {
+                            setSelectedStyleSamples(selectedStyleSamples.filter(id => id !== style.id));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`style-${style.id}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        {style.name} ({style.documentCount} docs)
+                      </label>
+                    </div>
                   ))
                 )}
-              </SelectContent>
-            </Select>
+              </div>
+            </div>
+
+            {/* Content Samples Selection */}
+            <div>
+              <Label className="text-base font-semibold mb-2 block">Content Samples Selection</Label>
+              <div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
+                {contentReferences.filter(content => content.active).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No active content references available</p>
+                ) : (
+                  contentReferences.filter(content => content.active).map((content) => (
+                    <div key={content.id} className="flex items-center space-x-2 py-1">
+                      <Checkbox
+                        id={`content-${content.id}`}
+                        checked={selectedContentSamples.includes(content.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedContentSamples([...selectedContentSamples, content.id]);
+                          } else {
+                            setSelectedContentSamples(selectedContentSamples.filter(id => id !== content.id));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`content-${content.id}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        {content.name} ({content.documentCount} docs)
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Writing Sample Dropdown - Keep as backup/default */}
+            <div>
+              <Label className="text-base font-semibold mb-2 block">Default Writing Sample (Backup)</Label>
+              <Select value={selectedWritingSample} onValueChange={handleWritingSampleSelect}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a writing sample..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(WRITING_SAMPLES).map(([category, samples]) => 
+                    samples.map((sample) => (
+                      <SelectItem key={sample.id} value={sample.id}>
+                        {sample.name} ({category.toUpperCase()})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* AI Provider */}

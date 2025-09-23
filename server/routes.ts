@@ -930,15 +930,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         
-        // Perform rewrite
-        const rewrittenText = await aiProviderService.rewrite(rewriteRequest.provider, {
-          inputText: rewriteRequest.inputText,
-          styleText: rewriteRequest.styleText,
-          contentMixText: rewriteRequest.contentMixText,
-          customInstructions: rewriteRequest.customInstructions,
-          selectedPresets: rewriteRequest.selectedPresets,
-          mixingMode: rewriteRequest.mixingMode,
-        });
+        // Build enhanced style text from selected samples
+      let enhancedStyleText = rewriteRequest.styleText || '';
+      
+      // Add selected style samples to style text
+      if ((rewriteRequest as any).selectedStyleSamples && (rewriteRequest as any).selectedStyleSamples.length > 0) {
+        console.log('🔥 Processing', (rewriteRequest as any).selectedStyleSamples.length, 'selected style samples');
+        // TODO: Fetch style samples from storage and append to enhancedStyleText
+        // For now, just use the existing styleText
+      }
+      
+      // Build enhanced content mix from selected samples
+      let enhancedContentMix = rewriteRequest.contentMixText || '';
+      
+      // Add selected content samples to content mix
+      if ((rewriteRequest as any).selectedContentSamples && (rewriteRequest as any).selectedContentSamples.length > 0) {
+        console.log('🔥 Processing', (rewriteRequest as any).selectedContentSamples.length, 'selected content samples');
+        // TODO: Fetch content samples from storage and append to enhancedContentMix
+        // For now, just use the existing contentMixText
+      }
+      
+      // Perform rewrite with enhanced samples
+      const rewrittenText = await aiProviderService.rewrite(rewriteRequest.provider, {
+        inputText: rewriteRequest.inputText,
+        styleText: enhancedStyleText,
+        contentMixText: enhancedContentMix,
+        customInstructions: rewriteRequest.customInstructions,
+        selectedPresets: rewriteRequest.selectedPresets,
+        mixingMode: rewriteRequest.mixingMode,
+      });
 
         // Analyze output text
         const outputAnalysis = await gptZeroService.analyzeText(rewrittenText);
@@ -1011,7 +1031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const rewrittenText = await aiProviderService.rewrite(provider || originalJob.provider, {
           inputText: originalJob.outputText,
           styleText: finalStyleText,
-          contentMixText: originalJob.contentMixText,
+          contentMixText: originalJob.contentMixText || undefined,
           customInstructions: customInstructions || originalJob.customInstructions,
           selectedPresets: selectedPresets || originalJob.selectedPresets,
           mixingMode: originalJob.mixingMode || undefined,

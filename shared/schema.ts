@@ -164,6 +164,9 @@ export interface RewriteRequest {
   provider: string;
   selectedChunkIds?: string[];
   mixingMode?: 'style' | 'content' | 'both';
+  // NEW: Granular sample selection
+  selectedStyleSamples?: number[];
+  selectedContentSamples?: number[];
 }
 
 export interface RewriteResponse {
