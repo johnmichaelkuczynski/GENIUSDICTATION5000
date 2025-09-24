@@ -10,6 +10,7 @@ import Documents from "@/pages/Documents";
 import StyleLibrary from "@/pages/StyleLibrary";
 import ContentLibrary from "@/pages/ContentLibrary";
 import Settings from "@/pages/Settings";
+import GPTBypass from "@/pages/GPTBypass";
 import Navbar from "@/components/Navbar";
 import { AppProvider } from "./context/AppContext";
 
@@ -18,6 +19,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/documents" component={Documents} />
+      <Route path="/gpt-bypass" component={GPTBypass} />
       <Route path="/style-library" component={StyleLibrary} />
       <Route path="/content-library" component={ContentLibrary} />
       <Route path="/settings" component={Settings} />
