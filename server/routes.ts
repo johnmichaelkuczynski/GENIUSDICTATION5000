@@ -16,8 +16,10 @@ import {
   detectAIResponseSchema,
   insertDocumentSchema, 
   insertRewriteJobSchema, 
+  rewriteRequestSchema,
   type RewriteRequest, 
-  type RewriteResponse
+  type RewriteResponse,
+  type RewriteRequestValidated
 } from "@shared/schema";
 import { transformText as openaiTransform } from "./services/openai";
 import { transformText as anthropicTransform } from "./services/anthropic";
@@ -903,53 +905,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Main rewrite endpoint for GPT Bypass
   app.post("/api/gpt-bypass/rewrite", async (req, res) => {
     try {
-      const rewriteRequest: RewriteRequest = req.body;
-      
-      // Validate request
-      if (!rewriteRequest.inputText || !rewriteRequest.provider) {
-        return res.status(400).json({ message: "Input text and provider are required" });
+      // Validate request using Zod schema
+      const validationResult = rewriteRequestSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid request", 
+          errors: validationResult.error.errors 
+        });
       }
+      
+      const rewriteRequest = validationResult.data;
 
       // Analyze input text
       const inputAnalysis = await gptZeroService.analyzeText(rewriteRequest.inputText);
       
-      // Create rewrite job
-      const rewriteJob = await storage.createRewriteJob({
-        inputText: rewriteRequest.inputText,
-        styleText: rewriteRequest.styleText,
-        contentMixText: rewriteRequest.contentMixText,
-        customInstructions: rewriteRequest.customInstructions,
-        selectedPresets: rewriteRequest.selectedPresets,
-        provider: rewriteRequest.provider,
-        chunks: [],
-        selectedChunkIds: rewriteRequest.selectedChunkIds,
-        mixingMode: rewriteRequest.mixingMode,
-        inputAiScore: inputAnalysis.aiScore,
-        status: "processing",
-      });
-
-      try {
-        
-        // Build enhanced style text from selected samples
+      // Build enhanced style text from selected samples
       let enhancedStyleText = rewriteRequest.styleText || '';
       
       // Add selected style samples to style text
-      if ((rewriteRequest as any).selectedStyleSamples && (rewriteRequest as any).selectedStyleSamples.length > 0) {
-        console.log('🔥 Processing', (rewriteRequest as any).selectedStyleSamples.length, 'selected style samples');
-        // TODO: Fetch style samples from storage and append to enhancedStyleText
-        // For now, just use the existing styleText
+      if (rewriteRequest.selectedStyleSamples && rewriteRequest.selectedStyleSamples.length > 0) {
+        console.log('🔥 Processing', rewriteRequest.selectedStyleSamples.length, 'selected style samples');
+        
+        // For now, just log the selected samples - full implementation would fetch from storage
+        console.log('🔥 Selected style sample IDs:', rewriteRequest.selectedStyleSamples);
+        // TODO: Implement proper sample retrieval and enhancement
+        // const styleSamples = await storage.getStyleSamplesByIds(rewriteRequest.selectedStyleSamples);
+        // if (styleSamples.length > 0) {
+        //   const samplesText = styleSamples.map(sample => 
+        //     `--- STYLE SAMPLE: ${sample.name} ---\n${sample.content}\n`
+        //   ).join('\n');
+        //   enhancedStyleText = enhancedStyleText ? 
+        //     `${enhancedStyleText}\n\n${samplesText}` : samplesText;
+        // }
       }
       
       // Build enhanced content mix from selected samples
       let enhancedContentMix = rewriteRequest.contentMixText || '';
       
       // Add selected content samples to content mix
-      if ((rewriteRequest as any).selectedContentSamples && (rewriteRequest as any).selectedContentSamples.length > 0) {
-        console.log('🔥 Processing', (rewriteRequest as any).selectedContentSamples.length, 'selected content samples');
-        // TODO: Fetch content samples from storage and append to enhancedContentMix
-        // For now, just use the existing contentMixText
+      if (rewriteRequest.selectedContentSamples && rewriteRequest.selectedContentSamples.length > 0) {
+        console.log('🔥 Processing', rewriteRequest.selectedContentSamples.length, 'selected content samples');
+        
+        // For now, just log the selected samples - full implementation would fetch from storage
+        console.log('🔥 Selected content sample IDs:', rewriteRequest.selectedContentSamples);
+        // TODO: Implement proper sample retrieval and enhancement
+        // const contentSamples = await storage.getContentSamplesByIds(rewriteRequest.selectedContentSamples);
+        // if (contentSamples.length > 0) {
+        //   const samplesText = contentSamples.map(sample => 
+        //     `--- CONTENT SAMPLE: ${sample.name} ---\n${sample.content}\n`
+        //   ).join('\n');
+        //   enhancedContentMix = enhancedContentMix ? 
+        //     `${enhancedContentMix}\n\n${samplesText}` : samplesText;
+        // }
       }
       
+      // Create rewrite job with granular sample selection
+      const rewriteJob = await storage.createRewriteJob({
+        inputText: rewriteRequest.inputText,
+        styleText: enhancedStyleText,
+        contentMixText: enhancedContentMix,
+        customInstructions: rewriteRequest.customInstructions,
+        selectedPresets: rewriteRequest.selectedPresets,
+        provider: rewriteRequest.provider,
+        chunks: [],
+        selectedChunkIds: rewriteRequest.selectedChunkIds,
+        mixingMode: rewriteRequest.mixingMode,
+        selectedStyleSamples: rewriteRequest.selectedStyleSamples,
+        selectedContentSamples: rewriteRequest.selectedContentSamples,
+        inputAiScore: inputAnalysis.aiScore,
+        status: "processing",
+      });
+
+      try {
+        
       // Perform rewrite with enhanced samples
       const rewrittenText = await aiProviderService.rewrite(rewriteRequest.provider, {
         inputText: rewriteRequest.inputText,

@@ -64,12 +64,28 @@ export const detectAIResponseSchema = z.object({
   details: z.string().optional(),
 });
 
+// GPT Bypass rewrite request schema
+export const rewriteRequestSchema = z.object({
+  inputText: z.string().min(1, "Input text is required"),
+  styleText: z.string().optional(),
+  contentMixText: z.string().optional(),
+  customInstructions: z.string().optional(),
+  selectedPresets: z.array(z.string()).optional(),
+  provider: z.string().min(1, "Provider is required"),
+  selectedChunkIds: z.array(z.string()).optional(),
+  mixingMode: z.enum(['style', 'content', 'both']).optional(),
+  // NEW: Granular sample selection with validation
+  selectedStyleSamples: z.array(z.number()).max(10, "Maximum 10 style samples allowed").optional(),
+  selectedContentSamples: z.array(z.number()).max(10, "Maximum 10 content samples allowed").optional(),
+});
+
 export type TransformRequest = z.infer<typeof transformRequestSchema>;
 export type APIKeyRequest = z.infer<typeof apiKeyRequestSchema>;
 export type ExtractTextRequest = z.infer<typeof extractTextRequestSchema>;
 export type TTSRequest = z.infer<typeof ttsRequestSchema>;
 export type DetectAIRequest = z.infer<typeof detectAIRequestSchema>;
 export type DetectAIResponse = z.infer<typeof detectAIResponseSchema>;
+export type RewriteRequestValidated = z.infer<typeof rewriteRequestSchema>;
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -97,6 +113,9 @@ export const rewriteJobs = pgTable("rewrite_jobs", {
   chunks: jsonb("chunks").$type<TextChunk[]>(),
   selectedChunkIds: jsonb("selected_chunk_ids").$type<string[]>(),
   mixingMode: text("mixing_mode").$type<'style' | 'content' | 'both'>(),
+  // NEW: Granular sample selection storage
+  selectedStyleSamples: jsonb("selected_style_samples").$type<number[]>(),
+  selectedContentSamples: jsonb("selected_content_samples").$type<number[]>(),
   outputText: text("output_text"),
   inputAiScore: integer("input_ai_score"),
   outputAiScore: integer("output_ai_score"),

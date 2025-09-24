@@ -1,6 +1,13 @@
 import { type Document, type RewriteJob, type InsertDocument, type InsertRewriteJob } from "@shared/schema";
 import { randomUUID } from "crypto";
 
+// Sample types for granular selection
+interface SampleData {
+  id: number;
+  name: string;
+  content: string;
+}
+
 export interface IStorage {
   // Document operations
   createDocument(document: InsertDocument): Promise<Document>;
@@ -11,6 +18,10 @@ export interface IStorage {
   getRewriteJob(id: string): Promise<RewriteJob | undefined>;
   updateRewriteJob(id: string, updates: Partial<RewriteJob>): Promise<RewriteJob>;
   listRewriteJobs(): Promise<RewriteJob[]>;
+  
+  // Sample operations for granular selection
+  getStyleSamplesByIds(ids: number[]): Promise<SampleData[]>;
+  getContentSamplesByIds(ids: number[]): Promise<SampleData[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -67,6 +78,19 @@ export class MemStorage implements IStorage {
     return Array.from(this.rewriteJobs.values()).sort(
       (a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
     );
+  }
+  
+  // Temporary stub implementation - in real app these would be stored properly
+  async getStyleSamplesByIds(ids: number[]): Promise<SampleData[]> {
+    // For now, return empty array - frontend will need to pass sample data directly
+    console.log('🔥 getStyleSamplesByIds called with IDs:', ids);
+    return [];
+  }
+  
+  async getContentSamplesByIds(ids: number[]): Promise<SampleData[]> {
+    // For now, return empty array - frontend will need to pass sample data directly  
+    console.log('🔥 getContentSamplesByIds called with IDs:', ids);
+    return [];
   }
 }
 
