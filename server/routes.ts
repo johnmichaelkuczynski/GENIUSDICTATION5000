@@ -1,9 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
 import { storage } from "./storage";
 import passport from "./auth";
 import bcrypt from "bcryptjs";
 import { users } from "@shared/schema";
+import Stripe from "stripe";
 import multer from "multer";
 import OpenAI from "openai";
 import { z } from "zod";
@@ -85,6 +87,14 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 } // 20MB limit
 });
+
+// Initialize Stripe
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn('STRIPE_SECRET_KEY not set - payment features will be unavailable');
+}
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+}) : null;
 
 // Configure multer for GPT Bypass file uploads
 const gptBypassUpload = multer({
@@ -242,6 +252,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } else {
       res.status(401).json({ message: "Not authenticated" });
     }
+  });
+
+  // Stripe payment routes
+  
+  // Create payment intent for one-time payments
+  app.post("/api/create-payment-intent", async (req, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Payment service not configured" });
+    }
+    
+    try {
+      const { amount } = req.body;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "Valid amount is required" });
+      }
+      
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
+      console.error('Error creating payment intent:', error);
+      res.status(500).json({ message: "Error creating payment intent: " + error.message });
+    }
+  });
+  
+  // Stripe webhook handler with raw body parsing
+  app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Payment service not configured" });
+    }
+    
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_LIVINGBOOKCREATOR;
+    
+    if (!sig || !webhookSecret) {
+      return res.status(400).json({ message: "Missing webhook signature or secret" });
+    }
+    
+    let event: Stripe.Event;
+    
+    try {
+      // req.body is raw buffer thanks to express.raw middleware in index.ts
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err: any) {
+      console.error('Webhook signature verification failed:', err.message);
+      return res.status(400).json({ message: `Webhook Error: ${err.message}` });
+    }
+    
+    // Handle the event
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log('✅ PaymentIntent was successful!', paymentIntent.id, 'Amount:', paymentIntent.amount);
+        // Payment succeeded - user should now have access to paid features
+        break;
+      case 'payment_intent.payment_failed':
+        const failedPayment = event.data.object as Stripe.PaymentIntent;
+        console.log('❌ PaymentIntent failed:', failedPayment.id);
+        break;
+      default:
+        console.log(`ℹ️ Unhandled event type ${event.type}`);
+    }
+    
+    // Return 200 quickly to acknowledge receipt
+    res.json({ received: true });
   });
 
   // Text transformation endpoint

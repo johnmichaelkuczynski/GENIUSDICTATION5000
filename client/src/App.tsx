@@ -11,6 +11,7 @@ import StyleLibrary from "@/pages/StyleLibrary";
 import ContentLibrary from "@/pages/ContentLibrary";
 import Settings from "@/pages/Settings";
 import GPTBypass from "@/pages/GPTBypass";
+import Checkout from "@/pages/Checkout";
 import Navbar from "@/components/Navbar";
 import { AppProvider } from "./context/AppContext";
 
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/documents" component={Documents} />
       <Route path="/gpt-bypass" component={GPTBypass} />
+      <Route path="/checkout" component={Checkout} />
       <Route path="/style-library" component={StyleLibrary} />
       <Route path="/content-library" component={ContentLibrary} />
       <Route path="/settings" component={Settings} />
