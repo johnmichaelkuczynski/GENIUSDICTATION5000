@@ -31,6 +31,9 @@ const Navbar = () => {
               <Link href="/gpt-bypass" className={`${location === "/gpt-bypass" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
                 GPT Bypass
               </Link>
+              <Link href="/checkout" className={`${location === "/checkout" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
+                Get Credits
+              </Link>
               <Link href="/style-library" className={`${location === "/style-library" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"} px-1 py-2 text-sm font-medium`}>
                 Style Library
               </Link>
