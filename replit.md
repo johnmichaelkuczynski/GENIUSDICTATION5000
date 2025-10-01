@@ -13,6 +13,9 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 - Math graphing capabilities with SVG visualization
 
 ## Recent Changes
+- 2025-10-01: COMPLETED - Three-phase user system implemented: PostgreSQL database, optional authentication (no password wall), Stripe payment integration
+- 2025-10-01: COMPLETED - Added credits system to users table with special admin user JMK (password: N) having unlimited credits (-1)
+- 2025-10-01: COMPLETED - Stripe integration using correct webhook secret: STRIPE_WEBHOOK_SECRET_GENIUSDICTATION
 - 2025-09-02: COMPLETED - MAJOR FIX: HUMANIZE function now working across all providers (ZHI 1-3) with proper Box B style transfer
 - 2025-09-02: COMPLETED - Enhanced prompt structure with step-by-step instructions for consistent style transfer across all AI providers
 - 2025-09-02: COMPLETED - MAJOR FIX: Style transfer bug completely resolved - style samples now actively used in rewrite prompts
@@ -73,6 +76,13 @@ Advanced AI-powered text and mathematical content processing platform that enabl
 ## Architecture
 - Frontend: React with TypeScript, Tailwind CSS, shadcn/ui components
 - Backend: Express server with AI service integrations
+- Database: PostgreSQL with Drizzle ORM (users, documents, rewrite_jobs tables)
+- Authentication: Passport.js with bcrypt, session-based, completely optional
+- Payment: Stripe integration with webhook handling for STRIPE_WEBHOOK_SECRET_GENIUSDICTATION
+- Credits System: User credits tracked in database, JMK user has unlimited credits (-1)
 - Real-time processing with chunk management for large texts
 - Multi-provider AI support (OpenAI, Anthropic, Perplexity)
 - Enhanced OCR pipeline with AI prioritization over Tesseract
+
+## Special Users
+- Username: JMK, Password: N, Credits: Unlimited (-1)
