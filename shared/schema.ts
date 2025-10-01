@@ -95,6 +95,7 @@ export const users = pgTable("users", {
 
 export const documents = pgTable("documents", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
   filename: text("filename").notNull(),
   content: text("content").notNull(),
   wordCount: integer("word_count").notNull(),
@@ -104,6 +105,7 @@ export const documents = pgTable("documents", {
 
 export const rewriteJobs = pgTable("rewrite_jobs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
   inputText: text("input_text").notNull(),
   styleText: text("style_text"),
   contentMixText: text("content_mix_text"),

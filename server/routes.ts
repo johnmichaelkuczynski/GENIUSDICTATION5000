@@ -1,6 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import passport from "./auth";
+import bcrypt from "bcryptjs";
+import { users } from "@shared/schema";
 import multer from "multer";
 import OpenAI from "openai";
 import { z } from "zod";
@@ -149,7 +152,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ connected: connected && aiConnected, services });
   });
 
-
+  // Authentication routes
+  
+  // Register endpoint
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+      
+      // Check if user already exists
+      const { db } = await import("./db");
+      const { eq } = await import("drizzle-orm");
+      const [existingUser] = await db.select().from(users).where(eq(users.username, username));
+      
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      // Create user
+      const [newUser] = await db.insert(users).values({
+        username,
+        password: hashedPassword,
+      }).returning();
+      
+      // Log in the user
+      req.login(newUser, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Registration successful but login failed" });
+        }
+        
+        res.json({
+          id: newUser.id,
+          username: newUser.username,
+        });
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Registration failed" });
+    }
+  });
+  
+  // Login endpoint
+  app.post("/api/auth/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Authentication error" });
+      }
+      
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Invalid credentials" });
+      }
+      
+      req.login(user, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Login failed" });
+        }
+        
+        res.json({
+          id: user.id,
+          username: user.username,
+        });
+      });
+    })(req, res, next);
+  });
+  
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+  
+  // Get current user
+  app.get("/api/auth/user", (req, res) => {
+    if (req.isAuthenticated()) {
+      const user = req.user as any;
+      res.json({
+        id: user.id,
+        username: user.username,
+      });
+    } else {
+      res.status(401).json({ message: "Not authenticated" });
+    }
+  });
 
   // Text transformation endpoint
   app.post("/api/transform", async (req, res) => {
