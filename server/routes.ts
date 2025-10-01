@@ -922,7 +922,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const gptZeroResult = await gptZeroService.analyzeText(processedFile.content);
       
       // Create document record
+      const userId = req.isAuthenticated() ? (req.user as any)?.id : undefined;
       const document = await storage.createDocument({
+        userId,
         filename: processedFile.filename,
         content: processedFile.content,
         wordCount: processedFile.wordCount,
@@ -1053,7 +1055,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create rewrite job with granular sample selection
+      const userId = req.isAuthenticated() ? (req.user as any)?.id : undefined;
       const rewriteJob = await storage.createRewriteJob({
+        userId,
         inputText: rewriteRequest.inputText,
         styleText: enhancedStyleText,
         contentMixText: enhancedContentMix,
@@ -1133,7 +1137,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const finalStyleText = styleText || originalJob.styleText || undefined;
       console.log("🔥 RE-HUMANIZE - Final style text used:", !!finalStyleText, "Length:", finalStyleText?.length || 0);
       
+      const userId = req.isAuthenticated() ? (req.user as any)?.id : undefined;
       const rewriteJob = await storage.createRewriteJob({
+        userId,
         inputText: originalJob.outputText,
         styleText: finalStyleText,
         contentMixText: originalJob.contentMixText || undefined,
