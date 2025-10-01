@@ -291,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     const sig = req.headers['stripe-signature'];
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_LIVINGBOOKCREATOR;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_GENIUSDICTATION;
     
     if (!sig || !webhookSecret) {
       return res.status(400).json({ message: "Missing webhook signature or secret" });
