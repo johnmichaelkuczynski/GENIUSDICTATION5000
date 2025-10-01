@@ -14,12 +14,23 @@ interface User {
   credits: number;
 }
 
-export default function Auth() {
-  const [open, setOpen] = useState(false);
+interface AuthProps {
+  showDialog?: boolean;
+  onDialogChange?: (open: boolean) => void;
+}
+
+export default function Auth({ showDialog = false, onDialogChange }: AuthProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  const open = showDialog || internalOpen;
+  const setOpen = (value: boolean) => {
+    setInternalOpen(value);
+    onDialogChange?.(value);
+  };
 
   // Get current user
   const { data: user } = useQuery<User>({

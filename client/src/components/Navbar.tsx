@@ -1,11 +1,37 @@
 import { Link, useLocation } from "wouter";
 import { useAppContext } from "@/context/AppContext";
+import { useQuery } from "@tanstack/react-query";
 import DarkModeToggle from "./DarkModeToggle";
 import Auth from "./Auth";
+import { Button } from "@/components/ui/button";
+import { CreditCard } from "lucide-react";
+import { useState } from "react";
+
+interface User {
+  id: string;
+  username: string;
+  credits: number;
+}
 
 const Navbar = () => {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { apisConnected } = useAppContext();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/auth/user"],
+    retry: false,
+  });
+  
+  const handleBuyCredits = () => {
+    if (user) {
+      // User is logged in, go to checkout
+      setLocation("/checkout");
+    } else {
+      // User not logged in, trigger auth dialog
+      setShowAuthDialog(true);
+    }
+  };
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-10">
@@ -56,8 +82,18 @@ const Navbar = () => {
               </span>
             </div>
             
+            {/* Buy Credits Button */}
+            <Button 
+              onClick={handleBuyCredits}
+              className="font-semibold"
+              data-testid="button-buy-credits"
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Buy Credits
+            </Button>
+            
             {/* Authentication */}
-            <Auth />
+            <Auth showDialog={showAuthDialog} onDialogChange={setShowAuthDialog} />
             
             {/* Dark mode toggle */}
             <DarkModeToggle />
