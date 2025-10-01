@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAppContext } from "@/context/AppContext";
 import DarkModeToggle from "./DarkModeToggle";
+import Auth from "./Auth";
 
 const Navbar = () => {
   const [location] = useLocation();
@@ -51,6 +52,9 @@ const Navbar = () => {
                 {apisConnected ? "APIs Connected" : "APIs Disconnected"}
               </span>
             </div>
+            
+            {/* Authentication */}
+            <Auth />
             
             {/* Dark mode toggle */}
             <DarkModeToggle />
