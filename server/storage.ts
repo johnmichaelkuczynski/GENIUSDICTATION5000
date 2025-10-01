@@ -1,5 +1,7 @@
-import { type Document, type RewriteJob, type InsertDocument, type InsertRewriteJob } from "@shared/schema";
+import { type Document, type RewriteJob, type InsertDocument, type InsertRewriteJob, documents, rewriteJobs } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // Sample types for granular selection
 interface SampleData {
@@ -94,4 +96,62 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database-backed storage implementation
+export class DbStorage implements IStorage {
+  async createDocument(insertDocument: InsertDocument): Promise<Document> {
+    const [document] = await db.insert(documents).values([insertDocument]).returning();
+    if (!document) {
+      throw new Error('Failed to create document');
+    }
+    return document;
+  }
+
+  async getDocument(id: string): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    return document;
+  }
+
+  async createRewriteJob(insertJob: InsertRewriteJob): Promise<RewriteJob> {
+    const [job] = await db.insert(rewriteJobs).values([insertJob]).returning();
+    if (!job) {
+      throw new Error('Failed to create rewrite job');
+    }
+    return job;
+  }
+
+  async getRewriteJob(id: string): Promise<RewriteJob | undefined> {
+    const [job] = await db.select().from(rewriteJobs).where(eq(rewriteJobs.id, id));
+    return job;
+  }
+
+  async updateRewriteJob(id: string, updates: Partial<RewriteJob>): Promise<RewriteJob> {
+    const [updatedJob] = await db
+      .update(rewriteJobs)
+      .set(updates)
+      .where(eq(rewriteJobs.id, id))
+      .returning();
+    
+    if (!updatedJob) {
+      throw new Error(`Rewrite job with id ${id} not found`);
+    }
+    
+    return updatedJob;
+  }
+
+  async listRewriteJobs(): Promise<RewriteJob[]> {
+    return await db.select().from(rewriteJobs).orderBy(rewriteJobs.createdAt);
+  }
+
+  async getStyleSamplesByIds(ids: number[]): Promise<SampleData[]> {
+    console.log('🔥 getStyleSamplesByIds called with IDs:', ids);
+    return [];
+  }
+
+  async getContentSamplesByIds(ids: number[]): Promise<SampleData[]> {
+    console.log('🔥 getContentSamplesByIds called with IDs:', ids);
+    return [];
+  }
+}
+
+// Use database storage
+export const storage = new DbStorage();
