@@ -242,13 +242,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get current user
-  app.get("/api/auth/user", (req, res) => {
+  app.get("/api/auth/user", async (req, res) => {
     if (req.isAuthenticated()) {
       const user = req.user as any;
-      res.json({
-        id: user.id,
-        username: user.username,
-      });
+      const freshUser = await storage.getUserById(user.id);
+      if (freshUser) {
+        res.json({
+          id: freshUser.id,
+          username: freshUser.username,
+          credits: freshUser.credits || 0,
+        });
+      } else {
+        res.status(401).json({ message: "User not found" });
+      }
     } else {
       res.status(401).json({ message: "Not authenticated" });
     }
@@ -263,10 +269,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      const { amount } = req.body;
+      const { amount, credits, provider } = req.body;
       
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: "Valid amount is required" });
+      }
+      
+      if (!credits || credits <= 0) {
+        return res.status(400).json({ message: "Valid credits amount is required" });
       }
       
       const paymentIntent = await stripe.paymentIntents.create({
@@ -274,6 +284,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: "usd",
         automatic_payment_methods: {
           enabled: true,
+        },
+        metadata: {
+          credits: credits.toString(),
+          provider: provider || 'unknown',
+          userId: req.isAuthenticated() ? (req.user as any).id : 'anonymous',
         },
       });
       
@@ -312,7 +327,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('✅ PaymentIntent was successful!', paymentIntent.id, 'Amount:', paymentIntent.amount);
-        // Payment succeeded - user should now have access to paid features
+        
+        // Add credits to user's account
+        const creditsToAdd = parseInt(paymentIntent.metadata.credits || '0');
+        const userId = paymentIntent.metadata.userId;
+        
+        if (userId && userId !== 'anonymous' && creditsToAdd > 0) {
+          try {
+            const user = await storage.getUserById(userId);
+            if (user) {
+              const newCredits = (user.credits || 0) + creditsToAdd;
+              await storage.updateUserCredits(userId, newCredits);
+              console.log(`✅ Added ${creditsToAdd} credits to user ${userId}. New balance: ${newCredits}`);
+            }
+          } catch (error) {
+            console.error('Error updating user credits:', error);
+          }
+        }
         break;
       case 'payment_intent.payment_failed':
         const failedPayment = event.data.object as Stripe.PaymentIntent;

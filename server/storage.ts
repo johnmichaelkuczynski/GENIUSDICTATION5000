@@ -1,4 +1,4 @@
-import { type Document, type RewriteJob, type InsertDocument, type InsertRewriteJob, documents, rewriteJobs } from "@shared/schema";
+import { type Document, type RewriteJob, type InsertDocument, type InsertRewriteJob, documents, rewriteJobs, users } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -11,6 +11,10 @@ interface SampleData {
 }
 
 export interface IStorage {
+  // User operations
+  getUserById(id: string): Promise<any>;
+  updateUserCredits(id: string, credits: number): Promise<void>;
+  
   // Document operations
   createDocument(document: InsertDocument): Promise<Document>;
   getDocument(id: string): Promise<Document | undefined>;
@@ -29,10 +33,24 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private documents: Map<string, Document>;
   private rewriteJobs: Map<string, RewriteJob>;
+  private users: Map<string, any>;
 
   constructor() {
     this.documents = new Map();
     this.rewriteJobs = new Map();
+    this.users = new Map();
+  }
+  
+  async getUserById(id: string): Promise<any> {
+    return this.users.get(id);
+  }
+  
+  async updateUserCredits(id: string, credits: number): Promise<void> {
+    const user = this.users.get(id);
+    if (user) {
+      user.credits = credits;
+      this.users.set(id, user);
+    }
   }
 
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
@@ -98,6 +116,15 @@ export class MemStorage implements IStorage {
 
 // Database-backed storage implementation
 export class DbStorage implements IStorage {
+  async getUserById(id: string): Promise<any> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+  
+  async updateUserCredits(id: string, credits: number): Promise<void> {
+    await db.update(users).set({ credits }).where(eq(users.id, id));
+  }
+  
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
     const [document] = await db.insert(documents).values([insertDocument]).returning();
     if (!document) {

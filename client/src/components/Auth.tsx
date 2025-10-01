@@ -11,6 +11,7 @@ import { LogIn, UserPlus, LogOut } from "lucide-react";
 interface User {
   id: string;
   username: string;
+  credits: number;
 }
 
 export default function Auth() {
@@ -100,10 +101,15 @@ export default function Auth() {
 
   if (user) {
     return (
-      <div className="flex items-center space-x-2">
-        <span className="text-sm text-muted-foreground">
-          {user.username}
-        </span>
+      <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
+          <span className="text-sm font-semibold text-foreground">
+            {user.username}
+          </span>
+          <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary font-bold">
+            {user.credits === -1 ? '∞' : user.credits.toLocaleString()} credits
+          </span>
+        </div>
         <Button
           variant="outline"
           size="sm"
