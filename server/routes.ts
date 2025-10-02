@@ -200,6 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           id: newUser.id,
           username: newUser.username,
+          credits: newUser.credits || 0,
         });
       });
     } catch (error: any) {
@@ -226,6 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           id: user.id,
           username: user.username,
+          credits: user.credits || 0,
         });
       });
     })(req, res, next);
@@ -373,12 +375,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (model.includes('Perplexity')) provider = 'perplexity'; 
       else if (model.includes('DeepSeek')) provider = 'deepseek';
 
+      // Check authentication and credits
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required. Please login to use AI features." });
+      }
+
+      const userId = (req.user as any).id;
+      const { creditService } = await import("./services/creditService");
+      const costInfo = await creditService.getCostInfo(text, provider);
+
+      // Check if user has enough credits
+      const hasCredits = await creditService.checkCredits(userId, costInfo.cost);
+      if (!hasCredits) {
+        return res.status(402).json({ 
+          error: `Insufficient credits. This transformation requires ${costInfo.cost} credits for ${costInfo.wordCount} words.`,
+          requiredCredits: costInfo.cost,
+          wordCount: costInfo.wordCount
+        });
+      }
+
+      // Deduct credits before transformation
+      const deducted = await creditService.deductCredits(userId, costInfo.cost);
+      if (!deducted) {
+        return res.status(402).json({ error: "Failed to deduct credits" });
+      }
+
       const transformedText = await aiProviderService.rewrite(provider, {
         inputText: text,
         customInstructions: instructions || "REWRITE SO THAT THE OUTPUT SCORES MAXIMALLY HIGH WITH RESPECT TO THE FOLLOWING QUESTIONS: IS IT INSIGHTFUL? DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)? IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY? IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING. ARE THE POINTS CLICHES? OR ARE THEY FRESH? DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE? IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY UNFOLD? OR ARE THEY FORCED AND ARTIFICIAL? DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)? IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)? IS IT REAL OR IS IT PHONY? DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC? IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS? IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN? ARE THE POINTS REAL? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE? IS THE WRITING EVASIVE OR DIRECT? ARE THE STATEMENTS AMBIGUOUS? DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT? DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?"
       });
 
-      res.json({ text: transformedText, model });
+      res.json({ text: transformedText, model, creditsUsed: costInfo.cost });
     } catch (error) {
       console.error("Error transforming text:", error);
       res.status(500).json({ 
