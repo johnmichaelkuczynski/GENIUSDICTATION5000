@@ -1151,6 +1151,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const rewriteRequest = validationResult.data;
 
+      // Check authentication and credits
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required. Please login to use AI features." });
+      }
+
+      const userId = (req.user as any).id;
+      const { creditService } = await import("./services/creditService");
+      const costInfo = await creditService.getCostInfo(rewriteRequest.inputText, rewriteRequest.provider);
+
+      const hasCredits = await creditService.checkCredits(userId, costInfo.cost);
+      if (!hasCredits) {
+        return res.status(402).json({ 
+          error: `Insufficient credits. This rewrite requires ${costInfo.cost} credits for ${costInfo.wordCount} words.`,
+          requiredCredits: costInfo.cost
+        });
+      }
+
+      const deducted = await creditService.deductCredits(userId, costInfo.cost);
+      if (!deducted) {
+        return res.status(402).json({ error: "Failed to deduct credits" });
+      }
+
       // Analyze input text
       const inputAnalysis = await gptZeroService.analyzeText(rewriteRequest.inputText);
       
@@ -1195,7 +1217,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create rewrite job with granular sample selection
-      const userId = req.isAuthenticated() ? (req.user as any)?.id : undefined;
       const rewriteJob = await storage.createRewriteJob({
         userId,
         inputText: rewriteRequest.inputText,
@@ -1243,6 +1264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           inputAiScore: inputAnalysis.aiScore,
           outputAiScore: outputAnalysis.aiScore,
           jobId: rewriteJob.id,
+          creditsUsed: costInfo.cost,
         };
 
         res.json(response);
@@ -1588,11 +1610,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Text is required' });
       }
 
+      // Check authentication and credits
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required. Please login to use AI features." });
+      }
+
+      const userId = (req.user as any).id;
+      const { creditService } = await import("./services/creditService");
+      const costInfo = await creditService.getCostInfo(text, provider);
+
+      const hasCredits = await creditService.checkCredits(userId, costInfo.cost);
+      if (!hasCredits) {
+        return res.status(402).json({ 
+          error: `Insufficient credits. Intelligence evaluation requires ${costInfo.cost} credits for ${costInfo.wordCount} words.`,
+          requiredCredits: costInfo.cost
+        });
+      }
+
+      const deducted = await creditService.deductCredits(userId, costInfo.cost);
+      if (!deducted) {
+        return res.status(402).json({ error: "Failed to deduct credits" });
+      }
+
       console.log("Starting intelligence evaluation via API");
       const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluationNew.js');
       const result = await intelligenceEvaluationService.evaluateIntelligence(text, provider, comprehensive);
       
-      res.json(result);
+      res.json({ ...result, creditsUsed: costInfo.cost });
     } catch (error: any) {
       console.error('Intelligence evaluation error:', error);
       res.status(500).json({ error: error.message });
@@ -1607,11 +1651,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Text is required' });
       }
 
+      // Check authentication and credits
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required. Please login to use AI features." });
+      }
+
+      const userId = (req.user as any).id;
+      const { creditService } = await import("./services/creditService");
+      const costInfo = await creditService.getCostInfo(text, provider);
+
+      const hasCredits = await creditService.checkCredits(userId, costInfo.cost);
+      if (!hasCredits) {
+        return res.status(402).json({ 
+          error: `Insufficient credits. Originality evaluation requires ${costInfo.cost} credits for ${costInfo.wordCount} words.`,
+          requiredCredits: costInfo.cost
+        });
+      }
+
+      const deducted = await creditService.deductCredits(userId, costInfo.cost);
+      if (!deducted) {
+        return res.status(402).json({ error: "Failed to deduct credits" });
+      }
+
       console.log("Starting originality evaluation via API");
       const { intelligenceEvaluationService } = await import('./services/intelligenceEvaluationNew.js');
       const result = await intelligenceEvaluationService.evaluateOriginality(text, provider);
       
-      res.json(result);
+      res.json({ ...result, creditsUsed: costInfo.cost });
     } catch (error: any) {
       console.error('Originality evaluation error:', error);
       res.status(500).json({ error: error.message });
@@ -1627,6 +1693,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Text is required' });
       }
 
+      // Check authentication and credits
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required. Please login to use AI features." });
+      }
+
+      const userId = (req.user as any).id;
+      const { creditService } = await import("./services/creditService");
+      const costInfo = await creditService.getCostInfo(text, provider);
+
+      const hasCredits = await creditService.checkCredits(userId, costInfo.cost);
+      if (!hasCredits) {
+        return res.status(402).json({ 
+          error: `Insufficient credits. This rewrite requires ${costInfo.cost} credits for ${costInfo.wordCount} words.`,
+          requiredCredits: costInfo.cost
+        });
+      }
+
+      const deducted = await creditService.deductCredits(userId, costInfo.cost);
+      if (!deducted) {
+        return res.status(402).json({ error: "Failed to deduct credits" });
+      }
+
       console.log("Starting intelligent rewrite via API");
       const rewrittenText = await intelligentRewriteService.rewrite({
         text,
@@ -1637,7 +1725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clean markup from rewritten text
       const cleanedRewrittenText = cleanMarkup(rewrittenText);
       
-      res.json({ rewrittenText: cleanedRewrittenText });
+      res.json({ rewrittenText: cleanedRewrittenText, creditsUsed: costInfo.cost });
     } catch (error: any) {
       console.error('Intelligent rewrite error:', error);
       res.status(500).json({ error: error.message });

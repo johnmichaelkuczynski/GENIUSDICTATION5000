@@ -50,7 +50,7 @@ export const creditService = {
   },
 
   // Get credit cost info without deducting
-  async getCostInfo(text: string, provider: string = 'openai'): CreditCost {
+  async getCostInfo(text: string, provider: string = 'openai'): Promise<CreditCost> {
     const wordCount = text.trim().split(/\s+/).length;
     const cost = this.calculateCost(wordCount, provider);
     return { cost, wordCount };

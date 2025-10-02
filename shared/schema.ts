@@ -196,6 +196,7 @@ export interface RewriteResponse {
   inputAiScore: number;
   outputAiScore: number;
   jobId: string;
+  creditsUsed?: number;
 }
 
 export interface ElevenLabsVoice {
