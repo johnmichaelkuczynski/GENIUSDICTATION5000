@@ -33,9 +33,11 @@ export default function Auth({ showDialog = false, onDialogChange }: AuthProps =
   };
 
   // Get current user
-  const { data: user } = useQuery<User>({
+  const { data: user, refetch } = useQuery<User>({
     queryKey: ["/api/auth/user"],
     retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Register mutation
@@ -43,8 +45,9 @@ export default function Auth({ showDialog = false, onDialogChange }: AuthProps =
     mutationFn: async (data: { username: string; password: string }) => {
       return await apiRequest("POST", "/api/auth/register", data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      await refetch();
       toast({
         title: "Success",
         description: "Account created successfully!",
@@ -67,8 +70,9 @@ export default function Auth({ showDialog = false, onDialogChange }: AuthProps =
     mutationFn: async (data: { username: string; password: string }) => {
       return await apiRequest("POST", "/api/auth/login", data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      await refetch();
       toast({
         title: "Success",
         description: "Logged in successfully!",
