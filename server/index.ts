@@ -6,23 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
-// Skip JSON parsing for Stripe webhook (needs raw body)
-app.use((req, res, next) => {
-  if (req.originalUrl === '/api/stripe/webhook') {
-    next();
-  } else {
-    express.json({ limit: '50mb' })(req, res, next);
-  }
-});
-app.use((req, res, next) => {
-  if (req.originalUrl === '/api/stripe/webhook') {
-    next();
-  } else {
-    express.urlencoded({ extended: false, limit: '50mb' })(req, res, next);
-  }
-});
-
-// Session configuration
+// Session configuration MUST come before body parsers
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'genius-dictation-secret-key-change-in-production',
@@ -40,6 +24,22 @@ app.use(
 // Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Skip JSON parsing for Stripe webhook (needs raw body)
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/stripe/webhook') {
+    next();
+  } else {
+    express.json({ limit: '50mb' })(req, res, next);
+  }
+});
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/stripe/webhook') {
+    next();
+  } else {
+    express.urlencoded({ extended: false, limit: '50mb' })(req, res, next);
+  }
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
